@@ -36,4 +36,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('esforcoMenos1').addEventListener('click', () => Anima.alterarEsforco(-1));
     document.getElementById('esforcoMais1').addEventListener('click', () => Anima.alterarEsforco(1));
     document.getElementById('esforcoMais5').addEventListener('click', () => Anima.alterarEsforco(5));
+
+    /* Delegação de eventos para elementos editáveis no modal */
+    document.getElementById('visualizarFicha').addEventListener('click', (e) => {
+        const target = e.target;
+        if (target.classList.contains('editable')) {
+            const id = target.id;
+            // Campos de texto
+            const camposTexto = ['profissaoInfo', 'caminhos', 'oculto', 'natural'];
+            // Campos de atributos
+            const camposAtributos = ['forca', 'agilidade', 'inteligencia', 'vigor', 'presenca', 'pv', 'pe', 'sanidadeStat', 'defesa', 'nex'];
+            // Campos de perícias
+            const camposPericias = [
+                'acoesMais', 'acrobacia', 'adestramento', 'artes', 'atletismo', 'atualidades', 'ciencias',
+                'crime', 'diplomacia', 'enganacao', 'fortitude', 'furtividade', 'iniciativa', 'intimidacao',
+                'intuicao', 'investigacao', 'luta', 'medicina', 'ocultismo', 'percepcao', 'pilotagem',
+                'pontaria', 'profissao', 'reflexos', 'religiao', 'sobrevivencia', 'tatica', 'tecnologia', 'vontade'
+            ];
+
+            if (camposTexto.includes(id)) {
+                Anima.editarTexto(id, target);
+            } else if (camposAtributos.includes(id)) {
+                Anima.editarAtributo(id, target);
+            } else if (camposPericias.includes(id)) {
+                Anima.editarPericia(id, target);
+            }
+        }
+    });
 });
