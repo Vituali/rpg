@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -57,32 +18,32 @@
 
         <!-- Barra de Vida -->
         <div class="status-bar">
-            <button class="arrow-btn arrow-left-large" onclick="Anima.alterarVida(-5)">≪</button>
-            <button class="arrow-btn arrow-left-small" onclick="Anima.alterarVida(-1)">←</button>
+            <button class="arrow-btn arrow-left-large" id="vidaMenos5">≪</button>
+            <button class="arrow-btn arrow-left-small" id="vidaMenos1">←</button>
             <div id="hpBar" class="hp-bar"></div>
             <span id="hpLabel" class="bar-label">Vida: 0/0</span>
-            <button class="arrow-btn arrow-right-small" onclick="Anima.alterarVida(1)">→</button>
-            <button class="arrow-btn arrow-right-large" onclick="Anima.alterarVida(5)">≫</button>
+            <button class="arrow-btn arrow-right-small" id="vidaMais1">→</button>
+            <button class="arrow-btn arrow-right-large" id="vidaMais5">≫</button>
         </div>
 
         <!-- Barra de Sanidade -->
         <div class="status-bar">
-            <button class="arrow-btn arrow-left-large" onclick="Anima.alterarSanidade(-5)">≪</button>
-            <button class="arrow-btn arrow-left-small" onclick="Anima.alterarSanidade(-1)">←</button>
+            <button class="arrow-btn arrow-left-large" id="sanidadeMenos5">≪</button>
+            <button class="arrow-btn arrow-left-small" id="sanidadeMenos1">←</button>
             <div id="sanidadeBar" class="sanidade-bar"></div>
             <span id="sanidadeLabel" class="bar-label">Sanidade: 0/0</span>
-            <button class="arrow-btn arrow-right-small" onclick="Anima.alterarSanidade(1)">→</button>
-            <button class="arrow-btn arrow-right-large" onclick="Anima.alterarSanidade(5)">≫</button>
+            <button class="arrow-btn arrow-right-small" id="sanidadeMais1">→</button>
+            <button class="arrow-btn arrow-right-large" id="sanidadeMais5">≫</button>
         </div>
 
         <!-- Barra de Esforço -->
         <div class="status-bar">
-            <button class="arrow-btn arrow-left-large" onclick="Anima.alterarEsforco(-5)">≪</button>
-            <button class="arrow-btn arrow-left-small" onclick="Anima.alterarEsforco(-1)">←</button>
+            <button class="arrow-btn arrow-left-large" id="esforcoMenos5">≪</button>
+            <button class="arrow-btn arrow-left-small" id="esforcoMenos1">←</button>
             <div id="esforcoBar" class="esforco-bar"></div>
             <span id="esforcoLabel" class="bar-label">Ponto de Esforço: 0/0</span>
-            <button class="arrow-btn arrow-right-small" onclick="Anima.alterarEsforco(1)">→</button>
-            <button class="arrow-btn arrow-right-large" onclick="Anima.alterarEsforco(5)">≫</button>
+            <button class="arrow-btn arrow-right-small" id="esforcoMais1">→</button>
+            <button class="arrow-btn arrow-right-large" id="esforcoMais5">≫</button>
         </div>
 
         <button id="verFichaBtn" disabled>Ver Ficha</button>
@@ -94,10 +55,10 @@
     <!-- Modal para visualizar/criar ficha -->
     <div id="fichaModal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="Anima.toggleFicha()">×</span>
+            <span class="close-btn" id="fecharModalBtn">×</span>
             <div id="visualizarFicha" style="display: none;">
                 <h2 id="modalNomePersonagem">Ficha</h2>
-                <button onclick="Anima.excluirFicha()">Excluir Ficha</button>
+                <button id="excluirFichaBtn">Excluir Ficha</button>
                 <div class="modal-layout">
                     <div class="modal-main">
                         <h3>Informações</h3>
@@ -204,7 +165,7 @@
                     <label>Tática: <input type="number" id="novoTatica" value="0"></label>
                     <label>Tecnologia: <input type="number" id="novoTecnologia" value="0"></label>
                     <label>Vontade: <input type="number" id="novoVontade" value="0"></label>
-                    <button type="button" onclick="Anima.criarFicha()">Criar Ficha</button>
+                    <button type="button" id="submitCriarFichaBtn">Criar Ficha</button>
                 </form>
             </div>
         </div>
