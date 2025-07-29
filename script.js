@@ -1,33 +1,24 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-
-// Configuração do Firebase
+/* Configuração do Firebase */
 const firebaseConfig = {
-  apiKey: "AIzaSyCubXJd9jgkmn0hJWXS67yKqzTGycMcC9w",
-  authDomain: "anima-rpg.firebaseapp.com",
-  databaseURL: "https://anima-rpg-default-rtdb.firebaseio.com",
-  projectId: "anima-rpg",
-  storageBucket: "anima-rpg.firebasestorage.app",
-  messagingSenderId: "524426526680",
-  appId: "1:524426526680:web:ef17648b2155aff5587cad",
-  measurementId: "G-N6ZT1FQRM6"
+    apiKey: "AIzaSyCubXJd9jgkmn0hJWXS67yKqzTGycMcC9w",
+    authDomain: "anima-rpg.firebaseapp.com",
+    databaseURL: "https://anima-rpg-default-rtdb.firebaseio.com",
+    projectId: "anima-rpg",
+    storageBucket: "anima-rpg.firebasestorage.app",
+    messagingSenderId: "524426526680",
+    appId: "1:524426526680:web:ef17648b2155aff5587cad",
+    measurementId: "G-N6ZT1FQRM6"
 };
 
-// Inicializar Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+/* Inicializar Firebase */
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
 
-// Login anônimo
-signInAnonymously(auth)
-    .then(() => console.log('Usuário anônimo logado'))
-    .catch(e => console.error('Erro ao logar anônimo:', e));
-
-// URL base para imagens no GitHub Pages
+/* URL base para imagens no GitHub Pages */
 const BASE_URL = 'https://vituali.github.io/rpg/';
 
-// Função para gerar UUID
+/* Função para gerar UUID */
 function generateUUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -35,10 +26,12 @@ function generateUUID() {
     });
 }
 
+/* Objeto principal para gerenciar fichas */
 const Anima = {
     currentFichaId: null,
     fichas: {},
 
+    /* Atualiza as barras de vida, sanidade e esforço na interface */
     atualizarBarras() {
         const hpBar = document.getElementById('hpBar');
         const hpLabel = document.getElementById('hpLabel');
@@ -66,6 +59,7 @@ const Anima = {
         esforcoLabel.textContent = `Ponto de Esforço: ${ficha.esforco}/${ficha.esforcoMax}`;
     },
 
+    /* Altera o valor da vida */
     alterarVida(valor) {
         if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
@@ -74,6 +68,7 @@ const Anima = {
         this.salvarDados();
     },
 
+    /* Altera o valor da sanidade */
     alterarSanidade(valor) {
         if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
@@ -82,6 +77,7 @@ const Anima = {
         this.salvarDados();
     },
 
+    /* Altera o valor do esforço */
     alterarEsforco(valor) {
         if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
@@ -90,6 +86,7 @@ const Anima = {
         this.salvarDados();
     },
 
+    /* Edita um atributo numérico */
     editarAtributo(nome, elemento) {
         if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
@@ -122,12 +119,11 @@ const Anima = {
 
         input.addEventListener('blur', salvarEdicao);
         input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                salvarEdicao();
-            }
+            if (e.key === 'Enter') salvarEdicao();
         });
     },
 
+    /* Edita uma perícia numérica */
     editarPericia(nome, elemento) {
         if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
@@ -156,12 +152,11 @@ const Anima = {
 
         input.addEventListener('blur', salvarEdicao);
         input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                salvarEdicao();
-            }
+            if (e.key === 'Enter') salvarEdicao();
         });
     },
 
+    /* Edita um campo de texto */
     editarTexto(nome, elemento) {
         if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
@@ -190,25 +185,26 @@ const Anima = {
 
         input.addEventListener('blur', salvarEdicao);
         input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                salvarEdicao();
-            }
+            if (e.key === 'Enter') salvarEdicao();
         });
     },
 
+    /* Inicia um ritual */
     iniciarRitual() {
         alert('Tô sentindo uma energia poderosa, cria! Ritual iniciado!');
     },
 
+    /* Explora mistérios */
     explorarMisterios() {
         alert('Partiu desbravar os mistérios, Victor! Fica ligado nos sinais!');
     },
 
+    /* Salva os dados no Firestore */
     async salvarDados() {
         if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
         try {
-            await setDoc(doc(db, 'fichas', this.currentFichaId), ficha);
+            await db.collection('fichas').doc(this.currentFichaId).set(ficha);
             console.log('Ficha salva no Firestore:', ficha);
         } catch (e) {
             console.error('Erro ao salvar ficha:', e);
@@ -216,9 +212,10 @@ const Anima = {
         }
     },
 
+    /* Carrega as fichas do Firestore */
     async carregarDados() {
         try {
-            const snapshot = await getDocs(collection(db, 'fichas'));
+            const snapshot = await db.collection('fichas').get();
             this.fichas = {};
             snapshot.forEach(doc => {
                 this.fichas[doc.id] = doc.data();
@@ -241,16 +238,18 @@ const Anima = {
         }
     },
 
+    /* Seleciona uma ficha */
     selecionarFicha(id) {
         this.currentFichaId = id;
         this.atualizarInterface();
     },
 
+    /* Exclui a ficha atual */
     async excluirFicha() {
         if (!this.currentFichaId) return;
         if (confirm('Tem certeza que deseja excluir esta ficha?')) {
             try {
-                await deleteDoc(doc(db, 'fichas', this.currentFichaId));
+                await db.collection('fichas').doc(this.currentFichaId).delete();
                 delete this.fichas[this.currentFichaId];
                 this.currentFichaId = null;
                 this.carregarDados();
@@ -262,6 +261,7 @@ const Anima = {
         }
     },
 
+    /* Alterna a visibilidade do modal de ficha */
     toggleFicha() {
         const modal = document.getElementById('fichaModal');
         const visualizarFicha = document.getElementById('visualizarFicha');
@@ -278,6 +278,7 @@ const Anima = {
         }
     },
 
+    /* Mostra o formulário para criar uma nova ficha */
     mostrarCriarFicha() {
         const modal = document.getElementById('fichaModal');
         const visualizarFicha = document.getElementById('visualizarFicha');
@@ -334,6 +335,7 @@ const Anima = {
         document.getElementById('novoVontade').value = '0';
     },
 
+    /* Cria uma nova ficha */
     async criarFicha() {
         const nome = document.getElementById('novoNome').value.trim();
         if (!nome) {
@@ -402,7 +404,7 @@ const Anima = {
 
         const id = generateUUID();
         try {
-            await setDoc(doc(db, 'fichas', id), novaFicha);
+            await db.collection('fichas').doc(id).set(novaFicha);
             this.fichas[id] = novaFicha;
             this.currentFichaId = id;
             await this.carregarDados();
@@ -414,6 +416,7 @@ const Anima = {
         }
     },
 
+    /* Atualiza a interface principal */
     atualizarInterface() {
         const nomePersonagem = document.getElementById('nomePersonagem');
         const characterImg = document.getElementById('characterImg');
@@ -435,6 +438,7 @@ const Anima = {
         this.atualizarFicha();
     },
 
+    /* Atualiza os dados exibidos no modal da ficha */
     atualizarFicha() {
         if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
@@ -492,6 +496,24 @@ const Anima = {
     }
 };
 
+/* Configura os eventos após o carregamento do DOM */
 document.addEventListener('DOMContentLoaded', () => {
+    /* Login anônimo no Firebase */
+    auth.signInAnonymously()
+        .then(() => console.log('Usuário anônimo logado'))
+        .catch(e => console.error('Erro ao logar anônimo:', e));
+
+    /* Carrega as fichas do Firestore */
     Anima.carregarDados();
+
+    /* Adiciona evento para selecionar ficha */
+    document.getElementById('seletorFichas').addEventListener('change', (e) => {
+        Anima.selecionarFicha(e.target.value);
+    });
+
+    /* Adiciona eventos aos botões */
+    document.getElementById('verFichaBtn').addEventListener('click', () => Anima.toggleFicha());
+    document.getElementById('criarFichaBtn').addEventListener('click', () => Anima.mostrarCriarFicha());
+    document.getElementById('iniciarRitualBtn').addEventListener('click', () => Anima.iniciarRitual());
+    document.getElementById('explorarMisteriosBtn').addEventListener('click', () => Anima.explorarMisterios());
 });
