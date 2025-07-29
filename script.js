@@ -1,4 +1,5 @@
 /* Configuração do Firebase */
+document.addEventListener("DOMContentLoaded", function () {
 const firebaseConfig = {
     apiKey: "AIzaSyCubXJd9jgkmn0hJWXS67yKqzTGycMcC9w",
     authDomain: "anima-rpg.firebaseapp.com",
@@ -8,13 +9,31 @@ const firebaseConfig = {
     messagingSenderId: "524426526680",
     appId: "1:524426526680:web:ef17648b2155aff5587cad",
     measurementId: "G-N6ZT1FQRM6"
-};
+    };
 
-/* Inicializar Firebase */
-const app = firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
-
+  // Inicializar Firebase e autenticação anônima
+  try {
+    const app = firebase.initializeApp(firebaseConfig);
+    db = firebase.getDatabase(app);
+    auth = firebase.getAuth(app);
+    firebase.signInAnonymously(auth).then(() => {
+      console.log("✅ Usuário autenticado anonimamente:", auth.currentUser.uid);
+      if (atendenteSelect) {
+        atendenteSelect.value = atendenteAtual;
+        if (atendenteAtual) {
+          carregarDoFirebase();
+        }
+      }
+    }).catch(error => {
+      console.error("❌ Erro ao autenticar anonimamente:", error);
+      alert("Erro de autenticação: " + error.message);
+    });
+    console.log("✅ Firebase inicializado com sucesso");
+  } catch (error) {
+    console.error("❌ Erro ao inicializar Firebase:", error);
+    alert("Erro ao conectar com o banco de dados: " + error.message);
+    return;
+  }
 /* URL base para imagens no GitHub Pages */
 const BASE_URL = 'https://vituali.github.io/rpg/';
 
