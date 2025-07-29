@@ -1,3 +1,23 @@
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+// Configuração do Firebase
+const firebaseConfig = {
+    apiKey: "SUA_API_KEY",
+    authDomain: "SEU_PROJETO.firebaseapp.com",
+    projectId: "SEU_PROJETO",
+    storageBucket: "SEU_PROJETO.appspot.com",
+    messagingSenderId: "SEU_SENDER_ID",
+    appId: "SUA_APP_ID"
+};
+
+// Inicializar Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// URL base para imagens no GitHub Pages
+const BASE_URL = 'https://vituali.github.io/rpg/';
+
 const Anima = {
     currentFichaId: null,
     fichas: {},
@@ -171,7 +191,7 @@ const Anima = {
         if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
         try {
-            await firebase.firestore().collection('fichas').doc(this.currentFichaId).set(ficha);
+            await setDoc(doc(db, 'fichas', this.currentFichaId), ficha);
             console.log('Ficha salva no Firestore:', ficha);
         } catch (e) {
             console.error('Erro ao salvar ficha:', e);
@@ -180,7 +200,7 @@ const Anima = {
 
     async carregarDados() {
         try {
-            const snapshot = await firebase.firestore().collection('fichas').get();
+            const snapshot = await getDocs(collection(db, 'fichas'));
             this.fichas = {};
             snapshot.forEach(doc => {
                 this.fichas[doc.id] = doc.data();
@@ -211,7 +231,7 @@ const Anima = {
         if (!this.currentFichaId) return;
         if (confirm('Tem certeza que deseja excluir esta ficha?')) {
             try {
-                await firebase.firestore().collection('fichas').doc(this.currentFichaId).delete();
+                await deleteDoc(doc(db, 'fichas', this.currentFichaId));
                 delete this.fichas[this.currentFichaId];
                 this.currentFichaId = null;
                 this.carregarDados();
@@ -246,7 +266,7 @@ const Anima = {
 
         const ficha = this.fichas[this.currentFichaId];
         nomePersonagem.textContent = ficha.nome;
-        characterImg.src = ficha.imagem || 'https://via.placeholder.com/120';
+        characterImg.src = BASE_URL + (ficha.imagem || 'https://via.placeholder.com/120');
         verFichaBtn.disabled = false;
         this.atualizarBarras();
         this.atualizarFicha();
