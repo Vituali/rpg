@@ -1,5 +1,7 @@
 import { generateUUID } from '../utils.js';
 import Anima from './index.js';
+import { db } from '../firebase-config.js';
+import { doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 export function alterarVida(fichas, currentFichaId, valor) {
     if (!currentFichaId) return;
@@ -201,7 +203,6 @@ export async function criarFicha(fichas, currentFichaId) {
         await setDoc(doc(db, 'fichas', id), novaFicha);
         fichas[id] = novaFicha;
         document.getElementById('fichaModal').style.display = 'none';
-        Anima.marcarAlteracao();
         return id;
     } catch (e) {
         console.error('Erro ao criar ficha:', e);

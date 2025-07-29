@@ -14,10 +14,14 @@ const Anima = {
         document.getElementById('salvarBtn').disabled = false;
     },
     async salvarAlteracoes() {
+        console.log('Verificando salvamento automático: alteracoesPendentes=', this.alteracoesPendentes, 'currentFichaId=', this.currentFichaId);
         if (this.alteracoesPendentes && this.currentFichaId) {
             await this.salvarDados(this.fichas, this.currentFichaId);
             this.alteracoesPendentes = false;
             document.getElementById('salvarBtn').disabled = true;
+            console.log('Alterações salvas no Firestore e alteracoesPendentes resetado.');
+        } else {
+            console.log('Nenhum salvamento realizado: sem alterações pendentes ou ficha selecionada.');
         }
     }
 };
