@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anima Ficha</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Favicon opcional para evitar erro 404 -->
     <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body>
@@ -40,72 +39,138 @@
             <button class="arrow-btn arrow-right-large" onclick="Anima.alterarEsforco(10)">≫</button>
         </div>
         <button id="verFichaBtn" onclick="Anima.toggleFicha()" disabled>Ver Ficha</button>
+        <button onclick="Anima.mostrarCriarFicha()">Criar Ficha</button>
         <button onclick="Anima.iniciarRitual()">Iniciar Ritual</button>
         <button onclick="Anima.explorarMisterios()">Explorar Mistérios</button>
     </div>
     <div id="fichaModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="Anima.toggleFicha()">×</span>
-            <h3>Ficha - <span id="modalNomePersonagem"></span></h3>
-            <button onclick="Anima.excluirFicha()" style="position: absolute; top: 10px; right: 50px;">Excluir Ficha</button>
-            <div class="modal-layout">
-                <div class="modal-main">
-                    <h4>Informações</h4>
-                    <p>Profissão: <span id="profissaoInfo" class="editable" onclick="Anima.editarTexto('profissaoInfo', this)"></span></p>
-                    <p>Caminhos: <span id="caminhos" class="editable" onclick="Anima.editarTexto('caminhos', this)"></span></p>
-                    <p>Oculto: <span id="oculto" class="editable" onclick="Anima.editarTexto('oculto', this)"></span></p>
-                    <p>Natural: <span id="natural" class="editable" onclick="Anima.editarTexto('natural', this)"></span></p>
-                    <h4>Atributos</h4>
-                    <p>Força: <span id="forca" class="editable" onclick="Anima.editarAtributo('forca', this)"></span></p>
-                    <p>Agilidade: <span id="agilidade" class="editable" onclick="Anima.editarAtributo('agilidade', this)"></span></p>
-                    <p>Inteligência: <span id="inteligencia" class="editable" onclick="Anima.editarAtributo('inteligencia', this)"></span></p>
-                    <p>Vigor: <span id="vigor" class="editable" onclick="Anima.editarAtributo('vigor', this)"></span></p>
-                    <p>Presença: <span id="presenca" class="editable" onclick="Anima.editarAtributo('presenca', this)"></span></p>
-                    <h4>Estatísticas</h4>
-                    <p>PV: <span id="pv" class="editable" onclick="Anima.editarAtributo('vida', this)"></span></p>
-                    <p>PE: <span id="pe" class="editable" onclick="Anima.editarAtributo('esforco', this)"></span></p>
-                    <p>Sanidade: <span id="sanidadeStat" class="editable" onclick="Anima.editarAtributo('sanidade', this)"></span></p>
-                    <p>Defesa: <span id="defesa" class="editable" onclick="Anima.editarAtributo('defesa', this)"></span></p>
-                    <p>NEX: <span id="nex" class="editable" onclick="Anima.editarAtributo('nex', this)"></span></p>
-                    <h4>Itens</h4>
-                    <ul id="itens"></ul>
+            <div id="visualizarFicha" style="display: none;">
+                <h3>Ficha - <span id="modalNomePersonagem"></span></h3>
+                <button onclick="Anima.excluirFicha()" style="position: absolute; top: 10px; right: 50px;">Excluir Ficha</button>
+                <div class="modal-layout">
+                    <div class="modal-main">
+                        <h4>Informações</h4>
+                        <p>Profissão: <span id="profissaoInfo" class="editable" onclick="Anima.editarTexto('profissaoInfo', this)"></span></p>
+                        <p>Caminhos: <span id="caminhos" class="editable" onclick="Anima.editarTexto('caminhos', this)"></span></p>
+                        <p>Oculto: <span id="oculto" class="editable" onclick="Anima.editarTexto('oculto', this)"></span></p>
+                        <p>Natural: <span id="natural" class="editable" onclick="Anima.editarTexto('natural', this)"></span></p>
+                        <h4>Atributos</h4>
+                        <p>Força: <span id="forca" class="editable" onclick="Anima.editarAtributo('forca', this)"></span></p>
+                        <p>Agilidade: <span id="agilidade" class="editable" onclick="Anima.editarAtributo('agilidade', this)"></span></p>
+                        <p>Inteligência: <span id="inteligencia" class="editable" onclick="Anima.editarAtributo('inteligencia', this)"></span></p>
+                        <p>Vigor: <span id="vigor" class="editable" onclick="Anima.editarAtributo('vigor', this)"></span></p>
+                        <p>Presença: <span id="presenca" class="editable" onclick="Anima.editarAtributo('presenca', this)"></span></p>
+                        <h4>Estatísticas</h4>
+                        <p>PV: <span id="pv" class="editable" onclick="Anima.editarAtributo('vida', this)"></span></p>
+                        <p>PE: <span id="pe" class="editable" onclick="Anima.editarAtributo('esforco', this)"></span></p>
+                        <p>Sanidade: <span id="sanidadeStat" class="editable" onclick="Anima.editarAtributo('sanidade', this)"></span></p>
+                        <p>Defesa: <span id="defesa" class="editable" onclick="Anima.editarAtributo('defesa', this)"></span></p>
+                        <p>NEX: <span id="nex" class="editable" onclick="Anima.editarAtributo('nex', this)"></span></p>
+                        <h4>Itens</h4>
+                        <ul id="itens"></ul>
+                    </div>
+                    <div class="modal-sidebar">
+                        <h4>Perícias</h4>
+                        <p>Ações+: <span id="acoesMais" class="editable" onclick="Anima.editarPericia('acoesMais', this)"></span></p>
+                        <p>Acrobacia: <span id="acrobacia" class="editable" onclick="Anima.editarPericia('acrobacia', this)"></span></p>
+                        <p>Adestramento: <span id="adestramento" class="editable" onclick="Anima.editarPericia('adestramento', this)"></span></p>
+                        <p>Artes: <span id="artes" class="editable" onclick="Anima.editarPericia('artes', this)"></span></p>
+                        <p>Atletismo: <span id="atletismo" class="editable" onclick="Anima.editarPericia('atletismo', this)"></span></p>
+                        <p>Atualidades: <span id="atualidades" class="editable" onclick="Anima.editarPericia('atualidades', this)"></span></p>
+                        <p>Ciências: <span id="ciencias" class="editable" onclick="Anima.editarPericia('ciencias', this)"></span></p>
+                        <p>Crime: <span id="crime" class="editable" onclick="Anima.editarPericia('crime', this)"></span></p>
+                        <p>Diplomacia: <span id="diplomacia" class="editable" onclick="Anima.editarPericia('diplomacia', this)"></span></p>
+                        <p>Enganação: <span id="enganacao" class="editable" onclick="Anima.editarPericia('enganacao', this)"></span></p>
+                        <p>Fortitude: <span id="fortitude" class="editable" onclick="Anima.editarPericia('fortitude', this)"></span></p>
+                        <p>Furtividade: <span id="furtividade" class="editable" onclick="Anima.editarPericia('furtividade', this)"></span></p>
+                        <p>Iniciativa: <span id="iniciativa" class="editable" onclick="Anima.editarPericia('iniciativa', this)"></span></p>
+                        <p>Intimidação: <span id="intimidacao" class="editable" onclick="Anima.editarPericia('intimidacao', this)"></span></p>
+                        <p>Intuição: <span id="intuicao" class="editable" onclick="Anima.editarPericia('intuicao', this)"></span></p>
+                        <p>Investigação: <span id="investigacao" class="editable" onclick="Anima.editarPericia('investigacao', this)"></span></p>
+                        <p>Luta: <span id="luta" class="editable" onclick="Anima.editarPericia('luta', this)"></span></p>
+                        <p>Medicina: <span id="medicina" class="editable" onclick="Anima.editarPericia('medicina', this)"></span></p>
+                        <p>Ocultismo: <span id="ocultismo" class="editable" onclick="Anima.editarPericia('ocultismo', this)"></span></p>
+                        <p>Percepção: <span id="percepcao" class="editable" onclick="Anima.editarPericia('percepcao', this)"></span></p>
+                        <p>Pilotagem: <span id="pilotagem" class="editable" onclick="Anima.editarPericia('pilotagem', this)"></span></p>
+                        <p>Pontaria: <span id="pontaria" class="editable" onclick="Anima.editarPericia('pontaria', this)"></span></p>
+                        <p>Profissão: <span id="profissao" class="editable" onclick="Anima.editarPericia('profissao', this)"></span></p>
+                        <p>Reflexos: <span id="reflexos" class="editable" onclick="Anima.editarPericia('reflexos', this)"></span></p>
+                        <p>Religião: <span id="religiao" class="editable" onclick="Anima.editarPericia('religiao', this)"></span></p>
+                        <p>Sobrevivência: <span id="sobrevivencia" class="editable" onclick="Anima.editarPericia('sobrevivencia', this)"></span></p>
+                        <p>Tática: <span id="tatica" class="editable" onclick="Anima.editarPericia('tatica', this)"></span></p>
+                        <p>Tecnologia: <span id="tecnologia" class="editable" onclick="Anima.editarPericia('tecnologia', this)"></span></p>
+                        <p>Vontade: <span id="vontade" class="editable" onclick="Anima.editarPericia('vontade', this)"></span></p>
+                    </div>
                 </div>
-                <div class="modal-sidebar">
-                    <h4>Perícias</h4>
-                    <p>Ações+: <span id="acoesMais" class="editable" onclick="Anima.editarPericia('acoesMais', this)"></span></p>
-                    <p>Acrobacia: <span id="acrobacia" class="editable" onclick="Anima.editarPericia('acrobacia', this)"></span></p>
-                    <p>Adestramento: <span id="adestramento" class="editable" onclick="Anima.editarPericia('adestramento', this)"></span></p>
-                    <p>Artes: <span id="artes" class="editable" onclick="Anima.editarPericia('artes', this)"></span></p>
-                    <p>Atletismo: <span id="atletismo" class="editable" onclick="Anima.editarPericia('atletismo', this)"></span></p>
-                    <p>Atualidades: <span id="atualidades" class="editable" onclick="Anima.editarPericia('atualidades', this)"></span></p>
-                    <p>Ciências: <span id="ciencias" class="editable" onclick="Anima.editarPericia('ciencias', this)"></span></p>
-                    <p>Crime: <span id="crime" class="editable" onclick="Anima.editarPericia('crime', this)"></span></p>
-                    <p>Diplomacia: <span id="diplomacia" class="editable" onclick="Anima.editarPericia('diplomacia', this)"></span></p>
-                    <p>Enganação: <span id="enganacao" class="editable" onclick="Anima.editarPericia('enganacao', this)"></span></p>
-                    <p>Fortitude: <span id="fortitude" class="editable" onclick="Anima.editarPericia('fortitude', this)"></span></p>
-                    <p>Furtividade: <span id="furtividade" class="editable" onclick="Anima.editarPericia('furtividade', this)"></span></p>
-                    <p>Iniciativa: <span id="iniciativa" class="editable" onclick="Anima.editarPericia('iniciativa', this)"></span></p>
-                    <p>Intimidação: <span id="intimidacao" class="editable" onclick="Anima.editarPericia('intimidacao', this)"></span></p>
-                    <p>Intuição: <span id="intuicao" class="editable" onclick="Anima.editarPericia('intuicao', this)"></span></p>
-                    <p>Investigação: <span id="investigacao" class="editable" onclick="Anima.editarPericia('investigacao', this)"></span></p>
-                    <p>Luta: <span id="luta" class="editable" onclick="Anima.editarPericia('luta', this)"></span></p>
-                    <p>Medicina: <span id="medicina" class="editable" onclick="Anima.editarPericia('medicina', this)"></span></p>
-                    <p>Ocultismo: <span id="ocultismo" class="editable" onclick="Anima.editarPericia('ocultismo', this)"></span></p>
-                    <p>Percepção: <span id="percepcao" class="editable" onclick="Anima.editarPericia('percepcao', this)"></span></p>
-                    <p>Pilotagem: <span id="pilotagem" class="editable" onclick="Anima.editarPericia('pilotagem', this)"></span></p>
-                    <p>Pontaria: <span id="pontaria" class="editable" onclick="Anima.editarPericia('pontaria', this)"></span></p>
-                    <p>Profissão: <span id="profissao" class="editable" onclick="Anima.editarPericia('profissao', this)"></span></p>
-                    <p>Reflexos: <span id="reflexos" class="editable" onclick="Anima.editarPericia('reflexos', this)"></span></p>
-                    <p>Religião: <span id="religiao" class="editable" onclick="Anima.editarPericia('religiao', this)"></span></p>
-                    <p>Sobrevivência: <span id="sobrevivencia" class="editable" onclick="Anima.editarPericia('sobrevivencia', this)"></span></p>
-                    <p>Tática: <span id="tatica" class="editable" onclick="Anima.editarPericia('tatica', this)"></span></p>
-                    <p>Tecnologia: <span id="tecnologia" class="editable" onclick="Anima.editarPericia('tecnologia', this)"></span></p>
-                    <p>Vontade: <span id="vontade" class="editable" onclick="Anima.editarPericia('vontade', this)"></span></p>
+            </div>
+            <div id="criarFicha" style="display: none;">
+                <h3>Criar Nova Ficha</h3>
+                <div class="modal-layout">
+                    <div class="modal-main">
+                        <h4>Informações</h4>
+                        <p><label>Nome: <input id="novoNome" type="text" placeholder="Nome do personagem"></label></p>
+                        <p><label>Profissão: <input id="novoProfissaoInfo" type="text" placeholder="Profissão"></label></p>
+                        <p><label>Caminhos: <input id="novoCaminhos" type="text" placeholder="Caminhos"></label></p>
+                        <p><label>Oculto: <input id="novoOculto" type="text" placeholder="Oculto"></label></p>
+                        <p><label>Natural: <input id="novoNatural" type="text" placeholder="Natural"></label></p>
+                        <p><label>Imagem: <input id="novoImagem" type="text" placeholder="personagens/nome.png"></label></p>
+                        <h4>Estatísticas</h4>
+                        <p><label>Vida Máxima: <input id="novoVidaMax" type="number" value="100"></label></p>
+                        <p><label>Sanidade Máxima: <input id="novoSanidadeMax" type="number" value="100"></label></p>
+                        <p><label>Esforço Máximo: <input id="novoEsforcoMax" type="number" value="100"></label></p>
+                        <p><label>Defesa: <input id="novoDefesa" type="number" value="10"></label></p>
+                        <p><label>NEX: <input id="novoNex" type="number" value="0"></label></p>
+                        <h4>Atributos</h4>
+                        <p><label>Força: <input id="novoForca" type="number" value="0"></label></p>
+                        <p><label>Agilidade: <input id="novoAgilidade" type="number" value="0"></label></p>
+                        <p><label>Inteligência: <input id="novoInteligencia" type="number" value="0"></label></p>
+                        <p><label>Vigor: <input id="novoVigor" type="number" value="0"></label></p>
+                        <p><label>Presença: <input id="novoPresenca" type="number" value="0"></label></p>
+                        <h4>Itens</h4>
+                        <p><label>Itens (separados por vírgula): <input id="novoItens" type="text" placeholder="Faca, Mochila"></label></p>
+                    </div>
+                    <div class="modal-sidebar">
+                        <h4>Perícias</h4>
+                        <p><label>Ações+: <input id="novoAcoesMais" type="number" value="0"></label></p>
+                        <p><label>Acrobacia: <input id="novoAcrobacia" type="number" value="0"></label></p>
+                        <p><label>Adestramento: <input id="novoAdestramento" type="number" value="0"></label></p>
+                        <p><label>Artes: <input id="novoArtes" type="number" value="0"></label></p>
+                        <p><label>Atletismo: <input id="novoAtletismo" type="number" value="0"></label></p>
+                        <p><label>Atualidades: <input id="novoAtualidades" type="number" value="0"></label></p>
+                        <p><label>Ciências: <input id="novoCiencias" type="number" value="0"></label></p>
+                        <p><label>Crime: <input id="novoCrime" type="number" value="0"></label></p>
+                        <p><label>Diplomacia: <input id="novoDiplomacia" type="number" value="0"></label></p>
+                        <p><label>Enganação: <input id="novoEnganacao" type="number" value="0"></label></p>
+                        <p><label>Fortitude: <input id="novoFortitude" type="number" value="0"></label></p>
+                        <p><label>Furtividade: <input id="novoFurtividade" type="number" value="0"></label></p>
+                        <p><label>Iniciativa: <input id="novoIniciativa" type="number" value="0"></label></p>
+                        <p><label>Intimidação: <input id="novoIntimidacao" type="number" value="0"></label></p>
+                        <p><label>Intuição: <input id="novoIntuicao" type="number" value="0"></label></p>
+                        <p><label>Investigação: <input id="novoInvestigacao" type="number" value="0"></label></p>
+                        <p><label>Luta: <input id="novoLuta" type="number" value="0"></label></p>
+                        <p><label>Medicina: <input id="novoMedicina" type="number" value="0"></label></p>
+                        <p><label>Ocultismo: <input id="novoOcultismo" type="number" value="0"></label></p>
+                        <p><label>Percepção: <input id="novoPercepcao" type="number" value="0"></label></p>
+                        <p><label>Pilotagem: <input id="novoPilotagem" type="number" value="0"></label></p>
+                        <p><label>Pontaria: <input id="novoPontaria" type="number" value="0"></label></p>
+                        <p><label>Profissão: <input id="novoProfissao" type="number" value="0"></label></p>
+                        <p><label>Reflexos: <input id="novoReflexos" type="number" value="0"></label></p>
+                        <p><label>Religião: <input id="novoReligiao" type="number" value="0"></label></p>
+                        <p><label>Sobrevivência: <input id="novoSobrevivencia" type="number" value="0"></label></p>
+                        <p><label>Tática: <input id="novoTatica" type="number" value="0"></label></p>
+                        <p><label>Tecnologia: <input id="novoTecnologia" type="number" value="0"></label></p>
+                        <p><label>Vontade: <input id="novoVontade" type="number" value="0"></label></p>
+                    </div>
                 </div>
+                <button onclick="Anima.criarFicha()">Salvar Ficha</button>
             </div>
         </div>
     </div>
-    <!-- Firebase SDK como módulo -->
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
     <script type="module" src="script.js"></script>
 </body>
 </html>

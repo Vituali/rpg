@@ -1,5 +1,6 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
 // Configuração do Firebase
 const firebaseConfig = {
@@ -14,9 +15,23 @@ const firebaseConfig = {
 // Inicializar Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+
+// Login anônimo
+signInAnonymously(auth)
+    .then(() => console.log('Usuário anônimo logado'))
+    .catch(e => console.error('Erro ao logar anônimo:', e));
 
 // URL base para imagens no GitHub Pages
 const BASE_URL = 'https://vituali.github.io/rpg/';
+
+// Função para gerar UUID
+function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
 
 const Anima = {
     currentFichaId: null,
@@ -195,6 +210,7 @@ const Anima = {
             console.log('Ficha salva no Firestore:', ficha);
         } catch (e) {
             console.error('Erro ao salvar ficha:', e);
+            alert('Erro ao salvar ficha: ' + e.message);
         }
     },
 
@@ -217,6 +233,7 @@ const Anima = {
             this.atualizarInterface();
         } catch (e) {
             console.error('Erro ao carregar fichas:', e);
+            alert('Erro ao carregar fichas: ' + e.message);
             this.fichas = {};
             this.atualizarInterface();
         }
@@ -238,16 +255,160 @@ const Anima = {
                 document.getElementById('fichaModal').style.display = 'none';
             } catch (e) {
                 console.error('Erro ao excluir ficha:', e);
+                alert('Erro ao excluir ficha: ' + e.message);
             }
         }
     },
 
     toggleFicha() {
-        if (!this.currentFichaId) return;
         const modal = document.getElementById('fichaModal');
-        modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+        const visualizarFicha = document.getElementById('visualizarFicha');
+        const criarFicha = document.getElementById('criarFicha');
         if (modal.style.display === 'block') {
+            modal.style.display = 'none';
+            visualizarFicha.style.display = 'none';
+            criarFicha.style.display = 'none';
+        } else if (this.currentFichaId) {
+            modal.style.display = 'block';
+            visualizarFicha.style.display = 'block';
+            criarFicha.style.display = 'none';
             this.atualizarFicha();
+        }
+    },
+
+    mostrarCriarFicha() {
+        const modal = document.getElementById('fichaModal');
+        const visualizarFicha = document.getElementById('visualizarFicha');
+        const criarFicha = document.getElementById('criarFicha');
+        modal.style.display = 'block';
+        visualizarFicha.style.display = 'none';
+        criarFicha.style.display = 'block';
+        // Limpar formulário
+        document.getElementById('novoNome').value = '';
+        document.getElementById('novoProfissaoInfo').value = '';
+        document.getElementById('novoCaminhos').value = '';
+        document.getElementById('novoOculto').value = '';
+        document.getElementById('novoNatural').value = '';
+        document.getElementById('novoImagem').value = 'personagens/nome.png';
+        document.getElementById('novoVidaMax').value = '100';
+        document.getElementById('novoSanidadeMax').value = '100';
+        document.getElementById('novoEsforcoMax').value = '100';
+        document.getElementById('novoDefesa').value = '10';
+        document.getElementById('novoNex').value = '0';
+        document.getElementById('novoForca').value = '0';
+        document.getElementById('novoAgilidade').value = '0';
+        document.getElementById('novoInteligencia').value = '0';
+        document.getElementById('novoVigor').value = '0';
+        document.getElementById('novoPresenca').value = '0';
+        document.getElementById('novoItens').value = '';
+        document.getElementById('novoAcoesMais').value = '0';
+        document.getElementById('novoAcrobacia').value = '0';
+        document.getElementById('novoAdestramento').value = '0';
+        document.getElementById('novoArtes').value = '0';
+        document.getElementById('novoAtletismo').value = '0';
+        document.getElementById('novoAtualidades').value = '0';
+        document.getElementById('novoCiencias').value = '0';
+        document.getElementById('novoCrime').value = '0';
+        document.getElementById('novoDiplomacia').value = '0';
+        document.getElementById('novoEnganacao').value = '0';
+        document.getElementById('novoFortitude').value = '0';
+        document.getElementById('novoFurtividade').value = '0';
+        document.getElementById('novoIniciativa').value = '0';
+        document.getElementById('novoIntimidacao').value = '0';
+        document.getElementById('novoIntuicao').value = '0';
+        document.getElementById('novoInvestigacao').value = '0';
+        document.getElementById('novoLuta').value = '0';
+        document.getElementById('novoMedicina').value = '0';
+        document.getElementById('novoOcultismo').value = '0';
+        document.getElementById('novoPercepcao').value = '0';
+        document.getElementById('novoPilotagem').value = '0';
+        document.getElementById('novoPontaria').value = '0';
+        document.getElementById('novoProfissao').value = '0';
+        document.getElementById('novoReflexos').value = '0';
+        document.getElementById('novoReligiao').value = '0';
+        document.getElementById('novoSobrevivencia').value = '0';
+        document.getElementById('novoTatica').value = '0';
+        document.getElementById('novoTecnologia').value = '0';
+        document.getElementById('novoVontade').value = '0';
+    },
+
+    async criarFicha() {
+        const nome = document.getElementById('novoNome').value.trim();
+        if (!nome) {
+            alert('O nome do personagem é obrigatório!');
+            return;
+        }
+
+        const novaFicha = {
+            nome,
+            profissaoInfo: document.getElementById('novoProfissaoInfo').value.trim() || 'Sem profissão',
+            caminhos: document.getElementById('novoCaminhos').value.trim() || 'Sem caminhos',
+            oculto: document.getElementById('novoOculto').value.trim() || 'Nenhum',
+            natural: document.getElementById('novoNatural').value.trim() || 'Nenhum',
+            imagem: document.getElementById('novoImagem').value.trim() || 'personagens/default.png',
+            vida: parseInt(document.getElementById('novoVidaMax').value) || 100,
+            vidaMax: parseInt(document.getElementById('novoVidaMax').value) || 100,
+            sanidade: parseInt(document.getElementById('novoSanidadeMax').value) || 100,
+            sanidadeMax: parseInt(document.getElementById('novoSanidadeMax').value) || 100,
+            esforco: parseInt(document.getElementById('novoEsforcoMax').value) || 100,
+            esforcoMax: parseInt(document.getElementById('novoEsforcoMax').value) || 100,
+            defesa: parseInt(document.getElementById('novoDefesa').value) || 10,
+            nex: parseInt(document.getElementById('novoNex').value) || 0,
+            atributos: {
+                forca: parseInt(document.getElementById('novoForca').value) || 0,
+                agilidade: parseInt(document.getElementById('novoAgilidade').value) || 0,
+                inteligencia: parseInt(document.getElementById('novoInteligencia').value) || 0,
+                vigor: parseInt(document.getElementById('novoVigor').value) || 0,
+                presenca: parseInt(document.getElementById('novoPresenca').value) || 0
+            },
+            pericias: {
+                acoesMais: parseInt(document.getElementById('novoAcoesMais').value) || 0,
+                acrobacia: parseInt(document.getElementById('novoAcrobacia').value) || 0,
+                adestramento: parseInt(document.getElementById('novoAdestramento').value) || 0,
+                artes: parseInt(document.getElementById('novoArtes').value) || 0,
+                atletismo: parseInt(document.getElementById('novoAtletismo').value) || 0,
+                atualidades: parseInt(document.getElementById('novoAtualidades').value) || 0,
+                ciencias: parseInt(document.getElementById('novoCiencias').value) || 0,
+                crime: parseInt(document.getElementById('novoCrime').value) || 0,
+                diplomacia: parseInt(document.getElementById('novoDiplomacia').value) || 0,
+                enganacao: parseInt(document.getElementById('novoEnganacao').value) || 0,
+                fortitude: parseInt(document.getElementById('novoFortitude').value) || 0,
+                furtividade: parseInt(document.getElementById('novoFurtividade').value) || 0,
+                iniciativa: parseInt(document.getElementById('novoIniciativa').value) || 0,
+                intimidacao: parseInt(document.getElementById('novoIntimidacao').value) || 0,
+                intuicao: parseInt(document.getElementById('novoIntuicao').value) || 0,
+                investigacao: parseInt(document.getElementById('novoInvestigacao').value) || 0,
+                luta: parseInt(document.getElementById('novoLuta').value) || 0,
+                medicina: parseInt(document.getElementById('novoMedicina').value) || 0,
+                ocultismo: parseInt(document.getElementById('novoOcultismo').value) || 0,
+                percepcao: parseInt(document.getElementById('novoPercepcao').value) || 0,
+                pilotagem: parseInt(document.getElementById('novoPilotagem').value) || 0,
+                pontaria: parseInt(document.getElementById('novoPontaria').value) || 0,
+                profissao: parseInt(document.getElementById('novoProfissao').value) || 0,
+                reflexos: parseInt(document.getElementById('novoReflexos').value) || 0,
+                religiao: parseInt(document.getElementById('novoReligiao').value) || 0,
+                sobrevivencia: parseInt(document.getElementById('novoSobrevivencia').value) || 0,
+                tatica: parseInt(document.getElementById('novoTatica').value) || 0,
+                tecnologia: parseInt(document.getElementById('novoTecnologia').value) || 0,
+                vontade: parseInt(document.getElementById('novoVontade').value) || 0
+            },
+            itens: document.getElementById('novoItens').value.split(',').map(item => item.trim()).filter(item => item) || [],
+            ataques: {},
+            origem: '',
+            classe: ''
+        };
+
+        const id = generateUUID();
+        try {
+            await setDoc(doc(db, 'fichas', id), novaFicha);
+            this.fichas[id] = novaFicha;
+            this.currentFichaId = id;
+            await this.carregarDados();
+            document.getElementById('fichaModal').style.display = 'none';
+            this.atualizarInterface();
+        } catch (e) {
+            console.error('Erro ao criar ficha:', e);
+            alert('Erro ao criar ficha: ' + e.message);
         }
     },
 

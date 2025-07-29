@@ -99,6 +99,27 @@ body {
     align-items: center;
 }
 
+.modal-content label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.modal-content input {
+    background: #250135;
+    color: #e0e0e0;
+    border: 1px solid #9d00ff;
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-family: 'Courier New', Courier, monospace;
+    width: 60%;
+}
+
+.modal-content input[type="number"] {
+    width: 80px;
+}
+
 .close-btn {
     position: absolute;
     top: 10px;
@@ -246,5 +267,8 @@ select {
         border-left: none;
         padding-left: 0;
         border-top: 1px solid #9d00ff;
+    }
+    .modal-content input {
+        width: 100%;
     }
 }
