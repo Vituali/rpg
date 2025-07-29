@@ -1,4 +1,43 @@
-<!DOCTYPE html>
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -117,72 +156,64 @@
             </div>
             <div id="criarFicha" style="display: none;">
                 <h2>Criar Nova Ficha</h2>
-                <div class="modal-layout">
-                    <div class="modal-main">
-                        <h3>Informações</h3>
-                        <p><label>Nome: <input id="novoNome" type="text"></label></p>
-                        <p><label>Profissão: <input id="novoProfissaoInfo" type="text"></label></p>
-                        <p><label>Caminhos: <input id="novoCaminhos" type="text"></label></p>
-                        <p><label>Oculto: <input id="novoOculto" type="text"></label></p>
-                        <p><label>Natural: <input id="novoNatural" type="text"></label></p>
-                        <p><label>Imagem: <input id="novoImagem" type="text" value="personagens/nome.png"></label></p>
-                        <h3>Estatísticas</h3>
-                        <p><label>Vida Máxima: <input id="novoVidaMax" type="number" value="100"></label></p>
-                        <p><label>Sanidade Máxima: <input id="novoSanidadeMax" type="number" value="100"></label></p>
-                        <p><label>Esforço Máximo: <input id="novoEsforcoMax" type="number" value="100"></label></p>
-                        <p><label>Defesa: <input id="novoDefesa" type="number" value="10"></label></p>
-                        <p><label>NEX: <input id="novoNex" type="number" value="0"></label></p>
-                        <h3>Atributos</h3>
-                        <p><label>Força: <input id="novoForca" type="number" value="0"></label></p>
-                        <p><label>Agilidade: <input id="novoAgilidade" type="number" value="0"></label></p>
-                        <p><label>Inteligência: <input id="novoInteligencia" type="number" value="0"></label></p>
-                        <p><label>Vigor: <input id="novoVigor" type="number" value="0"></label></p>
-                        <p><label>Presença: <input id="novoPresenca" type="number" value="0"></label></p>
-                        <h3>Itens</h3>
-                        <p><label>Itens (separados por vírgula): <input id="novoItens" type="text"></label></p>
-                    </div>
-                    <div class="modal-sidebar">
-                        <h3>Perícias</h3>
-                        <p><label>Ações+: <input id="novoAcoesMais" type="number" value="0"></label></p>
-                        <p><label>Acrobacia: <input id="novoAcrobacia" type="number" value="0"></label></p>
-                        <p><label>Adestramento: <input id="novoAdestramento" type="number" value="0"></label></p>
-                        <p><label>Artes: <input id="novoArtes" type="number" value="0"></label></p>
-                        <p><label>Atletismo: <input id="novoAtletismo" type="number" value="0"></label></p>
-                        <p><label>Atualidades: <input id="novoAtualidades" type="number" value="0"></label></p>
-                        <p><label>Ciências: <input id="novoCiencias" type="number" value="0"></label></p>
-                        <p><label>Crime: <input id="novoCrime" type="number" value="0"></label></p>
-                        <p><label>Diplomacia: <input id="novoDiplomacia" type="number" value="0"></label></p>
-                        <p><label>Enganação: <input id="novoEnganacao" type="number" value="0"></label></p>
-                        <p><label>Fortitude: <input id="novoFortitude" type="number" value="0"></label></p>
-                        <p><label>Furtividade: <input id="novoFurtividade" type="number" value="0"></label></p>
-                        <p><label>Iniciativa: <input id="novoIniciativa" type="number" value="0"></label></p>
-                        <p><label>Intimidação: <input id="novoIntimidacao" type="number" value="0"></label></p>
-                        <p><label>Intuição: <input id="novoIntuicao" type="number" value="0"></label></p>
-                        <p><label>Investigação: <input id="novoInvestigacao" type="number" value="0"></label></p>
-                        <p><label>Luta: <input id="novoLuta" type="number" value="0"></label></p>
-                        <p><label>Medicina: <input id="novoMedicina" type="number" value="0"></label></p>
-                        <p><label>Ocultismo: <input id="novoOcultismo" type="number" value="0"></label></p>
-                        <p><label>Percepção: <input id="novoPercepcao" type="number" value="0"></label></p>
-                        <p><label>Pilotagem: <input id="novoPilotagem" type="number" value="0"></label></p>
-                        <p><label>Pontaria: <input id="novoPontaria" type="number" value="0"></label></p>
-                        <p><label>Profissão: <input id="novoProfissao" type="number" value="0"></label></p>
-                        <p><label>Reflexos: <input id="novoReflexos" type="number" value="0"></label></p>
-                        <p><label>Religião: <input id="novoReligiao" type="number" value="0"></label></p>
-                        <p><label>Sobrevivência: <input id="novoSobrevivencia" type="number" value="0"></label></p>
-                        <p><label>Tática: <input id="novoTatica" type="number" value="0"></label></p>
-                        <p><label>Tecnologia: <input id="novoTecnologia" type="number" value="0"></label></p>
-                        <p><label>Vontade: <input id="novoVontade" type="number" value="0"></label></p>
-                    </div>
-                </div>
-                <button onclick="Anima.criarFicha()">Salvar Ficha</button>
+                <form id="formCriarFicha">
+                    <label>Nome: <input type="text" id="novoNome"></label>
+                    <label>Profissão: <input type="text" id="novoProfissaoInfo"></label>
+                    <label>Caminhos: <input type="text" id="novoCaminhos"></label>
+                    <label>Oculto: <input type="text" id="novoOculto"></label>
+                    <label>Natural: <input type="text" id="novoNatural"></label>
+                    <label>Imagem: <input type="text" id="novoImagem" value="personagens/nome.png"></label>
+                    <label>Vida Máxima: <input type="number" id="novoVidaMax" value="100"></label>
+                    <label>Sanidade Máxima: <input type="number" id="novoSanidadeMax" value="100"></label>
+                    <label>Esforço Máximo: <input type="number" id="novoEsforcoMax" value="100"></label>
+                    <label>Defesa: <input type="number" id="novoDefesa" value="10"></label>
+                    <label>NEX: <input type="number" id="novoNex" value="0"></label>
+                    <label>Força: <input type="number" id="novoForca" value="0"></label>
+                    <label>Agilidade: <input type="number" id="novoAgilidade" value="0"></label>
+                    <label>Inteligência: <input type="number" id="novoInteligencia" value="0"></label>
+                    <label>Vigor: <input type="number" id="novoVigor" value="0"></label>
+                    <label>Presença: <input type="number" id="novoPresenca" value="0"></label>
+                    <label>Itens: <input type="text" id="novoItens" placeholder="Separe por vírgulas"></label>
+                    <h3>Perícias</h3>
+                    <label>Ações+: <input type="number" id="novoAcoesMais" value="0"></label>
+                    <label>Acrobacia: <input type="number" id="novoAcrobacia" value="0"></label>
+                    <label>Adestramento: <input type="number" id="novoAdestramento" value="0"></label>
+                    <label>Artes: <input type="number" id="novoArtes" value="0"></label>
+                    <label>Atletismo: <input type="number" id="novoAtletismo" value="0"></label>
+                    <label>Atualidades: <input type="number" id="novoAtualidades" value="0"></label>
+                    <label>Ciências: <input type="number" id="novoCiencias" value="0"></label>
+                    <label>Crime: <input type="number" id="novoCrime" value="0"></label>
+                    <label>Diplomacia: <input type="number" id="novoDiplomacia" value="0"></label>
+                    <label>Enganação: <input type="number" id="novoEnganacao" value="0"></label>
+                    <label>Fortitude: <input type="number" id="novoFortitude" value="0"></label>
+                    <label>Furtividade: <input type="number" id="novoFurtividade" value="0"></label>
+                    <label>Iniciativa: <input type="number" id="novoIniciativa" value="0"></label>
+                    <label>Intimidação: <input type="number" id="novoIntimidacao" value="0"></label>
+                    <label>Intuição: <input type="number" id="novoIntuicao" value="0"></label>
+                    <label>Investigação: <input type="number" id="novoInvestigacao" value="0"></label>
+                    <label>Luta: <input type="number" id="novoLuta" value="0"></label>
+                    <label>Medicina: <input type="number" id="novoMedicina" value="0"></label>
+                    <label>Ocultismo: <input type="number" id="novoOcultismo" value="0"></label>
+                    <label>Percepção: <input type="number" id="novoPercepcao" value="0"></label>
+                    <label>Pilotagem: <input type="number" id="novoPilotagem" value="0"></label>
+                    <label>Pontaria: <input type="number" id="novoPontaria" value="0"></label>
+                    <label>Profissão: <input type="number" id="novoProfissao" value="0"></label>
+                    <label>Reflexos: <input type="number" id="novoReflexos" value="0"></label>
+                    <label>Religião: <input type="number" id="novoReligiao" value="0"></label>
+                    <label>Sobrevivência: <input type="number" id="novoSobrevivencia" value="0"></label>
+                    <label>Tática: <input type="number" id="novoTatica" value="0"></label>
+                    <label>Tecnologia: <input type="number" id="novoTecnologia" value="0"></label>
+                    <label>Vontade: <input type="number" id="novoVontade" value="0"></label>
+                    <button type="button" onclick="Anima.criarFicha()">Criar Ficha</button>
+                </form>
             </div>
         </div>
     </div>
 
-    <!-- Carregar Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
-    <script src="script.js"></script>
+    <!-- Carregar scripts como módulos -->
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module" src="utils.js"></script>
+    <script type="module" src="anima.js"></script>
+    <script type="module" src="main.js"></script>
 </body>
 </html>

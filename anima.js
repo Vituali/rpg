@@ -1,49 +1,6 @@
-/* Configuração do Firebase */
-document.addEventListener("DOMContentLoaded", function () {
-const firebaseConfig = {
-    apiKey: "AIzaSyCubXJd9jgkmn0hJWXS67yKqzTGycMcC9w",
-    authDomain: "anima-rpg.firebaseapp.com",
-    databaseURL: "https://anima-rpg-default-rtdb.firebaseio.com",
-    projectId: "anima-rpg",
-    storageBucket: "anima-rpg.firebasestorage.app",
-    messagingSenderId: "524426526680",
-    appId: "1:524426526680:web:ef17648b2155aff5587cad",
-    measurementId: "G-N6ZT1FQRM6"
-    };
-
-  // Inicializar Firebase e autenticação anônima
-  try {
-    const app = firebase.initializeApp(firebaseConfig);
-    db = firebase.getDatabase(app);
-    auth = firebase.getAuth(app);
-    firebase.signInAnonymously(auth).then(() => {
-      console.log("✅ Usuário autenticado anonimamente:", auth.currentUser.uid);
-      if (atendenteSelect) {
-        atendenteSelect.value = atendenteAtual;
-        if (atendenteAtual) {
-          carregarDoFirebase();
-        }
-      }
-    }).catch(error => {
-      console.error("❌ Erro ao autenticar anonimamente:", error);
-      alert("Erro de autenticação: " + error.message);
-    });
-    console.log("✅ Firebase inicializado com sucesso");
-  } catch (error) {
-    console.error("❌ Erro ao inicializar Firebase:", error);
-    alert("Erro ao conectar com o banco de dados: " + error.message);
-    return;
-  }
-/* URL base para imagens no GitHub Pages */
-const BASE_URL = 'https://vituali.github.io/rpg/';
-
-/* Função para gerar UUID */
-function generateUUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-    });
-}
+import { db } from './firebase-config.js';
+import { collection, getDocs, doc, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { BASE_URL, generateUUID } from './utils.js';
 
 /* Objeto principal para gerenciar fichas */
 const Anima = {
@@ -223,7 +180,7 @@ const Anima = {
         if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
         try {
-            await db.collection('fichas').doc(this.currentFichaId).set(ficha);
+            await setDoc(doc(db, 'fichas', this.currentFichaId), ficha);
             console.log('Ficha salva no Firestore:', ficha);
         } catch (e) {
             console.error('Erro ao salvar ficha:', e);
@@ -234,7 +191,7 @@ const Anima = {
     /* Carrega as fichas do Firestore */
     async carregarDados() {
         try {
-            const snapshot = await db.collection('fichas').get();
+            const snapshot = await getDocs(collection(db, 'fichas'));
             this.fichas = {};
             snapshot.forEach(doc => {
                 this.fichas[doc.id] = doc.data();
@@ -268,7 +225,7 @@ const Anima = {
         if (!this.currentFichaId) return;
         if (confirm('Tem certeza que deseja excluir esta ficha?')) {
             try {
-                await db.collection('fichas').doc(this.currentFichaId).delete();
+                await deleteDoc(doc(db, 'fichas', this.currentFichaId));
                 delete this.fichas[this.currentFichaId];
                 this.currentFichaId = null;
                 this.carregarDados();
@@ -423,7 +380,7 @@ const Anima = {
 
         const id = generateUUID();
         try {
-            await db.collection('fichas').doc(id).set(novaFicha);
+            await setDoc(doc(db, 'fichas', id), novaFicha);
             this.fichas[id] = novaFicha;
             this.currentFichaId = id;
             await this.carregarDados();
@@ -515,24 +472,4 @@ const Anima = {
     }
 };
 
-/* Configura os eventos após o carregamento do DOM */
-document.addEventListener('DOMContentLoaded', () => {
-    /* Login anônimo no Firebase */
-    auth.signInAnonymously()
-        .then(() => console.log('Usuário anônimo logado'))
-        .catch(e => console.error('Erro ao logar anônimo:', e));
-
-    /* Carrega as fichas do Firestore */
-    Anima.carregarDados();
-
-    /* Adiciona evento para selecionar ficha */
-    document.getElementById('seletorFichas').addEventListener('change', (e) => {
-        Anima.selecionarFicha(e.target.value);
-    });
-
-    /* Adiciona eventos aos botões */
-    document.getElementById('verFichaBtn').addEventListener('click', () => Anima.toggleFicha());
-    document.getElementById('criarFichaBtn').addEventListener('click', () => Anima.mostrarCriarFicha());
-    document.getElementById('iniciarRitualBtn').addEventListener('click', () => Anima.iniciarRitual());
-    document.getElementById('explorarMisteriosBtn').addEventListener('click', () => Anima.explorarMisterios());
-});
+export default Anima;
