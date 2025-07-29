@@ -3,12 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anima</title>
+    <title>Anima Ficha</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "SUA_API_KEY",
+            authDomain: "SEU_PROJETO.firebaseapp.com",
+            projectId: "SEU_PROJETO",
+            storageBucket: "SEU_PROJETO.appspot.com",
+            messagingSenderId: "SEU_SENDER_ID",
+            appId: "SUA_APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
     <script src="script.js" defer></script>
 </head>
 <body>
     <div class="menu-container">
+        <img id="characterImg" src="https://via.placeholder.com/120" class="character-img" alt="Personagem">
         <h2 id="nomePersonagem">Nenhuma Ficha Selecionada</h2>
         <select id="seletorFichas" onchange="Anima.selecionarFicha(this.value)">
             <option value="">Selecione uma ficha</option>

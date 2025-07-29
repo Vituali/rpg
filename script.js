@@ -28,6 +28,7 @@ const Anima = {
         esforcoBar.style.width = `${(ficha.esforco / ficha.esforcoMax) * 100}%`;
         esforcoLabel.textContent = `Ponto de Esforço: ${ficha.esforco}/${ficha.esforcoMax}`;
     },
+
     alterarVida(valor) {
         if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
@@ -35,6 +36,7 @@ const Anima = {
         this.atualizarBarras();
         this.salvarDados();
     },
+
     alterarSanidade(valor) {
         if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
@@ -42,6 +44,7 @@ const Anima = {
         this.atualizarBarras();
         this.salvarDados();
     },
+
     alterarEsforco(valor) {
         if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
@@ -49,6 +52,7 @@ const Anima = {
         this.atualizarBarras();
         this.salvarDados();
     },
+
     editarAtributo(nome, elemento) {
         if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
@@ -86,6 +90,7 @@ const Anima = {
             }
         });
     },
+
     editarPericia(nome, elemento) {
         if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
@@ -119,6 +124,7 @@ const Anima = {
             }
         });
     },
+
     editarTexto(nome, elemento) {
         if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
@@ -152,40 +158,79 @@ const Anima = {
             }
         });
     },
+
     iniciarRitual() {
         alert('Tô sentindo uma energia poderosa, cria! Ritual iniciado!');
     },
+
     explorarMisterios() {
         alert('Partiu desbravar os mistérios, Victor! Fica ligado nos sinais!');
     },
-    salvarDados() {
-        localStorage.setItem('animaFichas', JSON.stringify(this.fichas));
-        // Simula salvamento em fichas.json (para futuro banco de dados)
-        console.log('Salvando em fichas.json:', JSON.stringify(this.fichas, null, 2));
+
+    async salvarDados() {
+        if (!this.currentFichaId) return;
+        const ficha = this.fichas[this.currentFichaId];
+        try {
+            await firebase.firestore().collection('fichas').doc(this.currentFichaId).set(ficha);
+            console.log('Ficha salva no Firestore:', ficha);
+        } catch (e) {
+            console.error('Erro ao salvar ficha:', e);
+        }
     },
+
     async carregarDados() {
         try {
-            const response = await fetch('data/fichas.json');
-            this.fichas = await response.json();
+            const snapshot = await firebase.firestore().collection('fichas').get();
+            this.fichas = {};
+            snapshot.forEach(doc => {
+                this.fichas[doc.id] = doc.data();
+            });
+            const seletor = document.getElementById('seletorFichas');
+            seletor.innerHTML = '<option value="">Selecione uma ficha</option>';
+            Object.keys(this.fichas).forEach(id => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = this.fichas[id].nome;
+                seletor.appendChild(option);
+            });
+            this.currentFichaId = null;
+            this.atualizarInterface();
         } catch (e) {
-            console.error('Erro ao carregar fichas.json:', e);
-            this.fichas = JSON.parse(localStorage.getItem('animaFichas') || '{}');
+            console.error('Erro ao carregar fichas:', e);
+            this.fichas = {};
+            this.atualizarInterface();
         }
-        const seletor = document.getElementById('seletorFichas');
-        seletor.innerHTML = '<option value="">Selecione uma ficha</option>';
-        Object.keys(this.fichas).forEach(id => {
-            const option = document.createElement('option');
-            option.value = id;
-            option.textContent = this.fichas[id].nome;
-            seletor.appendChild(option);
-        });
-        this.currentFichaId = null;
-        this.atualizarInterface();
     },
+
     selecionarFicha(id) {
         this.currentFichaId = id;
         this.atualizarInterface();
     },
+
+    async excluirFicha() {
+        if (!this.currentFichaId) return;
+        if (confirm('Tem certeza que deseja excluir esta ficha?')) {
+            try {
+                await firebase.firestore().collection('fichas').doc(this.currentFichaId).delete();
+                delete this.fichas[this.currentFichaId];
+                this.currentFichaId = null;
+                this.carregarDados();
+                document.getElementById('fichaModal').style.display = 'none';
+            } catch (e) {
+                console.error('Erro ao excluir ficha:', e);
+            }
+        }
+    },
+
+    toggleFicha() {
+        if (!this.currentFichaId) return;
+        const modal = document.getElementById('fichaModal');
+        modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+        if (modal.style.display === 'block') {
+            this.atualizarFicha();
+        }
+    },
+
     atualizarInterface() {
         const nomePersonagem = document.getElementById('nomePersonagem');
         const characterImg = document.getElementById('characterImg');
@@ -201,33 +246,15 @@ const Anima = {
 
         const ficha = this.fichas[this.currentFichaId];
         nomePersonagem.textContent = ficha.nome;
-        characterImg.src = ficha.imagem || 'personagens/anima.jpg';
+        characterImg.src = ficha.imagem || 'https://via.placeholder.com/120';
         verFichaBtn.disabled = false;
         this.atualizarBarras();
         this.atualizarFicha();
     },
-    excluirFicha() {
-        if (!this.currentFichaId) return;
-        if (confirm('Tem certeza que deseja excluir esta ficha?')) {
-            delete this.fichas[this.currentFichaId];
-            this.currentFichaId = null;
-            this.salvarDados();
-            this.carregarDados();
-            document.getElementById('fichaModal').style.display = 'none';
-        }
-    },
-    toggleFicha() {
-        if (!this.currentFichaId) return;
-        const modal = document.getElementById('fichaModal');
-        modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
-        if (modal.style.display === 'block') {
-            this.atualizarFicha();
-        }
-    },
+
     atualizarFicha() {
         if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
-        document.getElementById('nomePersonagem').textContent = ficha.nome;
         document.getElementById('modalNomePersonagem').textContent = ficha.nome;
         document.getElementById('profissaoInfo').textContent = ficha.profissaoInfo || "Sem profissão";
         document.getElementById('caminhos').textContent = ficha.caminhos || "Sem caminhos";
@@ -238,6 +265,11 @@ const Anima = {
         document.getElementById('inteligencia').textContent = ficha.atributos.inteligencia || 0;
         document.getElementById('vigor').textContent = ficha.atributos.vigor || 0;
         document.getElementById('presenca').textContent = ficha.atributos.presenca || 0;
+        document.getElementById('pv').textContent = ficha.vida || 0;
+        document.getElementById('pe').textContent = ficha.esforco || 0;
+        document.getElementById('sanidadeStat').textContent = ficha.sanidade || 0;
+        document.getElementById('defesa').textContent = ficha.defesa || 0;
+        document.getElementById('nex').textContent = (ficha.nex || 0) + '%';
         document.getElementById('vontade').textContent = ficha.pericias.vontade || 0;
         document.getElementById('tecnologia').textContent = ficha.pericias.tecnologia || 0;
         document.getElementById('tatica').textContent = ficha.pericias.tatica || 0;
@@ -267,11 +299,6 @@ const Anima = {
         document.getElementById('adestramento').textContent = ficha.pericias.adestramento || 0;
         document.getElementById('acrobacia').textContent = ficha.pericias.acrobacia || 0;
         document.getElementById('acoesMais').textContent = ficha.pericias.acoesMais || 0;
-        document.getElementById('pv').textContent = ficha.vida || 0;
-        document.getElementById('pe').textContent = ficha.esforco || 0;
-        document.getElementById('sanidadeStat').textContent = ficha.sanidade || 0;
-        document.getElementById('defesa').textContent = ficha.defesa || 0;
-        document.getElementById('nex').textContent = (ficha.nex || 0) + '%';
         const itensList = document.getElementById('itens');
         itensList.innerHTML = '';
         ficha.itens.forEach(item => {

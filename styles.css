@@ -18,17 +18,17 @@ body {
     text-align: center;
     box-shadow: 0 0 20px rgba(157, 0, 255, 0.4);
     width: 450px;
+    max-width: 90%;
 }
 
 .character-img {
     width: 120px;
-    height: auto;
+    height: 120px;
     margin-bottom: 15px;
     filter: grayscale(30%);
     animation: glitch 3s infinite alternate;
-    will-change: transform, filter;
-    object-fit: contain;
-    aspect-ratio: auto;
+    object-fit: cover;
+    border-radius: 4px;
 }
 
 @keyframes glitch {
@@ -76,6 +76,12 @@ body {
     min-width: 0;
 }
 
+.modal-sidebar {
+    flex: 1;
+    border-left: 1px solid #9d00ff;
+    padding-left: 20px;
+}
+
 .modal-sidebar p {
     display: flex;
     justify-content: space-between;
@@ -106,14 +112,15 @@ body {
     color: #cc66ff;
 }
 
-h3, h4 {
+h2, h3, h4 {
     color: #9d00ff;
     text-transform: uppercase;
     text-shadow: 0 0 5px rgba(157, 0, 255, 0.7);
 }
 
-p {
-    margin: 5px 0;
+h2 {
+    font-size: 22px;
+    margin: 10px 0;
 }
 
 .status-bar {
@@ -180,20 +187,10 @@ p {
     background: #b266ff;
 }
 
-.arrow-small { font-size: 12px; }
-.arrow-large { font-size: 16px; }
-.arrow-left-small { position: absolute; left: 0; }
-.arrow-left-large { position: absolute; left: 20px; }
-.arrow-right-large { position: absolute; right: 20px; }
-.arrow-right-small { position: absolute; right: 0; }
-
-h2 {
-    color: #9d00ff;
-    margin: 10px 0;
-    font-size: 22px;
-    text-transform: uppercase;
-    text-shadow: 0 0 5px rgba(157, 0, 255, 0.7);
-}
+.arrow-left-large { position: absolute; left: 0; }
+.arrow-left-small { position: absolute; left: 20px; }
+.arrow-right-small { position: absolute; right: 20px; }
+.arrow-right-large { position: absolute; right: 0; }
 
 button {
     background: #250135;
@@ -212,6 +209,13 @@ button:hover {
     color: #1a1a1a;
 }
 
+button:disabled {
+    background: #1a0033;
+    color: #666;
+    border: 1px solid #666;
+    cursor: not-allowed;
+}
+
 select {
     background: #250135;
     color: #e0e0e0;
@@ -220,13 +224,21 @@ select {
     margin: 5px;
     border-radius: 4px;
     font-family: 'Courier New', Courier, monospace;
+    width: 200px;
 }
 
 .editable {
     cursor: pointer;
 }
 
+.editable:hover {
+    text-decoration: underline;
+}
+
 @media (max-width: 600px) {
+    .menu-container {
+        width: 90%;
+    }
     .modal-layout {
         flex-direction: column;
     }
