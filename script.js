@@ -4,12 +4,14 @@ import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/1
 
 // Configuração do Firebase
 const firebaseConfig = {
-    apiKey: "SUA_API_KEY",
-    authDomain: "SEU_PROJETO.firebaseapp.com",
-    projectId: "SEU_PROJETO",
-    storageBucket: "SEU_PROJETO.appspot.com",
-    messagingSenderId: "SEU_SENDER_ID",
-    appId: "SUA_APP_ID"
+  apiKey: "AIzaSyCubXJd9jgkmn0hJWXS67yKqzTGycMcC9w",
+  authDomain: "anima-rpg.firebaseapp.com",
+  databaseURL: "https://anima-rpg-default-rtdb.firebaseio.com",
+  projectId: "anima-rpg",
+  storageBucket: "anima-rpg.firebasestorage.app",
+  messagingSenderId: "524426526680",
+  appId: "1:524426526680:web:ef17648b2155aff5587cad",
+  measurementId: "G-N6ZT1FQRM6"
 };
 
 // Inicializar Firebase
@@ -419,7 +421,7 @@ const Anima = {
 
         if (!this.currentFichaId) {
             nomePersonagem.textContent = 'Nenhuma Ficha Selecionada';
-            characterImg.src = 'https://via.placeholder.com/120';
+            characterImg.src = 'personagens/dante.png';
             verFichaBtn.disabled = true;
             this.atualizarBarras();
             return;
@@ -427,7 +429,7 @@ const Anima = {
 
         const ficha = this.fichas[this.currentFichaId];
         nomePersonagem.textContent = ficha.nome;
-        characterImg.src = BASE_URL + (ficha.imagem || 'https://via.placeholder.com/120');
+        characterImg.src = BASE_URL + (ficha.imagem || 'personagens/dante.png');
         verFichaBtn.disabled = false;
         this.atualizarBarras();
         this.atualizarFicha();
