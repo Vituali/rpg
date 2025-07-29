@@ -1,21 +1,25 @@
 import { generateUUID } from '../utils.js';
+import Anima from './index.js';
 
 export function alterarVida(fichas, currentFichaId, valor) {
     if (!currentFichaId) return;
     const ficha = fichas[currentFichaId];
     ficha.vida = Math.max(0, Math.min(ficha.vidaMax, ficha.vida + valor));
+    Anima.marcarAlteracao();
 }
 
 export function alterarSanidade(fichas, currentFichaId, valor) {
     if (!currentFichaId) return;
     const ficha = fichas[currentFichaId];
     ficha.sanidade = Math.max(0, Math.min(ficha.sanidadeMax, ficha.sanidade + valor));
+    Anima.marcarAlteracao();
 }
 
 export function alterarEsforco(fichas, currentFichaId, valor) {
     if (!currentFichaId) return;
     const ficha = fichas[currentFichaId];
     ficha.esforco = Math.max(0, Math.min(ficha.esforcoMax, ficha.esforco + valor));
+    Anima.marcarAlteracao();
 }
 
 export function editarAtributo(fichas, currentFichaId, nome, elemento) {
@@ -45,6 +49,7 @@ export function editarAtributo(fichas, currentFichaId, nome, elemento) {
         }
         elemento.textContent = novoValor;
         input.replaceWith(elemento);
+        Anima.marcarAlteracao();
     };
 
     input.addEventListener('blur', salvarEdicao);
@@ -76,6 +81,7 @@ export function editarPericia(fichas, currentFichaId, nome, elemento) {
         ficha.pericias[nome] = Math.max(0, Math.min(20, novoValor));
         elemento.textContent = novoValor;
         input.replaceWith(elemento);
+        Anima.marcarAlteracao();
     };
 
     input.addEventListener('blur', salvarEdicao);
@@ -107,6 +113,7 @@ export function editarTexto(fichas, currentFichaId, nome, elemento) {
         ficha[nome] = novoValor;
         elemento.textContent = novoValor || `Sem ${nome}`;
         input.replaceWith(elemento);
+        Anima.marcarAlteracao();
     };
 
     input.addEventListener('blur', salvarEdicao);
@@ -194,6 +201,7 @@ export async function criarFicha(fichas, currentFichaId) {
         await setDoc(doc(db, 'fichas', id), novaFicha);
         fichas[id] = novaFicha;
         document.getElementById('fichaModal').style.display = 'none';
+        Anima.marcarAlteracao();
         return id;
     } catch (e) {
         console.error('Erro ao criar ficha:', e);
