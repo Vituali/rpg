@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anima - RPG</title>
+    <title>Anima</title>
     <link rel="stylesheet" href="styles.css">
     <script src="script.js" defer></script>
 </head>
 <body>
     <div class="menu-container">
-        <img src="personagens/anima.png" class="character-img" alt="Personagem">
-        <h2 id="nomePersonagem">Anima</h2>
+        <h2 id="nomePersonagem">Nenhuma Ficha Selecionada</h2>
         <select id="seletorFichas" onchange="Anima.selecionarFicha(this.value)">
             <option value="">Selecione uma ficha</option>
         </select>
@@ -18,7 +17,7 @@
             <button class="arrow-btn arrow-left-large" onclick="Anima.alterarVida(-10)">≪</button>
             <button class="arrow-btn arrow-left-small" onclick="Anima.alterarVida(-1)">←</button>
             <div id="hpBar" class="hp-bar"></div>
-            <span id="hpLabel" class="bar-label"></span>
+            <span id="hpLabel" class="bar-label">Vida: 0/0</span>
             <button class="arrow-btn arrow-right-small" onclick="Anima.alterarVida(1)">→</button>
             <button class="arrow-btn arrow-right-large" onclick="Anima.alterarVida(10)">≫</button>
         </div>
@@ -26,7 +25,7 @@
             <button class="arrow-btn arrow-left-large" onclick="Anima.alterarSanidade(-10)">≪</button>
             <button class="arrow-btn arrow-left-small" onclick="Anima.alterarSanidade(-1)">←</button>
             <div id="sanidadeBar" class="sanidade-bar"></div>
-            <span id="sanidadeLabel" class="bar-label"></span>
+            <span id="sanidadeLabel" class="bar-label">Sanidade: 0/0</span>
             <button class="arrow-btn arrow-right-small" onclick="Anima.alterarSanidade(1)">→</button>
             <button class="arrow-btn arrow-right-large" onclick="Anima.alterarSanidade(10)">≫</button>
         </div>
@@ -34,11 +33,11 @@
             <button class="arrow-btn arrow-left-large" onclick="Anima.alterarEsforco(-10)">≪</button>
             <button class="arrow-btn arrow-left-small" onclick="Anima.alterarEsforco(-1)">←</button>
             <div id="esforcoBar" class="esforco-bar"></div>
-            <span id="esforcoLabel" class="bar-label"></span>
+            <span id="esforcoLabel" class="bar-label">Ponto de Esforço: 0/0</span>
             <button class="arrow-btn arrow-right-small" onclick="Anima.alterarEsforco(1)">→</button>
             <button class="arrow-btn arrow-right-large" onclick="Anima.alterarEsforco(10)">≫</button>
         </div>
-        <button onclick="Anima.toggleFicha()">Ver Ficha</button>
+        <button id="verFichaBtn" onclick="Anima.toggleFicha()" disabled>Ver Ficha</button>
         <button onclick="Anima.iniciarRitual()">Iniciar Ritual</button>
         <button onclick="Anima.explorarMisterios()">Explorar Mistérios</button>
     </div>

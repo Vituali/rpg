@@ -1,40 +1,6 @@
 const Anima = {
     currentFichaId: null,
-    fichas: {
-        // Exemplo inicial
-        "550e8400-e29b-41d4-a716-446655440000": {
-            nome: "Dante Alighieri",
-            vida: 18,
-            vidaMax: 100,
-            sanidade: 16,
-            sanidadeMax: 100,
-            esforco: 6,
-            esforcoMax: 100,
-            defesa: 18,
-            nex: 15,
-            atributos: { forca: 2, agilidade: 3, inteligencia: 1, vigor: 2, presenca: 1 },
-            pericias: {
-                vontade: 0, tecnologia: 0, tatica: 0,
-                sobrevivencia: 0, religiao: 0, reflexos: 0,
-                profissao: 0, pontaria: 0, pilotagem: 0,
-                percepcao: 0, ocultismo: 0, medicina: 0,
-                luta: 0, investigacao: 0, intuicao: 0,
-                intimidacao: 0, iniciativa: 0, furtividade: 0,
-                fortitude: 0, enganacao: 0, diplomacia: 0,
-                crime: 0, ciencias: 0, atualidades: 0,
-                atletismo: 2, artes: 0, adestramento: 0,
-                acrobacia: 4, acoesMais: 0
-            },
-            ataques: { fuzilPrecisao: { pontaria: "2d10", dano: "19x3", alcance: "Longo" } },
-            origem: "Militar",
-            classe: "Especialista",
-            profissaoInfo: "Youtuber",
-            caminhos: "Das indias",
-            oculto: "Se quiser sim",
-            natural: "Mais bomba que iraniano",
-            itens: ["Fuzil"]
-        }
-    },
+    fichas: {},
 
     atualizarBarras() {
         const hpBar = document.getElementById('hpBar');
@@ -43,6 +9,16 @@ const Anima = {
         const sanidadeLabel = document.getElementById('sanidadeLabel');
         const esforcoBar = document.getElementById('esforcoBar');
         const esforcoLabel = document.getElementById('esforcoLabel');
+
+        if (!this.currentFichaId) {
+            hpBar.style.width = '0%';
+            hpLabel.textContent = 'Vida: 0/0';
+            sanidadeBar.style.width = '0%';
+            sanidadeLabel.textContent = 'Sanidade: 0/0';
+            esforcoBar.style.width = '0%';
+            esforcoLabel.textContent = 'Ponto de Esforço: 0/0';
+            return;
+        }
 
         const ficha = this.fichas[this.currentFichaId];
         hpBar.style.width = `${(ficha.vida / ficha.vidaMax) * 100}%`;
@@ -53,24 +29,28 @@ const Anima = {
         esforcoLabel.textContent = `Ponto de Esforço: ${ficha.esforco}/${ficha.esforcoMax}`;
     },
     alterarVida(valor) {
+        if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
         ficha.vida = Math.max(0, Math.min(ficha.vidaMax, ficha.vida + valor));
         this.atualizarBarras();
         this.salvarDados();
     },
     alterarSanidade(valor) {
+        if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
         ficha.sanidade = Math.max(0, Math.min(ficha.sanidadeMax, ficha.sanidade + valor));
         this.atualizarBarras();
         this.salvarDados();
     },
     alterarEsforco(valor) {
+        if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
         ficha.esforco = Math.max(0, Math.min(ficha.esforcoMax, ficha.esforco + valor));
         this.atualizarBarras();
         this.salvarDados();
     },
     editarAtributo(nome, elemento) {
+        if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
         const valorAtual = ficha[nome] !== undefined ? ficha[nome] : (ficha.atributos[nome] || 0);
         const input = document.createElement('input');
@@ -107,6 +87,7 @@ const Anima = {
         });
     },
     editarPericia(nome, elemento) {
+        if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
         const valorAtual = ficha.pericias[nome] || 0;
         const input = document.createElement('input');
@@ -139,6 +120,7 @@ const Anima = {
         });
     },
     editarTexto(nome, elemento) {
+        if (!this.currentFichaId) return;
         const ficha = this.fichas[this.currentFichaId];
         const valorAtual = ficha[nome] || '';
         const input = document.createElement('input');
@@ -181,9 +163,14 @@ const Anima = {
         // Simula salvamento em fichas.json (para futuro banco de dados)
         console.log('Salvando em fichas.json:', JSON.stringify(this.fichas, null, 2));
     },
-    carregarDados() {
-        const savedData = JSON.parse(localStorage.getItem('animaFichas') || '{}');
-        this.fichas = { ...this.fichas, ...savedData };
+    async carregarDados() {
+        try {
+            const response = await fetch('data/fichas.json');
+            this.fichas = await response.json();
+        } catch (e) {
+            console.error('Erro ao carregar fichas.json:', e);
+            this.fichas = JSON.parse(localStorage.getItem('animaFichas') || '{}');
+        }
         const seletor = document.getElementById('seletorFichas');
         seletor.innerHTML = '<option value="">Selecione uma ficha</option>';
         Object.keys(this.fichas).forEach(id => {
@@ -192,18 +179,32 @@ const Anima = {
             option.textContent = this.fichas[id].nome;
             seletor.appendChild(option);
         });
-        if (Object.keys(this.fichas).length > 0) {
-            this.currentFichaId = Object.keys(this.fichas)[0];
-            this.atualizarFicha();
-            this.atualizarBarras();
-        }
+        this.currentFichaId = null;
+        this.atualizarInterface();
     },
     selecionarFicha(id) {
         this.currentFichaId = id;
-        if (id) {
-            this.atualizarFicha();
+        this.atualizarInterface();
+    },
+    atualizarInterface() {
+        const nomePersonagem = document.getElementById('nomePersonagem');
+        const characterImg = document.getElementById('characterImg');
+        const verFichaBtn = document.getElementById('verFichaBtn');
+
+        if (!this.currentFichaId) {
+            nomePersonagem.textContent = 'Nenhuma Ficha Selecionada';
+            characterImg.src = 'https://via.placeholder.com/120';
+            verFichaBtn.disabled = true;
             this.atualizarBarras();
+            return;
         }
+
+        const ficha = this.fichas[this.currentFichaId];
+        nomePersonagem.textContent = ficha.nome;
+        characterImg.src = ficha.imagem || 'personagens/anima.jpg';
+        verFichaBtn.disabled = false;
+        this.atualizarBarras();
+        this.atualizarFicha();
     },
     excluirFicha() {
         if (!this.currentFichaId) return;
@@ -216,9 +217,10 @@ const Anima = {
         }
     },
     toggleFicha() {
+        if (!this.currentFichaId) return;
         const modal = document.getElementById('fichaModal');
         modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
-        if (modal.style.display === 'block' && this.currentFichaId) {
+        if (modal.style.display === 'block') {
             this.atualizarFicha();
         }
     },
