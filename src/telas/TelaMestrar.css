@@ -1,0 +1,120 @@
+/* src/telas/TelaMestrar.css */
+.mestrar-container {
+    width: 100%;
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.mestrar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--cor-borda-painel);
+}
+
+.mestrar-header h1 {
+    font-family: var(--fonte-ficha);
+    color: var(--cor-titulo-painel);
+    font-size: 2.5em;
+    margin: 0;
+}
+
+.mestrar-header button {
+    background: var(--cor-fundo-inverso);
+    color: var(--cor-texto-inverso);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 10px 15px;
+    cursor: pointer;
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
+}
+.mestrar-header button:hover {
+    background: var(--cor-titulo-painel);
+    color: var(--cor-fundo-painel);
+}
+
+.grid-jogadores {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 30px;
+    justify-items: center; /* Centraliza os cards na grade */
+}
+
+.jogador-card {
+    background: #008000;
+    color: var(--cor-texto-painel);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 20px;
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
+    backdrop-filter: blur(5px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 200px; /* Largura fixa para os cards */
+}
+
+.jogador-card h2 {
+    font-family: var(--fonte-ficha);
+    color: var(--cor-titulo-painel);
+    font-size: 1.5em;
+    margin: 0;
+    text-align: center;
+}
+
+.imagem-container {
+    position: relative;
+    width: 150px; /* Imagem um pouco maior */
+    height: 150px;
+    flex-shrink: 0;
+}
+
+.jogador-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--cor-borda-painel);
+}
+
+.stat-overlay {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    border: 2px solid var(--cor-titulo-painel);
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+
+/* POSICIONAMENTO FINAL: Todos na parte de baixo */
+.stat-vida {
+    bottom: 0;
+    left: -10px;
+}
+
+.stat-sanidade {
+    bottom: -15px; /* Um pouco mais para baixo para ficar no centro */
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.stat-esforco {
+    bottom: 0;
+    right: -10px;
+}
+.footer-actions {
+    margin-top: 25px;
+    border-top: 2px solid var(--cor-borda-painel);
+    padding-top: 20px;
+}

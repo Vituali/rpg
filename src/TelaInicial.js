@@ -12,7 +12,7 @@ function TelaInicial() {
         <ul>
           {/* 2. Substitua <a> por <Link> e href por to */}
           <li><Link to="/jogar">Jogar</Link></li>
-          <li><Link to="/jogadores">Jogadores</Link></li>
+          <li><Link to="/mestrar">Mestrar</Link></li>
           <li><Link to="/opcoes">Opções</Link></li>
         </ul>
       </nav>

@@ -1,13 +1,90 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@import url('https://fonts.googleapis.com/css2?family=Creepster&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap'); /* NOVA FONTE */
+
+:root, body.theme-sariat {
+  --cor-fundo-painel: #181818;
+  --cor-texto-painel: #b0b0b0;
+  --cor-borda-painel: #555555;
+  /* ATUALIZADO: Títulos agora usam o cinza claro para melhor leitura */
+  --cor-titulo-painel: #b0b0b0; 
+  --cor-barra-fundo: #444444;
+  --cor-barra-progresso: #D30000;
+  --cor-fundo-inverso: #b0b0b0;
+  --cor-texto-inverso: #181818;
+  --cor-botao-perigo: #D30000;
+  --cor-destaque-vermelho: #D30000; /* NOVO: Variável para o vermelho */
+  --cor-fundo-input: rgba(255, 255, 255, 0.05);
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* TEMA 2: Pergaminho Antigo */
+body.theme-parchment {
+  --cor-fundo-painel: #f7f3e8;
+  --cor-texto-painel: #4a2d1a;
+  --cor-borda-painel: #8c6b4f;
+  --cor-titulo-painel: #8c0000;
+  --cor-barra-fundo: rgba(0, 0, 0, 0.1);
+  --cor-barra-progresso: #8c6b4f;
+  --cor-fundo-inverso: #4a2d1a;
+  --cor-texto-inverso: #f7f3e8;
+  --cor-botao-perigo: #8c0000;
+  --cor-fundo-input: rgba(0, 0, 0, 0.05); /* NOVO */
+}
+
+/* TEMA 3: Neon Retrô */
+body.theme-neon {
+  --cor-fundo-painel: rgba(18, 10, 24, 0.9);
+  --cor-texto-painel: #f0f0f0;
+  --cor-borda-painel: #6a0dad;
+  --cor-titulo-painel: #e0b0ff;
+  --cor-barra-fundo: rgba(0, 0, 0, 0.5);
+  --cor-barra-progresso: #9d00ff;
+  --cor-fundo-inverso: #9d00ff;
+  --cor-texto-inverso: #f0f0f0;
+  --cor-botao-perigo: #ff0055;
+  --cor-fundo-input: rgba(0, 0, 0, 0.3); /* NOVO */
+}
+html {
+  height: 100%;
+}
+
+body {
+  color: var(--cor-texto-principal);
+  font-family: var(--fonte-corpo);
+  background-image: url('./assets/fundo.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  image-rendering: pixelated;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  margin: 0;
+}
+
+#root {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* TEMA 2: Pergaminho Antigo */
+body.theme-parchment {
+  --cor-fundo-painel: #f7f3e8; /* Cor de pergaminho */
+  --cor-texto-painel: #4a2d1a; /* Marrom escuro */
+  --cor-borda-painel: #8c6b4f; /* Borda marrom */
+  --cor-titulo-painel: #8c0000; /* Vermelho escuro */
+  --cor-barra-fundo: rgba(0, 0, 0, 0.1);
+  --cor-barra-progresso: #8c6b4f;
+}
+
+/* TEMA 3: Neon Retrô */
+body.theme-neon {
+  --cor-fundo-painel: rgba(18, 10, 24, 0.8);
+  --cor-texto-painel: #f0f0f0;
+  --cor-borda-painel: #6a0dad;
+  --cor-titulo-painel: #e0b0ff;
+  --cor-barra-fundo: rgba(0, 0, 0, 0.5);
+  --cor-barra-progresso: #9d00ff;
 }

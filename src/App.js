@@ -1,25 +1,38 @@
+// src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import TelaInicial from './TelaInicial'; // Nossa tela de menu
-import TelaJogar from './telas/TelaJogar'; // A nova tela de jogo
+import { ThemeProvider } from './context/ThemeContext';
+import TelaInicial from './TelaInicial';
+import TelaJogar from './telas/TelaJogar';
+import TelaCriarFicha from './telas/TelaCriarFicha';
+import TelaOpcoes from './telas/TelaOpcoes';
+import TelaMestrar from './telas/TelaMestrar';
+// 1. IMPORTE AS NOVAS TELAS
+import TelaInventario from './telas/TelaInventario';
+import TelaHabilidades from './telas/TelaHabilidades';
+import TelaRituais from './telas/TelaRituais';
+
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          {/* Rota para a página inicial */}
-          <Route path="/" element={<TelaInicial />} />
+    <ThemeProvider>
+      <Router>
+        <div className="App">
+          <Routes>
+            <Route path="/" element={<TelaInicial />} />
+            <Route path="/jogar" element={<TelaJogar />} />
+            <Route path="/criar-ficha" element={<TelaCriarFicha />} />
+            <Route path="/opcoes" element={<TelaOpcoes />} />
+            <Route path="/mestrar" element={<TelaMestrar />} />
 
-          {/* Rota para a página de jogo */}
-          <Route path="/jogar" element={<TelaJogar />} />
-
-          {/* Futuramente, você adicionará as outras rotas aqui: */}
-          {/* <Route path="/jogadores" element={<TelaJogadores />} /> */}
-          {/* <Route path="/opcoes" element={<TelaOpcoes />} /> */}
-        </Routes>
-      </div>
-    </Router>
+            {/* 2. ADICIONE AS NOVAS ROTAS COM PARÂMETROS */}
+            <Route path="/inventario/:fichaId" element={<TelaInventario />} />
+            <Route path="/habilidades/:fichaId" element={<TelaHabilidades />} />
+            <Route path="/rituais/:fichaId" element={<TelaRituais />} />
+          </Routes>
+        </div>
+      </Router>
+    </ThemeProvider>
   );
 }
 

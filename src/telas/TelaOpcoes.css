@@ -1,0 +1,69 @@
+/* src/telas/TelaOpcoes.css */
+.opcoes-container {
+    background: var(--cor-fundo-painel);
+    color: var(--cor-texto-painel);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 30px;
+    text-align: center;
+    width: 500px;
+    max-width: 90%;
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
+}
+
+.opcoes-container h2 {
+    font-size: 2.5em;
+    color: var(--cor-titulo-painel);
+    margin: 0 0 10px 0;
+}
+
+.opcoes-container p {
+    font-size: 1.1em;
+    margin-bottom: 30px;
+    text-transform: none;
+}
+
+.theme-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.theme-buttons button {
+    background: transparent;
+    color: var(--cor-texto-painel);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 15px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.theme-buttons button:hover {
+    background: var(--cor-titulo-painel);
+    color: var(--cor-fundo-painel);
+    border-color: var(--cor-titulo-painel);
+}
+
+.voltar-btn {
+    background: #000;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+}
+button, select {
+    background: var(--cor-fundo-inverso);
+    color: var(--cor-texto-inverso);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 10px 15px; margin: 5px;
+    border-radius: 0; cursor: pointer;
+    font-family: var(--fonte-ficha); font-weight: bold;
+    transition: all 0.2s; text-transform: uppercase;
+}
+
+button:hover, select:hover {
+    background: var(--cor-destaque-vermelho); /* Vermelho no hover */
+    color: var(--cor-texto-inverso);
+    border-color: var(--cor-destaque-vermelho);
+}

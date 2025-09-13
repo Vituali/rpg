@@ -1,0 +1,44 @@
+/* src/telas/MenuPaginas.css */
+.pagina-container {
+    background: var(--cor-fundo-painel);
+    color: var(--cor-texto-painel);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 30px;
+    margin: 20px;
+    width: 100%;
+    max-width: 800px;
+    box-sizing: border-box;
+    font-family: var(--fonte-ficha);
+    text-align: center;
+}
+
+.pagina-container h1 {
+    font-size: 2.5em;
+    color: var(--cor-titulo-painel);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--cor-borda-painel);
+    padding-bottom: 15px;
+    margin: 0 0 20px 0;
+}
+
+.pagina-container p {
+    font-size: 1.2em;
+    text-transform: none;
+    margin-bottom: 30px;
+}
+
+.pagina-container button {
+    background: var(--cor-fundo-inverso);
+    color: var(--cor-texto-inverso);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 10px 20px;
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pagina-container button:hover {
+    background: var(--cor-titulo-painel);
+    color: var(--cor-fundo-painel);
+}
