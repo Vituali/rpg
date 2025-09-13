@@ -1,0 +1,53 @@
+/* src/TelaInicial.css */
+
+@font-face {
+    font-family: 'PixelFont';
+    src: url('./assets/PressStart2P.ttf');
+}
+
+.tela-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+    background-image: url('./assets/fundo.png');
+    background-size: cover;
+    background-position: center;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    font-family: 'PixelFont', sans-serif;
+}
+
+/* ===== AJUSTE PRINCIPAL AQUI ===== */
+.game-logo {
+    width: 450px;      /* Largura base da imagem */
+    max-width: 90%;    /* Impede que a imagem seja maior que a tela */
+    height: auto;      /* Impede que a imagem fique achatada ou esticada */
+    margin-bottom: 40px;
+}
+/* ================================== */
+
+.main-menu ul {
+    list-style: none;
+    padding: 0;
+    text-align: center;
+}
+
+.main-menu li {
+    margin-bottom: 15px;
+}
+
+.main-menu a {
+    color: white;
+    text-decoration: none;
+    font-size: 28px;
+    text-shadow: 2px 2px 0 #000;
+    transition: color 0.2s;
+}
+
+.main-menu a:hover {
+    color: #ffcc00;
+}

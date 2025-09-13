@@ -1,8 +1,8 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getAuth } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getDatabase } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
-/* Configuração do Firebase */
 const firebaseConfig = {
     apiKey: "AIzaSyCubXJd9jgkmn0hJWXS67yKqzTGycMcC9w",
     authDomain: "anima-rpg.firebaseapp.com",
@@ -14,20 +14,9 @@ const firebaseConfig = {
     measurementId: "G-N6ZT1FQRM6"
 };
 
-/* Inicializar Firebase */
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const rtdb = getDatabase(app);
 
-/* Função para autenticar anonimamente */
-async function initializeAuth() {
-    try {
-        await signInAnonymously(auth);
-        console.log('✅ Usuário anônimo logado');
-    } catch (error) {
-        console.error('❌ Erro ao logar anônimo:', error);
-        alert('Erro ao autenticar: ' + error.message);
-    }
-}
-
-export { db, auth, initializeAuth };
+export { db, auth, rtdb };
