@@ -49,7 +49,7 @@ function TelaCriarFicha() {
         sanidade: 10, sanidadeMax: 10,
         esforco: 10, esforcoMax: 10,
         esquiva: 10,
-        imagem: '/personagens/dante.png',
+        imagem: '',
         atributos: { forca: 1, agilidade: 1, inteligencia: 1, vigor: 1, presenca: 1 },
         pericias: periciasPadrao
     });

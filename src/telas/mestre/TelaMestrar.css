@@ -1,0 +1,49 @@
+.mestrar-header {
+    /* ... */
+    gap: 20px; /* Adiciona espaçamento */
+}
+
+.mestrar-header h1 {
+    margin-right: auto; /* Empurra os outros itens para a direita */
+}
+
+.temporada-seletor {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.temporada-seletor label {
+    font-family: var(--fonte-ficha);
+    font-size: 1.1em;
+    color: var(--cor-texto-painel);
+}
+
+.temporada-seletor select {
+    font-family: var(--fonte-ficha);
+    background: var(--cor-fundo-input);
+    color: var(--cor-texto-painel);
+    border: 1px solid var(--cor-borda-painel);
+    padding: 8px;
+    font-size: 1em;
+}
+
+/* Estilo para o novo botão de editar */
+.jogador-card .edit-btn {
+    width: 100%;
+    margin-top: auto; /* Empurra para a base do card */
+    padding: 10px;
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
+    background: var(--cor-fundo-inverso);
+    color: var(--cor-texto-inverso);
+    border: 1px solid var(--cor-borda-painel);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.jogador-card .edit-btn:hover {
+    background: var(--cor-titulo-painel);
+    color: var(--cor-fundo-painel);
+    border-color: var(--cor-titulo-painel);
+}

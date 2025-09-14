@@ -1,7 +1,7 @@
 // src/telas/TelaInventario.js
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import './MenuPaginas.css'; // Usaremos um CSS compartilhado
+import '../MenuPaginas.css'; // Usaremos um CSS compartilhado
 
 function TelaInventario() {
     const { fichaId } = useParams(); // Pega o ID da ficha pela URL

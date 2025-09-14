@@ -1,7 +1,7 @@
 // src/telas/TelaHabilidades.js
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import './MenuPaginas.css';
+import '../MenuPaginas.css';
 
 function TelaHabilidades() {
     const { fichaId } = useParams();

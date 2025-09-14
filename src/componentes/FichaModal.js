@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import './FichaModal.css';
 import { atualizarFichaCompleta, atualizarStatusAoVivo } from '../firebase/dataService';
 
-function FichaModal({ ficha, fichaId, onClose, onExcluir, onUpdate }) {
+function FichaModal({ ficha, fichaId, temporada, onClose, onExcluir, onUpdate }) {
   const [editedFicha, setEditedFicha] = useState(ficha);
 
   useEffect(() => { setEditedFicha(ficha); }, [ficha]);
@@ -31,14 +31,23 @@ function FichaModal({ ficha, fichaId, onClose, onExcluir, onUpdate }) {
     }));
   };
 
-  const handleSave = async () => {
-    const sucessoFirestore = await atualizarFichaCompleta(fichaId, editedFicha);
-    if (sucessoFirestore) {
-      const statusAoVivo = { vida: editedFicha.vida, sanidade: editedFicha.sanidade, esforco: editedFicha.esforco };
-      atualizarStatusAoVivo(fichaId, statusAoVivo);
-      onUpdate();
-    }
-  };
+    const handleSave = async () => {
+        const sucessoFirestore = await atualizarFichaCompleta(temporada, fichaId, editedFicha);
+
+        if (sucessoFirestore) {
+            // ATUALIZADO AQUI: Adiciona os valores máximos
+            const statusParaRTDB = { 
+                vida: editedFicha.vida, 
+                vidaMax: editedFicha.vidaMax,
+                sanidade: editedFicha.sanidade,
+                sanidadeMax: editedFicha.sanidadeMax,
+                esforco: editedFicha.esforco,
+                esforcoMax: editedFicha.esforcoMax
+            };
+            atualizarStatusAoVivo(temporada, fichaId, statusParaRTDB);
+            onUpdate();
+        }
+    };
 
   if (!editedFicha) return null;
 

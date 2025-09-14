@@ -197,44 +197,53 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import RotaProtegida from './componentes/RotaProtegida';
+import PainelUsuario from './componentes/PainelUsuario';
 
-// Telas //
-
-// Tela inicial //
-import TelaLogin from './telas/TelaLogin';
-import TelaCadastro from './telas/TelaCadastro';
+// Telas
 import TelaInicial from './TelaInicial';
 import TelaCriarFicha from './telas/TelaCriarFicha';
 import TelaOpcoes from './telas/TelaOpcoes';
-import TelaMestrar from './telas/TelaMestrar';
-import TelaGrupo from './telas/TelaGrupo';
-import PainelUsuario from './componentes/PainelUsuario';
-import TelaUsuario from './telas/TelaUsuario';
-// Tela jogador //
+
+// Telas de Autenticação
+import TelaLogin from './telas/auth/TelaLogin';
+import TelaCadastro from './telas/auth/TelaCadastro';
+import TelaUsuario from './telas/auth/TelaUsuario';
+
+// Telas de Jogo
 import TelaJogar from './telas/jogador/TelaJogar';
 import TelaInventario from './telas/jogador/TelaInventario';
 import TelaHabilidades from './telas/jogador/TelaHabilidades';
 import TelaRituais from './telas/jogador/TelaRituais';
+
+// Telas de Mestre
+import TelaGrupo from './telas/mestre/TelaGrupo';
+import TelaMestrar from './telas/mestre/TelaMestrar';
 
 function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
         <Router>
+          <PainelUsuario />
           <div className="App">
             <Routes>
+              {/* Rotas Públicas */}
               <Route path="/" element={<TelaInicial />} />
               <Route path="/login" element={<TelaLogin />} />
               <Route path="/cadastro" element={<TelaCadastro />} />
+
+              {/* Rotas Protegidas */}
               <Route path="/jogar" element={<RotaProtegida><TelaJogar /></RotaProtegida>} />
-              <Route path="/grupo" element={<RotaProtegida><TelaGrupo /></RotaProtegida>} />
-              <Route path="/mestrar" element={<RotaProtegida gmOnly={true}><TelaMestrar /></RotaProtegida>} />
               <Route path="/criar-ficha" element={<RotaProtegida><TelaCriarFicha /></RotaProtegida>} />
               <Route path="/opcoes" element={<RotaProtegida><TelaOpcoes /></RotaProtegida>} />
+              <Route path="/usuario" element={<RotaProtegida><TelaUsuario /></RotaProtegida>} />
+              
+              <Route path="/grupo" element={<RotaProtegida><TelaGrupo /></RotaProtegida>} />
+              <Route path="/mestrar" element={<RotaProtegida gmOnly={true}><TelaMestrar /></RotaProtegida>} />
+              
               <Route path="/inventario/:fichaId" element={<RotaProtegida><TelaInventario /></RotaProtegida>} />
               <Route path="/habilidades/:fichaId" element={<RotaProtegida><TelaHabilidades /></RotaProtegida>} />
               <Route path="/rituais/:fichaId" element={<RotaProtegida><TelaRituais /></RotaProtegida>} />
-              <Route path="/usuario" element={<RotaProtegida><TelaUsuario /></RotaProtegida>} />
             </Routes>
           </div>
         </Router>
@@ -330,7 +339,14 @@ export default App;
 .pericias-header { background: var(--cor-fundo-inverso); color: var(--cor-texto-inverso); padding: 5px 10px; text-align: center; }
 .pericias-header h2 { margin: 0; font-size: 1.2em; font-weight: bold; }
 .pericias-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 15px; padding: 10px; max-height: 380px; overflow-y: auto; }
-.pericia-item { border: 1px solid var(--cor-borda-painel); padding: 5px; }
+.pericia-item {
+    border: 1px solid var(--cor-borda-painel);
+    padding: 5px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+}
 .pericia-item label { display: flex; justify-content: space-between; font-size: 0.9em; margin-bottom: 2px; }
 .pericia-item label span { color: #888; }
 .pericia-item input { width: 100%; border: 1px solid #ccc; padding: 3px; text-align: center; border-radius: 0; font-size: 1.3em; background: var(--cor-fundo-painel); color: var(--cor-texto-painel); }
@@ -347,7 +363,7 @@ import React, { useState, useEffect } from 'react';
 import './FichaModal.css';
 import { atualizarFichaCompleta, atualizarStatusAoVivo } from '../firebase/dataService';
 
-function FichaModal({ ficha, fichaId, onClose, onExcluir, onUpdate }) {
+function FichaModal({ ficha, fichaId, temporada, onClose, onExcluir, onUpdate }) {
   const [editedFicha, setEditedFicha] = useState(ficha);
 
   useEffect(() => { setEditedFicha(ficha); }, [ficha]);
@@ -375,14 +391,23 @@ function FichaModal({ ficha, fichaId, onClose, onExcluir, onUpdate }) {
     }));
   };
 
-  const handleSave = async () => {
-    const sucessoFirestore = await atualizarFichaCompleta(fichaId, editedFicha);
-    if (sucessoFirestore) {
-      const statusAoVivo = { vida: editedFicha.vida, sanidade: editedFicha.sanidade, esforco: editedFicha.esforco };
-      atualizarStatusAoVivo(fichaId, statusAoVivo);
-      onUpdate();
-    }
-  };
+    const handleSave = async () => {
+        const sucessoFirestore = await atualizarFichaCompleta(temporada, fichaId, editedFicha);
+
+        if (sucessoFirestore) {
+            // ATUALIZADO AQUI: Adiciona os valores máximos
+            const statusParaRTDB = { 
+                vida: editedFicha.vida, 
+                vidaMax: editedFicha.vidaMax,
+                sanidade: editedFicha.sanidade,
+                sanidadeMax: editedFicha.sanidadeMax,
+                esforco: editedFicha.esforco,
+                esforcoMax: editedFicha.esforcoMax
+            };
+            atualizarStatusAoVivo(temporada, fichaId, statusParaRTDB);
+            onUpdate();
+        }
+    };
 
   if (!editedFicha) return null;
 
@@ -672,18 +697,30 @@ export const useTheme = () => useContext(ThemeContext);
 
 // --- src\firebase\dataService.js ---
 
-// src/firebase/dataService.js
-import { db, rtdb } from './firebase-config.js';
+import { db, rtdb, auth } from './firebase-config.js';
 import { collection, getDocs, addDoc, doc, deleteDoc, setDoc } from 'firebase/firestore';
 import { ref, set, onValue, off, remove } from 'firebase/database';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from './firebase-config.js';
 
 const ACTIVE_SEASON = 'pacto';
 
-export async function carregarFichas() {
+// --- Funções de Temporada e Ficha ---
+
+export async function carregarNomesDasTemporadas() {
     try {
-        const path = `temporadas/${ACTIVE_SEASON}/fichas`;
+        const snapshot = await getDocs(collection(db, 'temporadas'));
+        const nomes = snapshot.docs.map(doc => doc.id);
+        return nomes;
+    } catch (e) {
+        console.error('Erro ao carregar nomes das temporadas:', e);
+        return [];
+    }
+}
+
+export async function carregarFichasPorTemporada(temporada) {
+    if (!temporada) return {};
+    try {
+        const path = `temporadas/${temporada}/fichas`;
         const snapshot = await getDocs(collection(db, path));
         const fichas = {};
         snapshot.forEach(doc => {
@@ -691,7 +728,7 @@ export async function carregarFichas() {
         });
         return fichas;
     } catch (e) {
-        console.error('Erro ao carregar fichas:', e);
+        console.error(`Erro ao carregar fichas da temporada ${temporada}:`, e);
         return {};
     }
 }
@@ -700,12 +737,20 @@ export async function salvarFichaCompleta(dadosFicha) {
     try {
         const path = `temporadas/${ACTIVE_SEASON}/fichas`;
         const docRef = await addDoc(collection(db, path), dadosFicha);
+        console.log(`Ficha salva na temporada ${ACTIVE_SEASON} com ID: `, docRef.id);
+        
+        // CORRIGIDO AQUI: Adiciona os valores máximos e salva na temporada correta
         const statusIniciais = {
             vida: dadosFicha.vida,
+            vidaMax: dadosFicha.vidaMax,
             sanidade: dadosFicha.sanidade,
-            esforco: dadosFicha.esforco
+            sanidadeMax: dadosFicha.sanidadeMax,
+            esforco: dadosFicha.esforco,
+            esforcoMax: dadosFicha.esforcoMax
         };
+        // Garante que está salvando na ACTIVE_SEASON
         await set(ref(rtdb, `sessoes/${ACTIVE_SEASON}/${docRef.id}`), statusIniciais);
+        
         return docRef.id;
     } catch (e) {
         console.error('Erro ao salvar nova ficha:', e);
@@ -713,35 +758,22 @@ export async function salvarFichaCompleta(dadosFicha) {
     }
 }
 
-export function atualizarStatusAoVivo(fichaId, novosStatus) {
-  const referencia = ref(rtdb, `sessoes/${ACTIVE_SEASON}/${fichaId}`);
-  set(referencia, novosStatus);
-}
-
-export function escutarTodosStatusAoVivo(callback) {
-  const referencia = ref(rtdb, `sessoes/${ACTIVE_SEASON}`);
-  onValue(referencia, (snapshot) => {
-    const dados = snapshot.val() || {};
-    callback(dados);
-  });
-  return () => off(referencia);
-}
-
-export function escutarStatusAoVivo(fichaId, callback) {
-  const referencia = ref(rtdb, `sessoes/${ACTIVE_SEASON}/${fichaId}`);
-  onValue(referencia, (snapshot) => {
-    const dados = snapshot.val();
-    callback(dados);
-  });
-  return () => off(referencia);
-}
-
-export async function excluirFicha(fichaId) {
+export async function excluirFicha(temporada, fichaId) {
+    if (!temporada || !fichaId) {
+        console.error("Temporada ou ID da ficha não fornecido.");
+        return false;
+    }
     try {
-        const fichaDocRef = doc(db, `temporadas/${ACTIVE_SEASON}/fichas`, fichaId);
+        // Caminho correto para o Firestore
+        const fichaDocRef = doc(db, `temporadas/${temporada}/fichas`, fichaId);
         await deleteDoc(fichaDocRef);
-        const statusRtdbRef = ref(rtdb, `sessoes/${ACTIVE_SEASON}/${fichaId}`);
+        console.log("Ficha excluída do Firestore com sucesso.");
+
+        // Caminho correto para o Realtime Database
+        const statusRtdbRef = ref(rtdb, `sessoes/${temporada}/${fichaId}`);
         await remove(statusRtdbRef);
+        console.log("Status excluído do Realtime Database com sucesso.");
+
         return true;
     } catch (error) {
         console.error("Erro ao excluir ficha: ", error);
@@ -749,17 +781,38 @@ export async function excluirFicha(fichaId) {
         return false;
     }
 }
-export async function atualizarFichaCompleta(fichaId, fichaData) {
+
+
+
+export async function atualizarFichaCompleta(temporada, fichaId, fichaData) {
     try {
-        const fichaDocRef = doc(db, `temporadas/${ACTIVE_SEASON}/fichas`, fichaId);
+        const fichaDocRef = doc(db, `temporadas/${temporada}/fichas`, fichaId);
         await setDoc(fichaDocRef, fichaData);
         return true;
     } catch (error) {
         console.error("Erro ao atualizar ficha: ", error);
-        alert("Erro ao atualizar a ficha: " + error.message);
         return false;
     }
 }
+
+// --- Funções de Status em Tempo Real ---
+
+export function escutarStatusDaTemporada(temporada, callback) {
+  if (!temporada) return () => {};
+  const referencia = ref(rtdb, `sessoes/${temporada}`);
+  onValue(referencia, (snapshot) => {
+    const dados = snapshot.val() || {};
+    callback(dados);
+  });
+  return () => off(referencia);
+}
+
+export function atualizarStatusAoVivo(temporada, fichaId, novosStatus) {
+  const referencia = ref(rtdb, `sessoes/${temporada}/${fichaId}`);
+  set(referencia, novosStatus);
+}
+
+// --- Funções de Autenticação ---
 
 export async function cadastrarUsuario(email, senha) {
     try {
@@ -786,6 +839,7 @@ export async function logoutUsuario() {
         console.error("Erro ao fazer logout:", error);
     }
 }
+
 export async function enviarEmailRedefinicaoSenha(email) {
     try {
         await sendPasswordResetEmail(auth, email);
@@ -794,6 +848,26 @@ export async function enviarEmailRedefinicaoSenha(email) {
         console.error("Erro ao enviar e-mail de redefinição:", error);
         return { error: error.message };
     }
+}
+export function escutarTodosStatusDaTemporada(temporada, callback) {
+  if (!temporada) return () => {};
+  const referencia = ref(rtdb, `sessoes/${temporada}`);
+  onValue(referencia, (snapshot) => {
+    const dados = snapshot.val() || {};
+    callback(dados);
+  });
+  return () => off(referencia);
+}
+
+// Escuta o status de UM personagem de uma temporada (para TelaJogar)
+export function escutarStatusDeUmPersonagem(temporada, fichaId, callback) {
+    if (!temporada || !fichaId) return () => {};
+    const referencia = ref(rtdb, `sessoes/${temporada}/${fichaId}`);
+    onValue(referencia, (snapshot) => {
+        const dados = snapshot.val();
+        callback(dados);
+    });
+    return () => off(referencia);
 }
 
 // --- src\firebase\firebase-config.js ---
@@ -987,12 +1061,12 @@ root.render(
 // src/TelaInicial.js
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from './context/AuthContext'; // Importe o useAuth
+import { useAuth } from './context/AuthContext';
 import './TelaInicial.css';
 import logo from './assets/logo.png';
 
 function TelaInicial() {
-  const { currentUser, isGM } = useAuth(); // Pega o usuário e o status de Mestre
+  const { isGM } = useAuth();
 
   return (
     <div className="tela-container">
@@ -1000,9 +1074,7 @@ function TelaInicial() {
       <nav className="main-menu">
         <ul>
           <li><Link to="/jogar">Jogar</Link></li>
-          {/* Link para a tela de Grupo (visível para todos) */}
           <li><Link to="/grupo">Ver Grupo</Link></li>
-          {/* Link para o Painel do Mestre (visível APENAS para o Mestre) */}
           {isGM && <li><Link to="/mestrar">Painel do Mestre</Link></li>}
           <li><Link to="/opcoes">Opções</Link></li>
         </ul>
@@ -1013,7 +1085,7 @@ function TelaInicial() {
 
 export default TelaInicial;
 
-// --- src\telas\Auth.css ---
+// --- src\telas\auth\Auth.css ---
 
 /* src/telas/Auth.css */
 .auth-container {
@@ -1093,12 +1165,11 @@ export default TelaInicial;
     text-decoration: none;
 }
 
-// --- src\telas\cadastro\TelaCadastro.js ---
+// --- src\telas\auth\TelaCadastro.js ---
 
-// src/telas/TelaCadastro.js
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { cadastrarUsuario } from '../firebase/dataService';
+import { cadastrarUsuario } from '../../firebase/dataService'; // Caminho corrigido
 import './Auth.css';
 
 function TelaCadastro() {
@@ -1117,7 +1188,6 @@ function TelaCadastro() {
             navigate('/jogar');
         }
     };
-
     return (
         <div className="auth-container">
             <form onSubmit={handleCadastro} className="auth-form">
@@ -1132,16 +1202,14 @@ function TelaCadastro() {
         </div>
     );
 }
-
 export default TelaCadastro;
 
-// --- src\telas\cadastro\TelaLogin.js ---
+// --- src\telas\auth\TelaLogin.js ---
 
-// src/telas/TelaLogin.js
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { loginUsuario } from '../firebase/dataService';
-import './Auth.css'; // Usaremos um CSS compartilhado
+import { loginUsuario } from '../../firebase/dataService'; // Caminho corrigido
+import './Auth.css';
 
 function TelaLogin() {
     const navigate = useNavigate();
@@ -1156,7 +1224,7 @@ function TelaLogin() {
         if (result.error) {
             setError('Falha no login. Verifique seu e-mail e senha.');
         } else {
-            navigate('/jogar'); // Redireciona para a tela de jogar após o login
+            navigate('/jogar');
         }
     };
 
@@ -1165,20 +1233,8 @@ function TelaLogin() {
             <form onSubmit={handleLogin} className="auth-form">
                 <h2>Login</h2>
                 {error && <p className="auth-error">{error}</p>}
-                <input 
-                    type="email" 
-                    placeholder="E-mail" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)} 
-                    required 
-                />
-                <input 
-                    type="password" 
-                    placeholder="Senha" 
-                    value={senha}
-                    onChange={(e) => setSenha(e.target.value)} 
-                    required 
-                />
+                <input type="email" placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <input type="password" placeholder="Senha" value={senha} onChange={(e) => setSenha(e.target.value)} required />
                 <button type="submit">Entrar</button>
                 <p className="auth-link">
                     Não tem uma conta? <Link to="/cadastro">Cadastre-se</Link>
@@ -1187,18 +1243,15 @@ function TelaLogin() {
         </div>
     );
 }
-
 export default TelaLogin;
 
-// --- src\telas\cadastro\TelaUsuario.js ---
+// --- src\telas\auth\TelaUsuario.js ---
 
-// src/telas/TelaUsuario.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { enviarEmailRedefinicaoSenha } from '../firebase/dataService';
-import './MenuPaginas.css'; // Reutiliza o estilo das outras páginas de menu
-
+import { useAuth } from '../../context/AuthContext';
+import { enviarEmailRedefinicaoSenha } from '../../firebase/dataService';
+import '../MenuPaginas.css';
 function TelaUsuario() {
     const navigate = useNavigate();
     const { currentUser } = useAuth();
@@ -1221,24 +1274,440 @@ function TelaUsuario() {
         <div className="pagina-container">
             <h1>Minha Conta</h1>
             <p><strong>E-mail:</strong> {currentUser?.email}</p>
-            
             <div className="user-management">
                 <h3>Alterar Senha</h3>
                 <p>Clique no botão abaixo para receber um e-mail com o link para redefinir sua senha.</p>
                 <button onClick={handlePasswordReset}>Redefinir Senha</button>
-                {mensagem && (
-                    <p className={isError ? 'auth-error' : 'auth-success'}>{mensagem}</p>
-                )}
+                {mensagem && ( <p className={isError ? 'auth-error' : 'auth-success'}>{mensagem}</p> )}
             </div>
-
             <button onClick={() => navigate(-1)} style={{marginTop: '30px'}}>Voltar</button>
         </div>
     );
 }
-
 export default TelaUsuario;
 
-// --- src\telas\inicial\TelaGrupo.css ---
+// --- src\telas\jogador\TelaHabilidades.js ---
+
+// src/telas/TelaHabilidades.js
+import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import '../MenuPaginas.css';
+
+function TelaHabilidades() {
+    const { fichaId } = useParams();
+    const navigate = useNavigate();
+
+    return (
+        <div className="pagina-container">
+            <h1>Habilidades</h1>
+            <p>Habilidades para o personagem com ID: {fichaId}</p>
+            <button onClick={() => navigate('/jogar')}>Voltar</button>
+        </div>
+    );
+}
+
+export default TelaHabilidades;
+
+// --- src\telas\jogador\TelaInventario.js ---
+
+// src/telas/TelaInventario.js
+import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import '../MenuPaginas.css'; // Usaremos um CSS compartilhado
+
+function TelaInventario() {
+    const { fichaId } = useParams(); // Pega o ID da ficha pela URL
+    const navigate = useNavigate();
+
+    return (
+        <div className="pagina-container">
+            <h1>Inventário</h1>
+            <p>Conteúdo do inventário para o personagem com ID: {fichaId}</p>
+            {/* Futuramente, aqui será exibida a lista de itens da ficha */}
+            <button onClick={() => navigate('/jogar')}>Voltar</button>
+        </div>
+    );
+}
+
+export default TelaInventario;
+
+// --- src\telas\jogador\TelaJogar.css ---
+
+/* src/telas/TelaJogar.css */
+
+.menu-container {
+    background: var(--cor-fundo-painel);
+    color: var(--cor-texto-painel);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 25px;
+    text-align: center;
+    width: 550px;
+    max-width: 95%;
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
+    backdrop-filter: blur(5px);
+}
+
+.character-img {
+    width: 130px; height: 130px;
+    margin-bottom: 15px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid var(--cor-borda-painel);
+    background: #eee;
+}
+
+.menu-container h2 {
+    font-family: var(--fonte-ficha);
+    color: var(--cor-titulo-painel);
+    font-size: 2.5em;
+    letter-spacing: 2px;
+    margin-top: 0; margin-bottom: 20px;
+}
+
+.status-block { display: flex; align-items: center; gap: 10px; margin: 12px 0; }
+.bar-info { font-weight: bold; color: var(--cor-texto-painel); width: 80px; text-align: right; flex-shrink: 0; }
+
+.bar-label {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px 1px #000;
+    z-index: 2;
+}
+
+.status-bar {
+    background: var(--cor-barra-fundo);
+    border: 1px solid var(--cor-borda-painel);
+    border-radius: 0; height: 28px;
+    position: relative; flex-grow: 1;
+    overflow: hidden;
+}
+
+.bar-controls { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; display: flex; gap: 3px; opacity: 0; transition: opacity 0.2s ease-in-out; }
+.status-bar:hover .bar-controls { opacity: 1; }
+.left-controls { left: 6px; }
+.right-controls { right: 6px; }
+
+.bar-controls button {
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    color: #fff;
+    padding: 0 6px; margin: 0;
+    height: 22px; font-size: 14px;
+    line-height: 20px; border-radius: 0;
+    cursor: pointer;
+}
+.bar-controls button:hover { background: #000; }
+
+.hp-bar, .sanidade-bar, .esforco-bar { height: 100%; transition: width 0.5s ease; }
+.hp-bar { background: linear-gradient(to right, #6D0000, #D30000); }
+.sanidade-bar { background: linear-gradient(to right, #005C9E, #00A6FF); }
+.esforco-bar { background: linear-gradient(to right, #5D00A5, #A300FF); }
+
+.actions-container, .dice-roller { margin-top: 25px; border-top: 2px solid var(--cor-borda-painel); padding-top: 20px; }
+
+/* CORREÇÃO APLICADA AQUI */
+button, select {
+    background: var(--cor-titulo-painel); /* Fundo vermelho-sangue */
+    color: var(--cor-texto-inverso); /* Texto claro */
+    border: 2px solid var(--cor-titulo-painel); /* Borda da mesma cor */
+    padding: 10px 15px; margin: 5px;
+    border-radius: 0; cursor: pointer;
+    font-family: var(--fonte-ficha); font-weight: bold;
+    transition: all 0.2s; text-transform: uppercase;
+}
+
+button:hover, select:hover {
+    filter: brightness(1.2); /* Deixa o botão 20% mais claro */
+    /* Remove as regras antigas de background e color para o hover */
+}
+button:disabled {
+    background: #ccc;
+    color: #888;
+    border-color: #888;
+    cursor: not-allowed;
+}
+select { width: calc(100% - 10px); }
+
+
+.dice-roller h3 {
+    font-family: var(--fonte-ficha); color: var(--cor-titulo-painel);
+    margin-top: 0; font-size: 1.5em;
+    border-bottom: 1px solid var(--cor-borda-painel);
+    padding-bottom: 5px; margin-bottom: 15px;
+}
+.dice-inputs { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 15px; }
+.dice-inputs label { font-weight: bold; }
+.dice-inputs span { font-size: 1.5em; font-weight: bold; }
+.dice-inputs input[type="number"] {
+    width: 60px; padding: 8px;
+    border: 1px solid var(--cor-borda-painel);
+    text-align: center; font-family: var(--fonte-ficha);
+    font-size: 1.2em; background: var(--cor-fundo-painel); color: var(--cor-texto-painel);
+}
+.dice-result {
+    margin-top: 15px;
+    border: 1px solid var(--cor-borda-painel);
+    padding: 10px; font-size: 1.2em; font-weight: bold;
+    color: var(--cor-texto-painel);
+    min-height: 30px; word-wrap: break-word;
+}
+select option {
+    background: var(--cor-fundo-painel);
+    color: var(--cor-texto-painel);
+}
+
+// --- src\telas\jogador\TelaJogar.js ---
+
+// src/telas/jogador/TelaJogar.js
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import './TelaJogar.css';
+// CORRIGIDO: Importa as funções corretas que usam 'temporada'
+import { carregarFichasPorTemporada, atualizarStatusAoVivo, escutarStatusDeUmPersonagem, excluirFicha } from '../../firebase/dataService.js';
+import FichaModal from '../../componentes/FichaModal.js';
+import logo from '../../assets/logo.png';
+
+function TelaJogar() {
+    const navigate = useNavigate();
+    const [fichas, setFichas] = useState({});
+    const [fichaIdAtual, setFichaIdAtual] = useState('');
+    const [statusAoVivo, setStatusAoVivo] = useState(null);
+    const [modalVisivel, setModalVisivel] = useState(false);
+    const [numDados, setNumDados] = useState(1);
+    const [ladosDado, setLadosDado] = useState(20);
+    const [resultadoDado, setResultadoDado] = useState(null);
+
+    const temporadaAtiva = 'pacto'; // Define a temporada ativa para esta tela
+
+    // Carrega as fichas da temporada ativa
+    useEffect(() => {
+        const buscaDados = async () => {
+            const dados = await carregarFichasPorTemporada(temporadaAtiva);
+            setFichas(dados);
+        };
+        buscaDados();
+    }, []);
+
+    // Escuta as alterações de status do personagem SELECIONADO
+    useEffect(() => {
+        if (!fichaIdAtual) {
+            setStatusAoVivo(null);
+            return;
+        }
+        
+        const pararDeEscutar = escutarStatusDeUmPersonagem(temporadaAtiva, fichaIdAtual, (dados) => {
+            if (dados) {
+                setStatusAoVivo(dados);
+            } else {
+                const fichaInicial = fichas[fichaIdAtual];
+                if (fichaInicial) {
+                    const statusInicial = { vida: fichaInicial.vida, sanidade: fichaInicial.sanidade, esforco: fichaInicial.esforco };
+                    atualizarStatusAoVivo(temporadaAtiva, fichaIdAtual, statusInicial);
+                    setStatusAoVivo(statusInicial);
+                }
+            }
+        });
+        
+        return () => pararDeEscutar();
+    }, [fichaIdAtual, fichas]);
+
+    const handleFichaUpdate = async () => {
+        const dados = await carregarFichasPorTemporada(temporadaAtiva);
+        setFichas(dados);
+        fecharModal();
+        alert("Ficha atualizada com sucesso!");
+    };
+
+    const handleExcluirFicha = async () => {
+        if (!fichaIdAtual) return;
+        const confirmado = window.confirm(`Tem certeza que deseja excluir a ficha de ${fichas[fichaIdAtual].nome}?`);
+        if (confirmado) {
+            // ATUALIZADO AQUI: Passando a temporada para a função
+            const sucesso = await excluirFicha(temporadaAtiva, fichaIdAtual);
+            if (sucesso) {
+                alert("Ficha excluída com sucesso!");
+                fecharModal();
+                setFichaIdAtual('');
+                const dados = await carregarFichasPorTemporada(temporadaAtiva);
+                setFichas(dados);
+            }
+        }
+    };
+    
+    const handleSelecaoFicha = (event) => { setFichaIdAtual(event.target.value); };
+    const fichaSelecionada = fichas[fichaIdAtual] || null;
+    const calcularLarguraBarra = (valor, max) => !valor || !max ? '0%' : `${(valor / max) * 100}%`;
+    const abrirModal = () => setModalVisivel(true);
+    const fecharModal = () => setModalVisivel(false);
+
+    // CORRIGIDO: A chamada para atualizarStatusAoVivo agora inclui a temporada
+    const handleAlterarStatus = (stat, valor) => {
+        if (!fichaSelecionada || !statusAoVivo) return;
+        const maxStat = fichaSelecionada[`${stat}Max`];
+        const currentStat = statusAoVivo[stat];
+        const novoValor = Math.max(0, Math.min(maxStat, currentStat + valor));
+        atualizarStatusAoVivo(temporadaAtiva, fichaIdAtual, { ...statusAoVivo, [stat]: novoValor });
+    };
+    
+    const rolarDados = () => {
+        if (numDados <= 0 || ladosDado <= 0) return;
+        let rolagens = [];
+        for (let i = 0; i < numDados; i++) {
+            rolagens.push(Math.floor(Math.random() * ladosDado) + 1);
+        }
+        const soma = rolagens.reduce((a, b) => a + b, 0);
+        setResultadoDado(`Rolagens (${numDados}d${ladosDado}): [${rolagens.join(', ')}] = ${soma}`);
+    };
+
+    const getImagemPersonagem = (nome) => {
+        if (!nome) return logo;
+        try {
+            return require(`../../assets/personagens/${nome.toLowerCase()}.png`);
+        } catch (err) {
+            return logo;
+        }
+    };
+    const imagemExibida = getImagemPersonagem(fichaSelecionada?.nome);
+
+    return (
+        <>
+            <div className="menu-container">
+                <img src={imagemExibida} alt="Personagem" className="character-img" />
+                <h2>{fichaSelecionada?.nome || 'Selecione um Agente'}</h2>
+                <select value={fichaIdAtual} onChange={handleSelecaoFicha}>
+                    <option value="">-- SELECIONAR AGENTE --</option>
+                    {Object.keys(fichas).map(id => (<option key={id} value={id}>{fichas[id].nome}</option>))}
+                </select>
+                
+                <div className="status-block">
+                    <span className="bar-info">Vida</span>
+                    <div className="status-bar">
+                        <div className="hp-bar" style={{ width: calcularLarguraBarra(statusAoVivo?.vida, fichaSelecionada?.vidaMax) }}></div>
+                        <span className="bar-label">{statusAoVivo?.vida ?? 0}/{fichaSelecionada?.vidaMax || 0}</span>
+                        <div className="bar-controls left-controls"><button onClick={() => handleAlterarStatus('vida', -10)} disabled={!fichaSelecionada}>&lt;&lt;&lt;</button><button onClick={() => handleAlterarStatus('vida', -5)} disabled={!fichaSelecionada}>&lt;&lt;</button><button onClick={() => handleAlterarStatus('vida', -1)} disabled={!fichaSelecionada}>&lt;</button></div>
+                        <div className="bar-controls right-controls"><button onClick={() => handleAlterarStatus('vida', 1)} disabled={!fichaSelecionada}>&gt;</button><button onClick={() => handleAlterarStatus('vida', 5)} disabled={!fichaSelecionada}>&gt;&gt;</button><button onClick={() => handleAlterarStatus('vida', 10)} disabled={!fichaSelecionada}>&gt;&gt;&gt;</button></div>
+                    </div>
+                </div>
+                <div className="status-block">
+                    <span className="bar-info">Sanidade</span>
+                    <div className="status-bar">
+                        <div className="sanidade-bar" style={{ width: calcularLarguraBarra(statusAoVivo?.sanidade, fichaSelecionada?.sanidadeMax) }}></div>
+                        <span className="bar-label">{statusAoVivo?.sanidade ?? 0}/{fichaSelecionada?.sanidadeMax || 0}</span>
+                        <div className="bar-controls left-controls"><button onClick={() => handleAlterarStatus('sanidade', -10)} disabled={!fichaSelecionada}>&lt;&lt;&lt;</button><button onClick={() => handleAlterarStatus('sanidade', -5)} disabled={!fichaSelecionada}>&lt;&lt;</button><button onClick={() => handleAlterarStatus('sanidade', -1)} disabled={!fichaSelecionada}>&lt;</button></div>
+                        <div className="bar-controls right-controls"><button onClick={() => handleAlterarStatus('sanidade', 1)} disabled={!fichaSelecionada}>&gt;</button><button onClick={() => handleAlterarStatus('sanidade', 5)} disabled={!fichaSelecionada}>&gt;&gt;</button><button onClick={() => handleAlterarStatus('sanidade', 10)} disabled={!fichaSelecionada}>&gt;&gt;&gt;</button></div>
+                    </div>
+                </div>
+                <div className="status-block">
+                    <span className="bar-info">Esforço</span>
+                    <div className="status-bar">
+                        <div className="esforco-bar" style={{ width: calcularLarguraBarra(statusAoVivo?.esforco, fichaSelecionada?.esforcoMax) }}></div>
+                        <span className="bar-label">{statusAoVivo?.esforco ?? 0}/{fichaSelecionada?.esforcoMax || 0}</span>
+                        <div className="bar-controls left-controls"><button onClick={() => handleAlterarStatus('esforco', -10)} disabled={!fichaSelecionada}>&lt;&lt;&lt;</button><button onClick={() => handleAlterarStatus('esforco', -5)} disabled={!fichaSelecionada}>&lt;&lt;</button><button onClick={() => handleAlterarStatus('esforco', -1)} disabled={!fichaSelecionada}>&lt;</button></div>
+                        <div className="bar-controls right-controls"><button onClick={() => handleAlterarStatus('esforco', 1)} disabled={!fichaSelecionada}>&gt;</button><button onClick={() => handleAlterarStatus('esforco', 5)} disabled={!fichaSelecionada}>&gt;&gt;</button><button onClick={() => handleAlterarStatus('esforco', 10)} disabled={!fichaSelecionada}>&gt;&gt;&gt;</button></div>
+                    </div>
+                </div>
+                
+                <div className="actions-container">
+                    <button onClick={abrirModal} disabled={!fichaSelecionada}>Ficha</button>
+                    <button onClick={() => navigate(`/inventario/${fichaIdAtual}`)} disabled={!fichaSelecionada}>Inventário</button>
+                    <button onClick={() => navigate(`/habilidades/${fichaIdAtual}`)} disabled={!fichaSelecionada}>Habilidades</button>
+                    <button onClick={() => navigate(`/rituais/${fichaIdAtual}`)} disabled={!fichaSelecionada}>Rituais</button>
+                </div>
+                <div className="dice-roller">
+                    <h3>Rolador de Dados</h3>
+                    <div className="dice-inputs">
+                        <label>Qtd:</label> <input type="number" value={numDados} onChange={(e) => setNumDados(parseInt(e.target.value))} min="1"/>
+                        <span>d</span>
+                        <label>Lados:</label> <input type="number" value={ladosDado} onChange={(e) => setLadosDado(parseInt(e.target.value))} min="2"/>
+                        <button onClick={rolarDados}>Rolar</button>
+                    </div>
+                    <div className="dice-result">{resultadoDado || "Role os dados..."}</div>
+                </div>
+                <div className="footer-actions">
+                    <button onClick={() => navigate('/criar-ficha')}>Criar Nova Ficha</button>
+                    <button onClick={() => navigate('/')}>Voltar ao Menu</button>
+                </div>
+            </div>
+            {modalVisivel && <FichaModal ficha={fichaSelecionada} fichaId={fichaIdAtual} temporada={temporadaAtiva} onClose={fecharModal} onExcluir={handleExcluirFicha} onUpdate={handleFichaUpdate} />}
+        </>
+    );
+}
+
+export default TelaJogar;
+
+// --- src\telas\jogador\TelaRituais.js ---
+
+// src/telas/TelaRituais.js
+import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import '../MenuPaginas.css';
+
+function TelaRituais() {
+    const { fichaId } = useParams();
+    const navigate = useNavigate();
+    return (
+        <div className="pagina-container">
+            <h1>Rituais</h1>
+            <p>Rituais para o personagem com ID: {fichaId}</p>
+            <button onClick={() => navigate('/jogar')}>Voltar</button>
+        </div>
+    );
+}
+
+export default TelaRituais;
+
+// --- src\telas\MenuPaginas.css ---
+
+/* src/telas/MenuPaginas.css */
+.pagina-container {
+    background: var(--cor-fundo-painel);
+    color: var(--cor-texto-painel);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 30px;
+    margin: 20px;
+    width: 100%;
+    max-width: 800px;
+    box-sizing: border-box;
+    font-family: var(--fonte-ficha);
+    text-align: center;
+}
+
+.pagina-container h1 {
+    font-size: 2.5em;
+    color: var(--cor-titulo-painel);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--cor-borda-painel);
+    padding-bottom: 15px;
+    margin: 0 0 20px 0;
+}
+
+.pagina-container p {
+    font-size: 1.2em;
+    text-transform: none;
+    margin-bottom: 30px;
+}
+
+.pagina-container button {
+    background: var(--cor-fundo-inverso);
+    color: var(--cor-texto-inverso);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 10px 20px;
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pagina-container button:hover {
+    background: var(--cor-titulo-painel);
+    color: var(--cor-fundo-painel);
+}
+
+// --- src\telas\mestre\TelaGrupo.css ---
 
 /* src/telas/TelaMestrar.css */
 .mestrar-container {
@@ -1361,73 +1830,102 @@ export default TelaUsuario;
     padding-top: 20px;
 }
 
-// --- src\telas\inicial\TelaGrupo.js ---
+// --- src\telas\mestre\TelaGrupo.js ---
 
-// src/telas/TelaMestrar.js
+// src/telas/mestre/TelaGrupo.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { carregarFichas, escutarTodosStatusAoVivo } from '../firebase/dataService.js';
-import logo from '../assets/logo.png';
+import { carregarFichasPorTemporada, escutarTodosStatusDaTemporada } from '../../firebase/dataService.js';
+import logo from '../../assets/logo.png';
 import './TelaGrupo.css';
 
 function TelaGrupo() {
     const navigate = useNavigate();
     const [fichas, setFichas] = useState({});
     const [statusAoVivo, setStatusAoVivo] = useState({});
+    const [loading, setLoading] = useState(true);
+    
+    const temporadaAtiva = 'pacto';
 
     useEffect(() => {
+        let pararDeEscutar;
+
         const buscaDados = async () => {
-            const dadosFichas = await carregarFichas();
+            setLoading(true);
+            
+            const dadosFichas = await carregarFichasPorTemporada(temporadaAtiva);
             setFichas(dadosFichas);
+
+            // Ativa o "ouvinte" de tempo real para os status
+            pararDeEscutar = escutarTodosStatusDaTemporada(temporadaAtiva, (dados) => {
+                setStatusAoVivo(dados);
+            });
+            
+            // Considera a página carregada após configurar tudo
+            setLoading(false);
         };
+
         buscaDados();
 
-        const pararDeEscutar = escutarTodosStatusAoVivo((dados) => {
-            setStatusAoVivo(dados);
-        });
-
-        return () => pararDeEscutar();
+        return () => {
+            if (pararDeEscutar) {
+                pararDeEscutar();
+            }
+        };
     }, []);
 
     const getImagemPersonagem = (nome) => {
         if (!nome) return logo;
         try {
-            return require(`../assets/personagens/${nome.toLowerCase()}.png`);
+            return require(`../../assets/personagens/${nome.toLowerCase()}.png`);
         } catch (err) {
             return logo;
         }
     };
 
+    if (loading) {
+        return <div className="loading-container">Carregando painel do grupo...</div>;
+    }
+
     return (
         <div className="mestrar-container">
             <div className="mestrar-header">
-                <h1>Painel do Mestre</h1>
+                <h1>Painel do Grupo</h1>
                 <button onClick={() => navigate('/')}>Voltar ao Menu</button>
             </div>
-            
             <div className="grid-jogadores">
-                {Object.entries(fichas).map(([id, ficha]) => {
-                    const status = statusAoVivo[id] || { vida: ficha.vida, sanidade: ficha.sanidade, esforco: ficha.esforco };
-                    return (
-                        <div key={id} className="jogador-card">
-                            {/* ORDEM ALTERADA AQUI */}
-                            <h2>{ficha.nome}</h2>
-                            <div className="imagem-container">
-                                <img src={getImagemPersonagem(ficha.nome)} alt={ficha.nome} className="jogador-img" />
-                                
-                                <div className="stat-overlay stat-vida">
-                                    {`${status.vida ?? 0}/${ficha.vidaMax || 0}`}
-                                </div>
-                                <div className="stat-overlay stat-sanidade">
-                                    {`${status.sanidade ?? 0}/${ficha.sanidadeMax || 0}`}
-                                </div>
-                                <div className="stat-overlay stat-esforco">
-                                    {`${status.esforco ?? 0}/${ficha.esforcoMax || 0}`}
+                {Object.keys(fichas).length === 0 ? (
+                    <p>Nenhuma ficha encontrada para a temporada "{temporadaAtiva}".</p>
+                ) : (
+                    Object.entries(fichas).map(([id, ficha]) => {
+                        const status = statusAoVivo[id] || { 
+                            vida: ficha.vida, 
+                            vidaMax: ficha.vidaMax,
+                            sanidade: ficha.sanidade,
+                            sanidadeMax: ficha.sanidadeMax,
+                            esforco: ficha.esforco,
+                            esforcoMax: ficha.esforcoMax
+                        };
+                        
+                        return (
+                            <div key={id} className="jogador-card">
+                                <h2>{ficha.nome}</h2>
+                                <div className="imagem-container">
+                                    <img src={getImagemPersonagem(ficha.nome)} alt={ficha.nome} className="jogador-img" />
+                                    <div className="stat-overlay stat-vida" title={`Vida: ${status.vida} / ${status.vidaMax}`}>
+                                        {`${status.vida ?? '?'}/${status.vidaMax || '?'}`}
+                                    </div>
+                                    <div className="stat-overlay stat-sanidade" title={`Sanidade: ${status.sanidade} / ${status.sanidadeMax}`}>
+                                        {`${status.sanidade ?? '?'}/${status.sanidadeMax || '?'}`}
+                                    </div>
+                                    <div className="stat-overlay stat-esforco" title={`Esforço: ${status.esforco} / ${status.esforcoMax}`}>
+                                        {`${status.esforco ?? '?'}/${status.esforcoMax || '?'}`}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    );
-                })}
+                        );
+                    })
+                )}
             </div>
         </div>
     );
@@ -1435,434 +1933,188 @@ function TelaGrupo() {
 
 export default TelaGrupo;
 
-// --- src\telas\inicial\TelaJogar.css ---
+// --- src\telas\mestre\TelaMestrar.css ---
 
-/* src/telas/TelaJogar.css */
-
-.menu-container {
-    background: var(--cor-fundo-painel);
-    color: var(--cor-texto-painel);
-    border: 2px solid var(--cor-borda-painel);
-    padding: 25px;
-    text-align: center;
-    width: 550px;
-    max-width: 95%;
-    font-family: var(--fonte-ficha);
-    text-transform: uppercase;
-    backdrop-filter: blur(5px);
+.mestrar-header {
+    /* ... */
+    gap: 20px; /* Adiciona espaçamento */
 }
 
-.character-img {
-    width: 130px; height: 130px;
-    margin-bottom: 15px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 3px solid var(--cor-borda-painel);
-    background: #eee;
+.mestrar-header h1 {
+    margin-right: auto; /* Empurra os outros itens para a direita */
 }
 
-.menu-container h2 {
-    font-family: var(--fonte-ficha);
-    color: var(--cor-titulo-painel);
-    font-size: 2.5em;
-    letter-spacing: 2px;
-    margin-top: 0; margin-bottom: 20px;
-}
-
-.status-block { display: flex; align-items: center; gap: 10px; margin: 12px 0; }
-.bar-info { font-weight: bold; color: var(--cor-texto-painel); width: 80px; text-align: right; flex-shrink: 0; }
-
-.bar-label {
-    position: absolute; top: 0; left: 0;
-    width: 100%; height: 100%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: bold;
-    color: #fff;
-    text-shadow: 1px 1px 1px #000;
-    z-index: 2;
-}
-
-.status-bar {
-    background: var(--cor-barra-fundo);
-    border: 1px solid var(--cor-borda-painel);
-    border-radius: 0; height: 28px;
-    position: relative; flex-grow: 1;
-    overflow: hidden;
-}
-
-.bar-controls { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; display: flex; gap: 3px; opacity: 0; transition: opacity 0.2s ease-in-out; }
-.status-bar:hover .bar-controls { opacity: 1; }
-.left-controls { left: 6px; }
-.right-controls { right: 6px; }
-
-.bar-controls button {
-    background: rgba(0, 0, 0, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    color: #fff;
-    padding: 0 6px; margin: 0;
-    height: 22px; font-size: 14px;
-    line-height: 20px; border-radius: 0;
-    cursor: pointer;
-}
-.bar-controls button:hover { background: #000; }
-
-.hp-bar, .sanidade-bar, .esforco-bar { height: 100%; transition: width 0.5s ease; }
-.hp-bar { background: linear-gradient(to right, #6D0000, #D30000); }
-.sanidade-bar { background: linear-gradient(to right, #005C9E, #00A6FF); }
-.esforco-bar { background: linear-gradient(to right, #5D00A5, #A300FF); }
-
-.actions-container, .dice-roller { margin-top: 25px; border-top: 2px solid var(--cor-borda-painel); padding-top: 20px; }
-
-/* CORREÇÃO APLICADA AQUI */
-button, select {
-    background: var(--cor-titulo-painel); /* Fundo vermelho-sangue */
-    color: var(--cor-texto-inverso); /* Texto claro */
-    border: 2px solid var(--cor-titulo-painel); /* Borda da mesma cor */
-    padding: 10px 15px; margin: 5px;
-    border-radius: 0; cursor: pointer;
-    font-family: var(--fonte-ficha); font-weight: bold;
-    transition: all 0.2s; text-transform: uppercase;
-}
-
-button:hover, select:hover {
-    background: var(--cor-fundo-inverso); /* Fundo claro/preto no hover */
-    color: var(--cor-titulo-painel); /* Texto vermelho-sangue no hover */
-}
-button:disabled {
-    background: #ccc;
-    color: #888;
-    border-color: #888;
-    cursor: not-allowed;
-}
-select { width: calc(100% - 10px); }
-
-
-.dice-roller h3 {
-    font-family: var(--fonte-ficha); color: var(--cor-titulo-painel);
-    margin-top: 0; font-size: 1.5em;
-    border-bottom: 1px solid var(--cor-borda-painel);
-    padding-bottom: 5px; margin-bottom: 15px;
-}
-.dice-inputs { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 15px; }
-.dice-inputs label { font-weight: bold; }
-.dice-inputs span { font-size: 1.5em; font-weight: bold; }
-.dice-inputs input[type="number"] {
-    width: 60px; padding: 8px;
-    border: 1px solid var(--cor-borda-painel);
-    text-align: center; font-family: var(--fonte-ficha);
-    font-size: 1.2em; background: var(--cor-fundo-painel); color: var(--cor-texto-painel);
-}
-.dice-result {
-    margin-top: 15px;
-    border: 1px solid var(--cor-borda-painel);
-    padding: 10px; font-size: 1.2em; font-weight: bold;
-    color: var(--cor-texto-painel);
-    min-height: 30px; word-wrap: break-word;
-}
-select option {
-    background: var(--cor-fundo-painel);
-    color: var(--cor-texto-painel);
-}
-
-// --- src\telas\inicial\TelaJogar.js ---
-
-// src/telas/TelaJogar.js
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './TelaJogar.css';
-import { carregarFichas, atualizarStatusAoVivo, escutarStatusAoVivo, excluirFicha } from '../firebase/dataService.js';
-import FichaModal from '../componentes/FichaModal.js';
-import logo from '../assets/logo.png';
-
-function TelaJogar() {
-    const navigate = useNavigate();
-    const [fichas, setFichas] = useState({});
-    const [fichaIdAtual, setFichaIdAtual] = useState('');
-    const [statusAoVivo, setStatusAoVivo] = useState(null);
-    const [modalVisivel, setModalVisivel] = useState(false);
-    
-    // NOVOS STATES PARA O ROLADOR DE DADOS
-    const [numDados, setNumDados] = useState(1);
-    const [ladosDado, setLadosDado] = useState(20);
-    const [resultadoDado, setResultadoDado] = useState(null);
-
-    // ... (useEffect e outras funções permanecem as mesmas) ...
-    useEffect(() => {
-        const buscaDados = async () => {
-            const dados = await carregarFichas();
-            setFichas(dados);
-        };
-        buscaDados();
-    }, []);
-
-    useEffect(() => {
-        if (!fichaIdAtual) {
-            setStatusAoVivo(null);
-            return;
-        }
-        const pararDeEscutar = escutarStatusAoVivo(fichaIdAtual, (dados) => {
-            if (dados) { setStatusAoVivo(dados); } 
-            else {
-                const fichaInicial = fichas[fichaIdAtual];
-                if (fichaInicial) {
-                    const statusInicial = { vida: fichaInicial.vida, sanidade: fichaInicial.sanidade, esforco: fichaInicial.esforco };
-                    atualizarStatusAoVivo(fichaIdAtual, statusInicial);
-                    setStatusAoVivo(statusInicial);
-                }
-            }
-        });
-        return () => pararDeEscutar();
-    }, [fichaIdAtual, fichas]);
-
-    const handleFichaUpdate = async () => {
-        const dados = await carregarFichas();
-        setFichas(dados);
-        fecharModal();
-        alert("Ficha atualizada com sucesso!");
-    };
-
-    const handleExcluirFicha = async () => {
-        if (!fichaIdAtual) return;
-        const confirmado = window.confirm(`Tem certeza que deseja excluir a ficha de ${fichas[fichaIdAtual].nome}? Esta ação não pode ser desfeita.`);
-        if (confirmado) {
-            const sucesso = await excluirFicha(fichaIdAtual);
-            if (sucesso) {
-                alert("Ficha excluída com sucesso!");
-                fecharModal();
-                setFichaIdAtual('');
-                const dados = await carregarFichas();
-                setFichas(dados);
-            }
-        }
-    };
-    
-    const handleSelecaoFicha = (event) => { setFichaIdAtual(event.target.value); };
-    const fichaSelecionada = fichas[fichaIdAtual] || null;
-    const calcularLarguraBarra = (valor, max) => {
-        if (!valor || !max || max === 0) return '0%';
-        return `${(valor / max) * 100}%`;
-    };
-    const abrirModal = () => setModalVisivel(true);
-    const fecharModal = () => setModalVisivel(false);
-    const handleAlterarStatus = (stat, valor) => {
-        if (!fichaSelecionada || !statusAoVivo) return;
-        const maxStat = fichaSelecionada[`${stat}Max`];
-        const currentStat = statusAoVivo[stat];
-        const novoValor = Math.max(0, Math.min(maxStat, currentStat + valor));
-        atualizarStatusAoVivo(fichaIdAtual, { ...statusAoVivo, [stat]: novoValor });
-    };
-    
-    // FUNÇÃO DE ROLAR DADOS ATUALIZADA
-    const rolarDados = () => {
-        if (numDados <= 0 || ladosDado <= 0) {
-            setResultadoDado("Valores inválidos.");
-            return;
-        }
-        let rolagens = [];
-        let soma = 0;
-        for (let i = 0; i < numDados; i++) {
-            const resultado = Math.floor(Math.random() * ladosDado) + 1;
-            rolagens.push(resultado);
-            soma += resultado;
-        }
-        // Formata o resultado para exibição
-        const textoResultado = `Rolagens (${numDados}d${ladosDado}): [${rolagens.join(', ')}] = ${soma}`;
-        setResultadoDado(textoResultado);
-    };
-
-    const getImagemPersonagem = (nome) => {
-        if (!nome) return logo;
-        try {
-            return require(`../assets/personagens/${nome.toLowerCase()}.png`);
-        } catch (err) {
-            return logo;
-        }
-    };
-    const imagemExibida = getImagemPersonagem(fichaSelecionada?.nome);
-
-    return (
-        <>
-            <div className="menu-container">
-                <img src={imagemExibida} alt="Personagem" className="character-img" />
-                <h2>{fichaSelecionada?.nome || 'Selecione um Agente'}</h2>
-                <select value={fichaIdAtual} onChange={handleSelecaoFicha}>
-                    <option value="">-- SELECIONAR AGENTE --</option>
-                    {Object.keys(fichas).map(id => (<option key={id} value={id}>{fichas[id].nome}</option>))}
-                </select>
-
-
-                <div className="status-block">{/* Vida */}</div>
-                <div className="status-block">{/* Sanidade */}</div>
-                <div className="status-block">{/* Esforço */}</div>
-                
-                <div className="actions-container">
-                    <button onClick={abrirModal} disabled={!fichaSelecionada}>Ficha</button>
-                    <button onClick={() => navigate(`/inventario/${fichaIdAtual}`)} disabled={!fichaSelecionada}>Inventário</button>
-                    <button onClick={() => navigate(`/habilidades/${fichaIdAtual}`)} disabled={!fichaSelecionada}>Habilidades</button>
-                    <button onClick={() => navigate(`/rituais/${fichaIdAtual}`)} disabled={!fichaSelecionada}>Rituais</button>
-                </div>
-
-                <div className="dice-roller">
-                    <h3>Rolador de Dados</h3>
-                    <div className="dice-inputs">
-                        <label>Qtd:</label>
-                        <input type="number" value={numDados} onChange={(e) => setNumDados(parseInt(e.target.value))} min="1"/>
-                        <span>d</span>
-                        <label>Lados:</label>
-                        <input type="number" value={ladosDado} onChange={(e) => setLadosDado(parseInt(e.target.value))} min="2"/>
-                        <button onClick={rolarDados}>Rolar</button>
-                    </div>
-                    <div className="dice-result">
-                        {resultadoDado || "Role os dados..."}
-                    </div>
-                </div>
-                <div className="footer-actions">
-                    <button onClick={() => navigate('/criar-ficha')}>Criar Nova Ficha</button>
-                    <button onClick={() => navigate('/')}>Voltar ao Menu</button>
-                </div>
-            </div>
-
-            {modalVisivel && <FichaModal ficha={fichaSelecionada} fichaId={fichaIdAtual} onClose={fecharModal} onExcluir={handleExcluirFicha} onUpdate={handleFichaUpdate} />}
-        </>
-    );
-}
-
-export default TelaJogar;
-
-// --- src\telas\inicial\TelaMestrar.js ---
-
-// src/telas/TelaMestrar.js (NOVO ARQUIVO)
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { carregarFichas, atualizarStatusAoVivo, escutarTodosStatusAoVivo } from '../firebase/dataService.js';
-import logo from '../assets/logo.png';
-import './TelaGrupo.css'; // Usará seu próprio CSS
-
-function TelaMestrar() {
-    const navigate = useNavigate();
-    const [fichas, setFichas] = useState({});
-    const [statusAoVivo, setStatusAoVivo] = useState({});
-
-    // ... (toda a lógica de carregar dados e listeners é a mesma da tela de grupo)
-
-    // Adicione de volta a função de controle
-    const handleAlterarStatus = (fichaId, stat, valor) => {
-        // ... (código da função que altera vida, sanidade, etc.)
-    };
-
-    // O return() será similar ao da TelaJogar, com as barras de status e botões de controle
-    return (
-        <div className="mestrar-container">
-            <h1>Painel do Mestre</h1>
-            {/* Grid de jogadores com barras de status e botões +/- */}
-        </div>
-    );
-}
-
-export default TelaMestrar;
-
-// --- src\telas\inicial\TelaOpcoes.css ---
-
-/* src/telas/TelaOpcoes.css */
-.opcoes-container {
-    background: var(--cor-fundo-painel);
-    color: var(--cor-texto-painel);
-    border: 2px solid var(--cor-borda-painel);
-    padding: 30px;
-    text-align: center;
-    width: 500px;
-    max-width: 90%;
-    font-family: var(--fonte-ficha);
-    text-transform: uppercase;
-}
-
-.opcoes-container h2 {
-    font-size: 2.5em;
-    color: var(--cor-titulo-painel);
-    margin: 0 0 10px 0;
-}
-
-.opcoes-container p {
-    font-size: 1.1em;
-    margin-bottom: 30px;
-    text-transform: none;
-}
-
-.theme-buttons {
+.temporada-seletor {
     display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-bottom: 30px;
+    align-items: center;
+    gap: 10px;
 }
 
-.theme-buttons button {
-    background: transparent;
+.temporada-seletor label {
+    font-family: var(--fonte-ficha);
+    font-size: 1.1em;
     color: var(--cor-texto-painel);
-    border: 2px solid var(--cor-borda-painel);
-    padding: 15px;
-    font-size: 1.2em;
+}
+
+.temporada-seletor select {
+    font-family: var(--fonte-ficha);
+    background: var(--cor-fundo-input);
+    color: var(--cor-texto-painel);
+    border: 1px solid var(--cor-borda-painel);
+    padding: 8px;
+    font-size: 1em;
+}
+
+/* Estilo para o novo botão de editar */
+.jogador-card .edit-btn {
+    width: 100%;
+    margin-top: auto; /* Empurra para a base do card */
+    padding: 10px;
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
+    background: var(--cor-fundo-inverso);
+    color: var(--cor-texto-inverso);
+    border: 1px solid var(--cor-borda-painel);
     cursor: pointer;
     transition: all 0.2s;
 }
 
-.theme-buttons button:hover {
+.jogador-card .edit-btn:hover {
     background: var(--cor-titulo-painel);
     color: var(--cor-fundo-painel);
     border-color: var(--cor-titulo-painel);
 }
 
-.voltar-btn {
-    background: #000;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-}
-button, select {
-    background: var(--cor-fundo-inverso);
-    color: var(--cor-texto-inverso);
-    border: 2px solid var(--cor-borda-painel);
-    padding: 10px 15px; margin: 5px;
-    border-radius: 0; cursor: pointer;
-    font-family: var(--fonte-ficha); font-weight: bold;
-    transition: all 0.2s; text-transform: uppercase;
-}
+// --- src\telas\mestre\TelaMestrar.js ---
 
-button:hover, select:hover {
-    background: var(--cor-destaque-vermelho); /* Vermelho no hover */
-    color: var(--cor-texto-inverso);
-    border-color: var(--cor-destaque-vermelho);
-}
-
-// --- src\telas\inicial\TelaOpcoes.js ---
-
-// src/telas/TelaOpcoes.js
-import React from 'react';
+// src/telas/mestre/TelaMestrar.js
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext'; // Importa nosso hook de tema
-import './TelaOpcoes.css';
+import { carregarNomesDasTemporadas, carregarFichasPorTemporada, atualizarStatusAoVivo, escutarTodosStatusDaTemporada } from '../../firebase/dataService';
+import FichaModal from '../../componentes/FichaModal';
+import logo from '../../assets/logo.png';
+import './TelaMestrar.css';
 
-function TelaOpcoes() {
+function TelaMestrar() {
     const navigate = useNavigate();
-    const { setTheme } = useTheme(); // Pega a função para trocar o tema
+    const [temporadas, setTemporadas] = useState([]);
+    const [temporadaSelecionada, setTemporadaSelecionada] = useState('');
+    const [fichas, setFichas] = useState({});
+    const [statusAoVivo, setStatusAoVivo] = useState({});
+    const [fichaParaEditar, setFichaParaEditar] = useState(null);
+    const [idFichaEditando, setIdFichaEditando] = useState(null);
+    const [modalVisivel, setModalVisivel] = useState(false);
+
+    useEffect(() => {
+        const buscaTemporadas = async () => {
+            const nomes = await carregarNomesDasTemporadas();
+            setTemporadas(nomes);
+            if (nomes.length > 0) {
+                setTemporadaSelecionada(nomes[0]);
+            }
+        };
+        buscaTemporadas();
+    }, []);
+
+    useEffect(() => {
+        if (!temporadaSelecionada) return;
+        const buscaDadosDaTemporada = async () => {
+            const dadosFichas = await carregarFichasPorTemporada(temporadaSelecionada);
+            setFichas(dadosFichas);
+        };
+        buscaDadosDaTemporada();
+        const pararDeEscutar = escutarTodosStatusDaTemporada(temporadaSelecionada, (dados) => {
+            setStatusAoVivo(dados);
+        });
+        return () => pararDeEscutar();
+    }, [temporadaSelecionada]);
+    
+    const handleAlterarStatus = (fichaId, stat, valor) => {
+        const ficha = fichas[fichaId];
+        const status = statusAoVivo[fichaId];
+        if (!ficha || !status) return;
+        const maxStat = ficha[`${stat}Max`];
+        const currentStat = status[stat];
+        const novoValor = Math.max(0, Math.min(maxStat, currentStat + valor));
+        atualizarStatusAoVivo(temporadaSelecionada, fichaId, { ...status, [stat]: novoValor });
+    };
+
+    const abrirModalParaEditar = (id, ficha) => {
+        setIdFichaEditando(id);
+        setFichaParaEditar(ficha);
+        setModalVisivel(true);
+    };
+
+    const fecharModal = () => {
+        setModalVisivel(false);
+        setFichaParaEditar(null);
+        setIdFichaEditando(null);
+    };
+
+    const handleFichaUpdate = () => {
+        fecharModal();
+        carregarFichasPorTemporada(temporadaSelecionada).then(setFichas);
+        alert("Ficha atualizada com sucesso!");
+    };
+    
+    const getImagemPersonagem = (nome) => {
+        if (!nome) return logo;
+        try {
+            return require(`../../assets/personagens/${nome.toLowerCase()}.png`);
+        } catch (err) {
+            return logo;
+        }
+    };
+    const calcularLarguraBarra = (valor, max) => !valor || !max ? '0%' : `${(valor / max) * 100}%`;
 
     return (
-        <div className="opcoes-container">
-            <h2>Opções de Tema</h2>
-            <p>Escolha um tema visual para o aplicativo.</p>
-            <div className="theme-buttons">
-                {/* Cada botão chama setTheme com o nome do tema */}
-                <button onClick={() => setTheme('sariat')}>Culto de Sariat</button>
-                <button onClick={() => setTheme('parchment')}>Pergaminho Antigo</button>
-                <button onClick={() => setTheme('neon')}>Neon Retrô</button>
+        <>
+            <div className="mestrar-container">
+                <div className="mestrar-header">
+                    <h1>Painel do Mestre</h1>
+                    <div className="temporada-seletor">
+                        <label htmlFor="temporada">Temporada:</label>
+                        <select id="temporada" value={temporadaSelecionada} onChange={(e) => setTemporadaSelecionada(e.target.value)}>
+                            {temporadas.map(nome => <option key={nome} value={nome}>{nome.toUpperCase()}</option>)}
+                        </select>
+                    </div>
+                    <button onClick={() => navigate('/')}>Voltar ao Menu</button>
+                </div>
+                
+                <div className="grid-jogadores">
+                    {Object.entries(fichas).map(([id, ficha]) => {
+                        const status = statusAoVivo[id] || { vida: ficha.vida, sanidade: ficha.sanidade, esforco: ficha.esforco };
+                        return (
+                            <div key={id} className="jogador-card">
+                                <img src={getImagemPersonagem(ficha.nome)} alt={ficha.nome} className="jogador-img" />
+                                <h2>{ficha.nome}</h2>
+                                
+                                <div className="status-block">
+                                    <span className="bar-info">Vida</span>
+                                    <div className="status-bar">
+                                        <div className="hp-bar" style={{ width: calcularLarguraBarra(status.vida, ficha.vidaMax) }}></div>
+                                        <span className="bar-label">{status.vida ?? 0}/{ficha.vidaMax || 0}</span>
+                                        <div className="bar-controls left-controls"><button onClick={() => handleAlterarStatus(id, 'vida', -5)}>&lt;&lt;</button><button onClick={() => handleAlterarStatus(id, 'vida', -1)}>&lt;</button></div>
+                                        <div className="bar-controls right-controls"><button onClick={() => handleAlterarStatus(id, 'vida', 1)}>&gt;</button><button onClick={() => handleAlterarStatus(id, 'vida', 5)}>&gt;&gt;</button></div>
+                                    </div>
+                                </div>
+                                {/* Repetir .status-block para Sanidade e Esforço */}
+                                
+                                <button className="edit-btn" onClick={() => abrirModalParaEditar(id, ficha)}>Editar Ficha</button>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
-            <button className="voltar-btn" onClick={() => navigate('/')}>Voltar ao Menu</button>
-        </div>
+
+            {modalVisivel && <FichaModal ficha={fichaParaEditar} fichaId={idFichaEditando} temporada={temporadaSelecionada} onClose={fecharModal} onUpdate={handleFichaUpdate} />}
+        </>
     );
 }
 
-export default TelaOpcoes;
+export default TelaMestrar;
 
-// --- src\telas\jogador\TelaCriarFicha.css ---
+// --- src\telas\TelaCriarFicha.css ---
 
 /* src/telas/TelaCriarFicha.css */
 .form-container {
@@ -2003,7 +2255,7 @@ export default TelaOpcoes;
     color: var(--cor-texto-painel);
 }
 
-// --- src\telas\jogador\TelaCriarFicha.js ---
+// --- src\telas\TelaCriarFicha.js ---
 
 // src/telas/TelaCriarFicha.js
 import React, { useState } from 'react';
@@ -2056,7 +2308,7 @@ function TelaCriarFicha() {
         sanidade: 10, sanidadeMax: 10,
         esforco: 10, esforcoMax: 10,
         esquiva: 10,
-        imagem: '/personagens/dante.png',
+        imagem: '',
         atributos: { forca: 1, agilidade: 1, inteligencia: 1, vigor: 1, presenca: 1 },
         pericias: periciasPadrao
     });
@@ -2173,115 +2425,103 @@ function TelaCriarFicha() {
 
 export default TelaCriarFicha;
 
-// --- src\telas\jogador\TelaHabilidades.js ---
+// --- src\telas\TelaOpcoes.css ---
 
-// src/telas/TelaHabilidades.js
-import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import './MenuPaginas.css';
-
-function TelaHabilidades() {
-    const { fichaId } = useParams();
-    const navigate = useNavigate();
-
-    return (
-        <div className="pagina-container">
-            <h1>Habilidades</h1>
-            <p>Habilidades para o personagem com ID: {fichaId}</p>
-            <button onClick={() => navigate('/jogar')}>Voltar</button>
-        </div>
-    );
-}
-
-export default TelaHabilidades;
-
-// --- src\telas\jogador\TelaInventario.js ---
-
-// src/telas/TelaInventario.js
-import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import './MenuPaginas.css'; // Usaremos um CSS compartilhado
-
-function TelaInventario() {
-    const { fichaId } = useParams(); // Pega o ID da ficha pela URL
-    const navigate = useNavigate();
-
-    return (
-        <div className="pagina-container">
-            <h1>Inventário</h1>
-            <p>Conteúdo do inventário para o personagem com ID: {fichaId}</p>
-            {/* Futuramente, aqui será exibida a lista de itens da ficha */}
-            <button onClick={() => navigate('/jogar')}>Voltar</button>
-        </div>
-    );
-}
-
-export default TelaInventario;
-
-// --- src\telas\jogador\TelaRituais.js ---
-
-// src/telas/TelaRituais.js
-import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import './MenuPaginas.css';
-
-function TelaRituais() {
-    const { fichaId } = useParams();
-    const navigate = useNavigate();
-    return (
-        <div className="pagina-container">
-            <h1>Rituais</h1>
-            <p>Rituais para o personagem com ID: {fichaId}</p>
-            <button onClick={() => navigate('/jogar')}>Voltar</button>
-        </div>
-    );
-}
-
-export default TelaRituais;
-
-// --- src\telas\MenuPaginas.css ---
-
-/* src/telas/MenuPaginas.css */
-.pagina-container {
+/* src/telas/TelaOpcoes.css */
+.opcoes-container {
     background: var(--cor-fundo-painel);
     color: var(--cor-texto-painel);
     border: 2px solid var(--cor-borda-painel);
     padding: 30px;
-    margin: 20px;
-    width: 100%;
-    max-width: 800px;
-    box-sizing: border-box;
-    font-family: var(--fonte-ficha);
     text-align: center;
+    width: 500px;
+    max-width: 90%;
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
 }
 
-.pagina-container h1 {
+.opcoes-container h2 {
     font-size: 2.5em;
     color: var(--cor-titulo-painel);
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--cor-borda-painel);
-    padding-bottom: 15px;
-    margin: 0 0 20px 0;
+    margin: 0 0 10px 0;
 }
 
-.pagina-container p {
-    font-size: 1.2em;
+.opcoes-container p {
+    font-size: 1.1em;
+    margin-bottom: 30px;
     text-transform: none;
+}
+
+.theme-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
     margin-bottom: 30px;
 }
 
-.pagina-container button {
-    background: var(--cor-fundo-inverso);
-    color: var(--cor-texto-inverso);
+.theme-buttons button {
+    background: transparent;
+    color: var(--cor-texto-painel);
     border: 2px solid var(--cor-borda-painel);
-    padding: 10px 20px;
-    font-family: var(--fonte-ficha);
-    text-transform: uppercase;
+    padding: 15px;
+    font-size: 1.2em;
     cursor: pointer;
     transition: all 0.2s;
 }
 
-.pagina-container button:hover {
+.theme-buttons button:hover {
     background: var(--cor-titulo-painel);
     color: var(--cor-fundo-painel);
+    border-color: var(--cor-titulo-painel);
 }
+
+.voltar-btn {
+    background: #000;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+}
+button, select {
+    background: var(--cor-fundo-inverso);
+    color: var(--cor-texto-inverso);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 10px 15px; margin: 5px;
+    border-radius: 0; cursor: pointer;
+    font-family: var(--fonte-ficha); font-weight: bold;
+    transition: all 0.2s; text-transform: uppercase;
+}
+
+button:hover, select:hover {
+    background: var(--cor-destaque-vermelho); /* Vermelho no hover */
+    color: var(--cor-texto-inverso);
+    border-color: var(--cor-destaque-vermelho);
+}
+
+// --- src\telas\TelaOpcoes.js ---
+
+// src/telas/TelaOpcoes.js
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext'; // Importa nosso hook de tema
+import './TelaOpcoes.css';
+
+function TelaOpcoes() {
+    const navigate = useNavigate();
+    const { setTheme } = useTheme(); // Pega a função para trocar o tema
+
+    return (
+        <div className="opcoes-container">
+            <h2>Opções de Tema</h2>
+            <p>Escolha um tema visual para o aplicativo.</p>
+            <div className="theme-buttons">
+                {/* Cada botão chama setTheme com o nome do tema */}
+                <button onClick={() => setTheme('sariat')}>Culto de Sariat</button>
+                <button onClick={() => setTheme('parchment')}>Pergaminho Antigo</button>
+                <button onClick={() => setTheme('neon')}>Neon Retrô</button>
+            </div>
+            <button className="voltar-btn" onClick={() => navigate('/')}>Voltar ao Menu</button>
+        </div>
+    );
+}
+
+export default TelaOpcoes;

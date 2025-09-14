@@ -1,7 +1,6 @@
-// src/telas/TelaCadastro.js
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { cadastrarUsuario } from '../firebase/dataService';
+import { cadastrarUsuario } from '../../firebase/dataService'; // Caminho corrigido
 import './Auth.css';
 
 function TelaCadastro() {
@@ -20,7 +19,6 @@ function TelaCadastro() {
             navigate('/jogar');
         }
     };
-
     return (
         <div className="auth-container">
             <form onSubmit={handleCadastro} className="auth-form">
@@ -35,5 +33,4 @@ function TelaCadastro() {
         </div>
     );
 }
-
 export default TelaCadastro;

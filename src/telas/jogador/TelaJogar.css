@@ -86,8 +86,8 @@ button, select {
 }
 
 button:hover, select:hover {
-    background: var(--cor-fundo-inverso); /* Fundo claro/preto no hover */
-    color: var(--cor-titulo-painel); /* Texto vermelho-sangue no hover */
+    filter: brightness(1.2); /* Deixa o botão 20% mais claro */
+    /* Remove as regras antigas de background e color para o hover */
 }
 button:disabled {
     background: #ccc;

@@ -1,10 +1,8 @@
-// src/telas/TelaUsuario.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { enviarEmailRedefinicaoSenha } from '../firebase/dataService';
-import './MenuPaginas.css'; // Reutiliza o estilo das outras páginas de menu
-
+import { useAuth } from '../../context/AuthContext';
+import { enviarEmailRedefinicaoSenha } from '../../firebase/dataService';
+import '../MenuPaginas.css';
 function TelaUsuario() {
     const navigate = useNavigate();
     const { currentUser } = useAuth();
@@ -27,19 +25,14 @@ function TelaUsuario() {
         <div className="pagina-container">
             <h1>Minha Conta</h1>
             <p><strong>E-mail:</strong> {currentUser?.email}</p>
-            
             <div className="user-management">
                 <h3>Alterar Senha</h3>
                 <p>Clique no botão abaixo para receber um e-mail com o link para redefinir sua senha.</p>
                 <button onClick={handlePasswordReset}>Redefinir Senha</button>
-                {mensagem && (
-                    <p className={isError ? 'auth-error' : 'auth-success'}>{mensagem}</p>
-                )}
+                {mensagem && ( <p className={isError ? 'auth-error' : 'auth-success'}>{mensagem}</p> )}
             </div>
-
             <button onClick={() => navigate(-1)} style={{marginTop: '30px'}}>Voltar</button>
         </div>
     );
 }
-
 export default TelaUsuario;

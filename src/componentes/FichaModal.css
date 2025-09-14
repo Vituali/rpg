@@ -81,7 +81,14 @@
 .pericias-header { background: var(--cor-fundo-inverso); color: var(--cor-texto-inverso); padding: 5px 10px; text-align: center; }
 .pericias-header h2 { margin: 0; font-size: 1.2em; font-weight: bold; }
 .pericias-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 15px; padding: 10px; max-height: 380px; overflow-y: auto; }
-.pericia-item { border: 1px solid var(--cor-borda-painel); padding: 5px; }
+.pericia-item {
+    border: 1px solid var(--cor-borda-painel);
+    padding: 5px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+}
 .pericia-item label { display: flex; justify-content: space-between; font-size: 0.9em; margin-bottom: 2px; }
 .pericia-item label span { color: #888; }
 .pericia-item input { width: 100%; border: 1px solid #ccc; padding: 3px; text-align: center; border-radius: 0; font-size: 1.3em; background: var(--cor-fundo-painel); color: var(--cor-texto-painel); }
