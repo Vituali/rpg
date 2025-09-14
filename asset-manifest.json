@@ -1,17 +1,17 @@
 {
   "files": {
-    "main.css": "/Vituali/rpg/static/css/main.5e787083.css",
-    "main.js": "/Vituali/rpg/static/js/main.263495c6.js",
-    "static/media/logo.png": "/Vituali/rpg/static/media/logo.c0ef40d0469c1d967b4d.png",
-    "static/media/fundo.png": "/Vituali/rpg/static/media/fundo.cf8d2cd525cc086e010d.png",
-    "static/media/luiza.png": "/Vituali/rpg/static/media/luiza.bc260e67b8b74f9f7f27.png",
-    "static/media/luiza2.png": "/Vituali/rpg/static/media/luiza2.de6f8839a8bd72e5bf40.png",
-    "index.html": "/Vituali/rpg/index.html",
-    "main.5e787083.css.map": "/Vituali/rpg/static/css/main.5e787083.css.map",
-    "main.263495c6.js.map": "/Vituali/rpg/static/js/main.263495c6.js.map"
+    "main.css": "/rpg/static/css/main.1fa38dde.css",
+    "main.js": "/rpg/static/js/main.abc128df.js",
+    "static/media/logo.png": "/rpg/static/media/logo.c0ef40d0469c1d967b4d.png",
+    "static/media/fundo.png": "/rpg/static/media/fundo.cf8d2cd525cc086e010d.png",
+    "static/media/luiza.png": "/rpg/static/media/luiza.bc260e67b8b74f9f7f27.png",
+    "static/media/luiza2.png": "/rpg/static/media/luiza2.de6f8839a8bd72e5bf40.png",
+    "index.html": "/rpg/index.html",
+    "main.1fa38dde.css.map": "/rpg/static/css/main.1fa38dde.css.map",
+    "main.abc128df.js.map": "/rpg/static/js/main.abc128df.js.map"
   },
   "entrypoints": [
-    "static/css/main.5e787083.css",
-    "static/js/main.263495c6.js"
+    "static/css/main.1fa38dde.css",
+    "static/js/main.abc128df.js"
   ]
 }
