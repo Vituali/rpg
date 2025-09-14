@@ -1,0 +1,77 @@
+/* src/telas/Auth.css */
+.auth-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-form {
+    background: var(--cor-fundo-painel);
+    color: var(--cor-texto-painel);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 30px 40px;
+    width: 100%;
+    max-width: 400px;
+    font-family: var(--fonte-ficha);
+    backdrop-filter: blur(5px);
+}
+
+.auth-form h2 {
+    text-align: center;
+    text-transform: uppercase;
+    color: var(--cor-titulo-painel);
+    font-size: 2.5em;
+    margin: 0 0 25px 0;
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    background: var(--cor-fundo-input);
+    color: var(--cor-texto-painel);
+    border: 1px solid var(--cor-borda-painel);
+    font-family: var(--fonte-corpo);
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+.auth-form button {
+    width: 100%;
+    padding: 12px;
+    background: var(--cor-titulo-painel);
+    color: var(--cor-texto-inverso);
+    border: none;
+    font-family: var(--fonte-ficha);
+    font-size: 1.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.auth-form button:hover {
+    filter: brightness(1.2);
+}
+
+.auth-error {
+    color: var(--cor-botao-perigo);
+    background: rgba(211, 0, 0, 0.1);
+    border: 1px solid var(--cor-botao-perigo);
+    padding: 10px;
+    text-align: center;
+    margin-bottom: 15px;
+    text-transform: none;
+}
+
+.auth-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.9em;
+    text-transform: none;
+}
+.auth-link a {
+    color: var(--cor-titulo-painel);
+    font-weight: bold;
+    text-decoration: none;
+}

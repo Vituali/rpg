@@ -28,6 +28,10 @@ yarn-error.log*
 merge_resultado.txt
 
 
+// --- Enviar para o pages.bat ---
+
+npm run deploy
+
 // --- Iniciar.bat ---
 
 npm start
@@ -38,7 +42,7 @@ npm start
   "name": "rpg",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://github.com/Vituali/rpg",
+  "homepage": "https://Vituali.github.io/rpg",
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.8.0",
@@ -191,6 +195,10 @@ npm start
 import React from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
+import RotaProtegida from './componentes/RotaProtegida';
+import TelaLogin from './telas/TelaLogin';
+import TelaCadastro from './telas/TelaCadastro';
 import TelaInicial from './TelaInicial';
 import TelaJogar from './telas/TelaJogar';
 import TelaCriarFicha from './telas/TelaCriarFicha';
@@ -199,25 +207,30 @@ import TelaMestrar from './telas/TelaMestrar';
 import TelaInventario from './telas/TelaInventario';
 import TelaHabilidades from './telas/TelaHabilidades';
 import TelaRituais from './telas/TelaRituais';
-
+import TelaGrupo from './telas/TelaGrupo';
 
 function App() {
   return (
     <ThemeProvider>
-      <Router>
-        <div className="App">
-          <Routes>
-            <Route path="/" element={<TelaInicial />} />
-            <Route path="/jogar" element={<TelaJogar />} />
-            <Route path="/criar-ficha" element={<TelaCriarFicha />} />
-            <Route path="/opcoes" element={<TelaOpcoes />} />
-            <Route path="/mestrar" element={<TelaMestrar />} />
-            <Route path="/inventario/:fichaId" element={<TelaInventario />} />
-            <Route path="/habilidades/:fichaId" element={<TelaHabilidades />} />
-            <Route path="/rituais/:fichaId" element={<TelaRituais />} />
-          </Routes>
-        </div>
-      </Router>
+      <AuthProvider>
+        <Router>
+          <div className="App">
+            <Routes>
+              <Route path="/" element={<TelaInicial />} />
+              <Route path="/login" element={<TelaLogin />} />
+              <Route path="/cadastro" element={<TelaCadastro />} />
+              <Route path="/jogar" element={<RotaProtegida><TelaJogar /></RotaProtegida>} />
+              <Route path="/grupo" element={<RotaProtegida><TelaGrupo /></RotaProtegida>} />
+              <Route path="/mestrar" element={<RotaProtegida gmOnly={true}><TelaMestrar /></RotaProtegida>} />
+              <Route path="/criar-ficha" element={<RotaProtegida><TelaCriarFicha /></RotaProtegida>} />
+              <Route path="/opcoes" element={<RotaProtegida><TelaOpcoes /></RotaProtegida>} />
+              <Route path="/inventario/:fichaId" element={<RotaProtegida><TelaInventario /></RotaProtegida>} />
+              <Route path="/habilidades/:fichaId" element={<RotaProtegida><TelaHabilidades /></RotaProtegida>} />
+              <Route path="/rituais/:fichaId" element={<RotaProtegida><TelaRituais /></RotaProtegida>} />
+            </Routes>
+          </div>
+        </Router>
+      </AuthProvider>
     </ThemeProvider>
   );
 }
@@ -457,6 +470,78 @@ function FichaModal({ ficha, fichaId, onClose, onExcluir, onUpdate }) {
 
 export default FichaModal;
 
+// --- src\componentes\RotaProtegida.js ---
+
+// src/componentes/RotaProtegida.js
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+// Adicione a propriedade 'gmOnly'
+function RotaProtegida({ children, gmOnly = false }) {
+    const { currentUser, isGM } = useAuth();
+
+    if (!currentUser) {
+        return <Navigate to="/login" />;
+    }
+
+    // Se a rota é apenas para o Mestre e o usuário não é, redireciona
+    if (gmOnly && !isGM) {
+        return <Navigate to="/jogar" />; // ou para a tela de grupo
+    }
+
+    return children;
+}
+
+export default RotaProtegida;
+
+// --- src\config\gmConfig.js ---
+
+// src/config/gmConfig.js
+// Adicione aqui o UID de todos os usuários que devem ser considerados Mestres.
+export const GM_UIDS = [
+    '0GTeAEldeKZ9ISYzTDqULtwjPVs2' 
+];
+
+// --- src\context\AuthContext.js ---
+
+// src/context/AuthContext.js
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../firebase/firebase-config';
+import { GM_UIDS } from '../config/gmConfig'; // Importa a lista de mestres
+
+const AuthContext = createContext();
+
+export function AuthProvider({ children }) {
+    const [currentUser, setCurrentUser] = useState(null);
+    const [isGM, setIsGM] = useState(false); // Novo state para o Mestre
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, user => {
+            setCurrentUser(user);
+            // Verifica se o UID do usuário logado está na lista de Mestres
+            setIsGM(user ? GM_UIDS.includes(user.uid) : false);
+            setLoading(false);
+        });
+        return unsubscribe;
+    }, []);
+
+    const value = {
+        currentUser,
+        isGM // Fornece a informação se é Mestre ou não
+    };
+
+    return (
+        <AuthContext.Provider value={value}>
+            {!loading && children}
+        </AuthContext.Provider>
+    );
+}
+
+export const useAuth = () => useContext(AuthContext);
+
 // --- src\context\ThemeContext.js ---
 
 // src/context/ThemeContext.js
@@ -488,16 +573,20 @@ export const useTheme = () => useContext(ThemeContext);
 
 // --- src\firebase\dataService.js ---
 
-// src/firebase/dataService.js
 import { db, rtdb } from './firebase-config.js';
 import { collection, getDocs, addDoc, doc, deleteDoc, setDoc } from 'firebase/firestore';
 import { ref, set, onValue, off, remove } from 'firebase/database';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { auth } from './firebase-config.js';
 
+// 1. DEFINA A TEMPORADA ATIVA AQUI
+const ACTIVE_SEASON = 'pacto';
 
-// O restante do arquivo (funções como carregarFichas, salvarFichaCompleta, etc.) continua o mesmo
+// 2. ATUALIZE AS FUNÇÕES PARA USAR A TEMPORADA
 export async function carregarFichas() {
     try {
-        const snapshot = await getDocs(collection(db, 'fichas'));
+        const path = `temporadas/${ACTIVE_SEASON}/fichas`;
+        const snapshot = await getDocs(collection(db, path));
         const fichas = {};
         snapshot.forEach(doc => {
             fichas[doc.id] = doc.data();
@@ -505,35 +594,41 @@ export async function carregarFichas() {
         return fichas;
     } catch (e) {
         console.error('Erro ao carregar fichas:', e);
-        alert('Erro ao carregar fichas: ' + e.message);
         return {};
     }
 }
 
 export async function salvarFichaCompleta(dadosFicha) {
     try {
-        const docRef = await addDoc(collection(db, 'fichas'), dadosFicha);
-        console.log("Ficha salva no Firestore com ID: ", docRef.id);
-
+        const path = `temporadas/${ACTIVE_SEASON}/fichas`;
+        const docRef = await addDoc(collection(db, path), dadosFicha);
+        
         const statusIniciais = {
             vida: dadosFicha.vida,
             sanidade: dadosFicha.sanidade,
             esforco: dadosFicha.esforco
         };
-        await set(ref(rtdb, `sessoes/sessao_teste/${docRef.id}`), statusIniciais);
-        console.log("Status inicial salvo no RTDB.");
-
+        await set(ref(rtdb, `sessoes/${ACTIVE_SEASON}/${docRef.id}`), statusIniciais);
+        
         return docRef.id;
     } catch (e) {
         console.error('Erro ao salvar nova ficha:', e);
-        alert('Erro ao salvar a ficha: ' + e.message);
         return null;
     }
 }
 
 export function atualizarStatusAoVivo(fichaId, novosStatus) {
-  const referencia = ref(rtdb, `sessoes/sessao_teste/${fichaId}`);
+  const referencia = ref(rtdb, `sessoes/${ACTIVE_SEASON}/${fichaId}`);
   set(referencia, novosStatus);
+}
+
+export function escutarTodosStatusAoVivo(callback) {
+  const referencia = ref(rtdb, `sessoes/${ACTIVE_SEASON}`);
+  onValue(referencia, (snapshot) => {
+    const dados = snapshot.val() || {};
+    callback(dados);
+  });
+  return () => off(referencia);
 }
 
 export function escutarStatusAoVivo(fichaId, callback) {
@@ -581,6 +676,33 @@ export function escutarTodosStatusAoVivo(callback) {
   });
   // Retorna a função para parar de escutar
   return () => off(referencia);
+}
+
+// Sistema de cadastro e login//
+export async function cadastrarUsuario(email, senha) {
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+        return { user: userCredential.user };
+    } catch (error) {
+        return { error: error.message };
+    }
+}
+
+export async function loginUsuario(email, senha) {
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, senha);
+        return { user: userCredential.user };
+    } catch (error) {
+        return { error: error.message };
+    }
+}
+
+export async function logoutUsuario() {
+    try {
+        await signOut(auth);
+    } catch (error) {
+        console.error("Erro ao fazer logout:", error);
+    }
 }
 
 // --- src\firebase\firebase-config.js ---
@@ -771,21 +893,26 @@ root.render(
 
 // --- src\TelaInicial.js ---
 
+// src/TelaInicial.js
 import React from 'react';
-import { Link } from 'react-router-dom'; // 1. Importe o Link
+import { Link } from 'react-router-dom';
+import { useAuth } from './context/AuthContext'; // Importe o useAuth
 import './TelaInicial.css';
 import logo from './assets/logo.png';
 
 function TelaInicial() {
+  const { currentUser, isGM } = useAuth(); // Pega o usuário e o status de Mestre
+
   return (
     <div className="tela-container">
       <img src={logo} alt="Logo do Jogo" className="game-logo" />
-
       <nav className="main-menu">
         <ul>
-          {/* 2. Substitua <a> por <Link> e href por to */}
           <li><Link to="/jogar">Jogar</Link></li>
-          <li><Link to="/mestrar">Mestrar</Link></li>
+          {/* Link para a tela de Grupo (visível para todos) */}
+          <li><Link to="/grupo">Ver Grupo</Link></li>
+          {/* Link para o Painel do Mestre (visível APENAS para o Mestre) */}
+          {isGM && <li><Link to="/mestrar">Painel do Mestre</Link></li>}
           <li><Link to="/opcoes">Opções</Link></li>
         </ul>
       </nav>
@@ -793,7 +920,85 @@ function TelaInicial() {
   );
 }
 
-export default TelaInicial;
+// --- src\telas\Auth.css ---
+
+/* src/telas/Auth.css */
+.auth-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-form {
+    background: var(--cor-fundo-painel);
+    color: var(--cor-texto-painel);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 30px 40px;
+    width: 100%;
+    max-width: 400px;
+    font-family: var(--fonte-ficha);
+    backdrop-filter: blur(5px);
+}
+
+.auth-form h2 {
+    text-align: center;
+    text-transform: uppercase;
+    color: var(--cor-titulo-painel);
+    font-size: 2.5em;
+    margin: 0 0 25px 0;
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    background: var(--cor-fundo-input);
+    color: var(--cor-texto-painel);
+    border: 1px solid var(--cor-borda-painel);
+    font-family: var(--fonte-corpo);
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+.auth-form button {
+    width: 100%;
+    padding: 12px;
+    background: var(--cor-titulo-painel);
+    color: var(--cor-texto-inverso);
+    border: none;
+    font-family: var(--fonte-ficha);
+    font-size: 1.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.auth-form button:hover {
+    filter: brightness(1.2);
+}
+
+.auth-error {
+    color: var(--cor-botao-perigo);
+    background: rgba(211, 0, 0, 0.1);
+    border: 1px solid var(--cor-botao-perigo);
+    padding: 10px;
+    text-align: center;
+    margin-bottom: 15px;
+    text-transform: none;
+}
+
+.auth-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.9em;
+    text-transform: none;
+}
+.auth-link a {
+    color: var(--cor-titulo-painel);
+    font-weight: bold;
+    text-decoration: none;
+}
 
 // --- src\telas\MenuPaginas.css ---
 
@@ -841,6 +1046,48 @@ export default TelaInicial;
     background: var(--cor-titulo-painel);
     color: var(--cor-fundo-painel);
 }
+
+// --- src\telas\TelaCadastro.js ---
+
+// src/telas/TelaCadastro.js
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { cadastrarUsuario } from '../firebase/dataService';
+import './Auth.css';
+
+function TelaCadastro() {
+    const navigate = useNavigate();
+    const [email, setEmail] = useState('');
+    const [senha, setSenha] = useState('');
+    const [error, setError] = useState('');
+
+    const handleCadastro = async (e) => {
+        e.preventDefault();
+        setError('');
+        const result = await cadastrarUsuario(email, senha);
+        if (result.error) {
+            setError('Falha no cadastro. O e-mail pode já estar em uso.');
+        } else {
+            navigate('/jogar');
+        }
+    };
+
+    return (
+        <div className="auth-container">
+            <form onSubmit={handleCadastro} className="auth-form">
+                <h2>Cadastro</h2>
+                {error && <p className="auth-error">{error}</p>}
+                <input type="email" placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <input type="password" placeholder="Senha (mínimo 8 caracteres)" value={senha} onChange={(e) => setSenha(e.target.value)} required />
+                <button type="submit">Cadastrar</button>
+                <p className="auth-link">
+                    Já tem uma conta? <Link to="/login">Faça o login</Link>                </p>
+            </form>
+        </div>
+    );
+}
+
+export default TelaCadastro;
 
 // --- src\telas\TelaCriarFicha.css ---
 
@@ -1152,6 +1399,203 @@ function TelaCriarFicha() {
 }
 
 export default TelaCriarFicha;
+
+// --- src\telas\TelaGrupo.css ---
+
+/* src/telas/TelaMestrar.css */
+.mestrar-container {
+    width: 100%;
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.mestrar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--cor-borda-painel);
+}
+
+.mestrar-header h1 {
+    font-family: var(--fonte-ficha);
+    color: var(--cor-titulo-painel);
+    font-size: 2.5em;
+    margin: 0;
+}
+
+.mestrar-header button {
+    background: var(--cor-fundo-inverso);
+    color: var(--cor-texto-inverso);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 10px 15px;
+    cursor: pointer;
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
+}
+.mestrar-header button:hover {
+    background: var(--cor-titulo-painel);
+    color: var(--cor-fundo-painel);
+}
+
+.grid-jogadores {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 30px;
+    justify-items: center; /* Centraliza os cards na grade */
+}
+
+.jogador-card {
+    background: #008000;
+    color: var(--cor-texto-painel);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 20px;
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
+    backdrop-filter: blur(5px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 200px; /* Largura fixa para os cards */
+}
+
+.jogador-card h2 {
+    font-family: var(--fonte-ficha);
+    color: var(--cor-titulo-painel);
+    font-size: 1.5em;
+    margin: 0;
+    text-align: center;
+}
+
+.imagem-container {
+    position: relative;
+    width: 150px; /* Imagem um pouco maior */
+    height: 150px;
+    flex-shrink: 0;
+}
+
+.jogador-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--cor-borda-painel);
+}
+
+.stat-overlay {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    border: 2px solid var(--cor-titulo-painel);
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+
+/* POSICIONAMENTO FINAL: Todos na parte de baixo */
+.stat-vida {
+    bottom: 0;
+    left: -10px;
+}
+
+.stat-sanidade {
+    bottom: -15px; /* Um pouco mais para baixo para ficar no centro */
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.stat-esforco {
+    bottom: 0;
+    right: -10px;
+}
+.footer-actions {
+    margin-top: 25px;
+    border-top: 2px solid var(--cor-borda-painel);
+    padding-top: 20px;
+}
+
+// --- src\telas\TelaGrupo.js ---
+
+// src/telas/TelaMestrar.js
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { carregarFichas, escutarTodosStatusAoVivo } from '../firebase/dataService.js';
+import logo from '../assets/logo.png';
+import './TelaGrupo.css';
+
+function TelaGrupo() {
+    const navigate = useNavigate();
+    const [fichas, setFichas] = useState({});
+    const [statusAoVivo, setStatusAoVivo] = useState({});
+
+    useEffect(() => {
+        const buscaDados = async () => {
+            const dadosFichas = await carregarFichas();
+            setFichas(dadosFichas);
+        };
+        buscaDados();
+
+        const pararDeEscutar = escutarTodosStatusAoVivo((dados) => {
+            setStatusAoVivo(dados);
+        });
+
+        return () => pararDeEscutar();
+    }, []);
+
+    const getImagemPersonagem = (nome) => {
+        if (!nome) return logo;
+        try {
+            return require(`../assets/personagens/${nome.toLowerCase()}.png`);
+        } catch (err) {
+            return logo;
+        }
+    };
+
+    return (
+        <div className="mestrar-container">
+            <div className="mestrar-header">
+                <h1>Painel do Mestre</h1>
+                <button onClick={() => navigate('/')}>Voltar ao Menu</button>
+            </div>
+            
+            <div className="grid-jogadores">
+                {Object.entries(fichas).map(([id, ficha]) => {
+                    const status = statusAoVivo[id] || { vida: ficha.vida, sanidade: ficha.sanidade, esforco: ficha.esforco };
+                    return (
+                        <div key={id} className="jogador-card">
+                            {/* ORDEM ALTERADA AQUI */}
+                            <h2>{ficha.nome}</h2>
+                            <div className="imagem-container">
+                                <img src={getImagemPersonagem(ficha.nome)} alt={ficha.nome} className="jogador-img" />
+                                
+                                <div className="stat-overlay stat-vida">
+                                    {`${status.vida ?? 0}/${ficha.vidaMax || 0}`}
+                                </div>
+                                <div className="stat-overlay stat-sanidade">
+                                    {`${status.sanidade ?? 0}/${ficha.sanidadeMax || 0}`}
+                                </div>
+                                <div className="stat-overlay stat-esforco">
+                                    {`${status.esforco ?? 0}/${ficha.esforcoMax || 0}`}
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+export default TelaMestrar;
 
 // --- src\telas\TelaHabilidades.js ---
 
@@ -1497,197 +1941,87 @@ function TelaJogar() {
 
 export default TelaJogar;
 
-// --- src\telas\TelaMestrar.css ---
+// --- src\telas\TelaLogin.js ---
 
-/* src/telas/TelaMestrar.css */
-.mestrar-container {
-    width: 100%;
-    min-height: 100vh;
-    padding: 20px;
-    box-sizing: border-box;
-}
+// src/telas/TelaLogin.js
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { loginUsuario } from '../firebase/dataService';
+import './Auth.css'; // Usaremos um CSS compartilhado
 
-.mestrar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid var(--cor-borda-painel);
-}
+function TelaLogin() {
+    const navigate = useNavigate();
+    const [email, setEmail] = useState('');
+    const [senha, setSenha] = useState('');
+    const [error, setError] = useState('');
 
-.mestrar-header h1 {
-    font-family: var(--fonte-ficha);
-    color: var(--cor-titulo-painel);
-    font-size: 2.5em;
-    margin: 0;
-}
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setError('');
+        const result = await loginUsuario(email, senha);
+        if (result.error) {
+            setError('Falha no login. Verifique seu e-mail e senha.');
+        } else {
+            navigate('/jogar'); // Redireciona para a tela de jogar após o login
+        }
+    };
 
-.mestrar-header button {
-    background: var(--cor-fundo-inverso);
-    color: var(--cor-texto-inverso);
-    border: 2px solid var(--cor-borda-painel);
-    padding: 10px 15px;
-    cursor: pointer;
-    font-family: var(--fonte-ficha);
-    text-transform: uppercase;
-}
-.mestrar-header button:hover {
-    background: var(--cor-titulo-painel);
-    color: var(--cor-fundo-painel);
-}
-
-.grid-jogadores {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 30px;
-    justify-items: center; /* Centraliza os cards na grade */
-}
-
-.jogador-card {
-    background: #008000;
-    color: var(--cor-texto-painel);
-    border: 2px solid var(--cor-borda-painel);
-    padding: 20px;
-    font-family: var(--fonte-ficha);
-    text-transform: uppercase;
-    backdrop-filter: blur(5px);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    width: 200px; /* Largura fixa para os cards */
+    return (
+        <div className="auth-container">
+            <form onSubmit={handleLogin} className="auth-form">
+                <h2>Login</h2>
+                {error && <p className="auth-error">{error}</p>}
+                <input 
+                    type="email" 
+                    placeholder="E-mail" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)} 
+                    required 
+                />
+                <input 
+                    type="password" 
+                    placeholder="Senha" 
+                    value={senha}
+                    onChange={(e) => setSenha(e.target.value)} 
+                    required 
+                />
+                <button type="submit">Entrar</button>
+                <p className="auth-link">
+                    Não tem uma conta? <Link to="/cadastro">Cadastre-se</Link>
+                </p>
+            </form>
+        </div>
+    );
 }
 
-.jogador-card h2 {
-    font-family: var(--fonte-ficha);
-    color: var(--cor-titulo-painel);
-    font-size: 1.5em;
-    margin: 0;
-    text-align: center;
-}
-
-.imagem-container {
-    position: relative;
-    width: 150px; /* Imagem um pouco maior */
-    height: 150px;
-    flex-shrink: 0;
-}
-
-.jogador-img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid var(--cor-borda-painel);
-}
-
-.stat-overlay {
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2em;
-    font-weight: bold;
-    border: 2px solid var(--cor-titulo-painel);
-    box-shadow: 0 0 5px rgba(0,0,0,0.5);
-}
-
-/* POSICIONAMENTO FINAL: Todos na parte de baixo */
-.stat-vida {
-    bottom: 0;
-    left: -10px;
-}
-
-.stat-sanidade {
-    bottom: -15px; /* Um pouco mais para baixo para ficar no centro */
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.stat-esforco {
-    bottom: 0;
-    right: -10px;
-}
-.footer-actions {
-    margin-top: 25px;
-    border-top: 2px solid var(--cor-borda-painel);
-    padding-top: 20px;
-}
+export default TelaLogin;
 
 // --- src\telas\TelaMestrar.js ---
 
-// src/telas/TelaMestrar.js
+// src/telas/TelaMestrar.js (NOVO ARQUIVO)
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { carregarFichas, escutarTodosStatusAoVivo } from '../firebase/dataService.js';
+import { carregarFichas, atualizarStatusAoVivo, escutarTodosStatusAoVivo } from '../firebase/dataService.js';
 import logo from '../assets/logo.png';
-import './TelaMestrar.css';
+import './TelaMestrar.css'; // Usará seu próprio CSS
 
 function TelaMestrar() {
     const navigate = useNavigate();
     const [fichas, setFichas] = useState({});
     const [statusAoVivo, setStatusAoVivo] = useState({});
 
-    useEffect(() => {
-        const buscaDados = async () => {
-            const dadosFichas = await carregarFichas();
-            setFichas(dadosFichas);
-        };
-        buscaDados();
+    // ... (toda a lógica de carregar dados e listeners é a mesma da tela de grupo)
 
-        const pararDeEscutar = escutarTodosStatusAoVivo((dados) => {
-            setStatusAoVivo(dados);
-        });
-
-        return () => pararDeEscutar();
-    }, []);
-
-    const getImagemPersonagem = (nome) => {
-        if (!nome) return logo;
-        try {
-            return require(`../assets/personagens/${nome.toLowerCase()}.png`);
-        } catch (err) {
-            return logo;
-        }
+    // Adicione de volta a função de controle
+    const handleAlterarStatus = (fichaId, stat, valor) => {
+        // ... (código da função que altera vida, sanidade, etc.)
     };
 
+    // O return() será similar ao da TelaJogar, com as barras de status e botões de controle
     return (
         <div className="mestrar-container">
-            <div className="mestrar-header">
-                <h1>Painel do Mestre</h1>
-                <button onClick={() => navigate('/')}>Voltar ao Menu</button>
-            </div>
-            
-            <div className="grid-jogadores">
-                {Object.entries(fichas).map(([id, ficha]) => {
-                    const status = statusAoVivo[id] || { vida: ficha.vida, sanidade: ficha.sanidade, esforco: ficha.esforco };
-                    return (
-                        <div key={id} className="jogador-card">
-                            {/* ORDEM ALTERADA AQUI */}
-                            <h2>{ficha.nome}</h2>
-                            <div className="imagem-container">
-                                <img src={getImagemPersonagem(ficha.nome)} alt={ficha.nome} className="jogador-img" />
-                                
-                                <div className="stat-overlay stat-vida">
-                                    {`${status.vida ?? 0}/${ficha.vidaMax || 0}`}
-                                </div>
-                                <div className="stat-overlay stat-sanidade">
-                                    {`${status.sanidade ?? 0}/${ficha.sanidadeMax || 0}`}
-                                </div>
-                                <div className="stat-overlay stat-esforco">
-                                    {`${status.esforco ?? 0}/${ficha.esforcoMax || 0}`}
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
+            <h1>Painel do Mestre</h1>
+            {/* Grid de jogadores com barras de status e botões +/- */}
         </div>
     );
 }

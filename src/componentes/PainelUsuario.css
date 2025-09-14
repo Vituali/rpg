@@ -1,0 +1,53 @@
+/* src/componentes/PainelUsuario.css */
+.painel-usuario-container {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    background: var(--cor-fundo-painel);
+    color: var(--cor-texto-painel);
+    border: 1px solid var(--cor-borda-painel);
+    padding: 10px 15px;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-family: var(--fonte-ficha);
+    backdrop-filter: blur(5px);
+}
+
+.user-email {
+    font-size: 0.9em;
+    text-transform: uppercase;
+    opacity: 0.8;
+}
+
+.user-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.user-actions button {
+    background: transparent;
+    color: var(--cor-texto-painel);
+    border: 1px solid var(--cor-borda-painel);
+    padding: 5px 10px;
+    font-family: var(--fonte-ficha);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.user-actions button:hover {
+    background: var(--cor-titulo-painel);
+    color: var(--cor-fundo-painel);
+    border-color: var(--cor-titulo-painel);
+}
+
+.user-actions .logout-btn {
+    border-color: var(--cor-botao-perigo);
+    color: var(--cor-botao-perigo);
+}
+
+.user-actions .logout-btn:hover {
+    background: var(--cor-botao-perigo);
+    color: var(--cor-texto-inverso);
+}
