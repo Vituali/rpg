@@ -1,0 +1,50 @@
+/* src/TelaInicial.css */
+
+.tela-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+    font-family: var(--fonte-corpo);
+    position: relative;
+    box-shadow: inset 0 0 150px rgba(0, 0, 0, 0.9);
+}
+
+.game-logo {
+    width: 450px;
+    max-width: 90%;
+    height: auto;
+    margin-bottom: 40px;
+    filter: drop-shadow(0 0 10px #e0b0ff); /* Brilho roxo/branco na logo */
+}
+
+.main-menu ul {
+    list-style: none;
+    padding: 0;
+    text-align: center;
+}
+
+.main-menu li {
+    margin-bottom: 15px;
+}
+
+/* CORREÇÃO APLICADA AQUI */
+.main-menu a {
+    color: #c0c0c0; /* Cor fixa: cinza claro */
+    text-decoration: none;
+    font-family: var(--fonte-titulo);
+    font-size: 48px;
+    letter-spacing: 4px;
+    text-shadow: 0 0 5px #9d00ff; /* Sombra roxa para destaque */
+    transition: all 0.3s ease-in-out;
+}
+
+.main-menu a:hover {
+    color: #ffffff; /* Cor no hover: branco brilhante */
+    text-shadow: 
+      0 0 8px #ffffff,
+      0 0 15px #9d00ff;
+    transform: scale(1.1);
+}

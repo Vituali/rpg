@@ -1,0 +1,138 @@
+/* src/telas/TelaCriarFicha.css */
+.form-container {
+    background: var(--cor-fundo-painel);
+    color: var(--cor-texto-painel);
+    border: 2px solid var(--cor-borda-painel);
+    backdrop-filter: blur(5px);
+    padding: 30px;
+    margin: 50px auto;
+    width: 800px;
+    max-width: 90%;
+}
+
+.form-container h2, .form-container h3 {
+    font-family: var(--fonte-ficha);
+    color: var(--cor-titulo-painel);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-top: 10px;
+    margin-bottom: 25px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--cor-borda-painel);
+}
+.form-container h3 {
+    font-size: 1.5em;
+    margin-top: 30px;
+}
+
+.form-container > label,
+.form-container .stats-grid,
+.form-container .pericias-grid,
+.form-container .campo-personalizado,
+.form-container select {
+    margin-bottom: 20px;
+}
+
+.form-container label {
+    font-family: var(--fonte-ficha);
+    font-weight: bold;
+    margin-bottom: 8px;
+    display: block;
+    color: var(--cor-texto-painel);
+    opacity: 0.8;
+}
+
+.form-container input, .form-container select {
+    background: var(--cor-fundo-input);
+    color: var(--cor-texto-painel);
+    border: 1px solid var(--cor-borda-painel);
+    padding: 12px;
+    border-radius: 0;
+    width: 100%;
+    box-sizing: border-box;
+    transition: all 0.2s;
+    font-family: var(--fonte-corpo);
+    font-size: 1em;
+}
+
+.form-container input:focus, .form-container select:focus {
+    outline: none;
+    border-color: var(--cor-titulo-painel);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px 25px;
+    align-items: center;
+}
+
+.pericias-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Largura mínima ajustada */
+    gap: 15px;
+}
+
+/* CORREÇÃO APLICADA AQUI */
+.pericia-item {
+    display: grid;
+    grid-template-columns: 1fr auto; /* Coluna 1: Label, Coluna 2: Controles */
+    gap: 15px;
+    align-items: center; /* Centraliza verticalmente o label e o bloco de controles */
+    border: 1px solid var(--cor-borda-painel);
+    padding: 10px;
+}
+
+.pericia-item label {
+    font-size: 1em;
+    text-align: left;
+    margin-bottom: 0;
+    opacity: 1;
+    font-family: var(--fonte-ficha);
+    font-weight: bold;
+}
+
+/* NOVO: Estilo para o container dos controles */
+.pericia-controls {
+    display: flex;
+    gap: 8px;
+}
+
+/* Ajusta os tamanhos do input e select dentro do novo container */
+.pericia-controls input {
+    width: 60px;
+}
+.pericia-controls select {
+    width: 140px; /* Largura aumentada para caber o texto */
+    text-transform: uppercase;
+}
+
+.campo-personalizado {
+    margin-top: 10px;
+    margin-left: 20px;
+}
+
+.form-container button {
+    background: var(--cor-fundo-inverso);
+    color: var(--cor-texto-inverso);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 12px 20px;
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1em;
+    margin-right: 10px;
+    margin-bottom: 0; /* Remove margem extra */
+}
+.form-container button:hover {
+    background: var(--cor-titulo-painel);
+    color: var(--cor-fundo-painel);
+    border-color: var(--cor-titulo-painel);
+}
+
+.form-container button[type="button"] {
+    background: transparent;
+    color: var(--cor-texto-painel);
+}
