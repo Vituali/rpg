@@ -197,17 +197,24 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import RotaProtegida from './componentes/RotaProtegida';
+
+// Telas //
+
+// Tela inicial //
 import TelaLogin from './telas/TelaLogin';
 import TelaCadastro from './telas/TelaCadastro';
 import TelaInicial from './TelaInicial';
-import TelaJogar from './telas/TelaJogar';
 import TelaCriarFicha from './telas/TelaCriarFicha';
 import TelaOpcoes from './telas/TelaOpcoes';
 import TelaMestrar from './telas/TelaMestrar';
-import TelaInventario from './telas/TelaInventario';
-import TelaHabilidades from './telas/TelaHabilidades';
-import TelaRituais from './telas/TelaRituais';
 import TelaGrupo from './telas/TelaGrupo';
+import PainelUsuario from './componentes/PainelUsuario';
+import TelaUsuario from './telas/TelaUsuario';
+// Tela jogador //
+import TelaJogar from './telas/jogador/TelaJogar';
+import TelaInventario from './telas/jogador/TelaInventario';
+import TelaHabilidades from './telas/jogador/TelaHabilidades';
+import TelaRituais from './telas/jogador/TelaRituais';
 
 function App() {
   return (
@@ -227,6 +234,7 @@ function App() {
               <Route path="/inventario/:fichaId" element={<RotaProtegida><TelaInventario /></RotaProtegida>} />
               <Route path="/habilidades/:fichaId" element={<RotaProtegida><TelaHabilidades /></RotaProtegida>} />
               <Route path="/rituais/:fichaId" element={<RotaProtegida><TelaRituais /></RotaProtegida>} />
+              <Route path="/usuario" element={<RotaProtegida><TelaUsuario /></RotaProtegida>} />
             </Routes>
           </div>
         </Router>
@@ -470,6 +478,97 @@ function FichaModal({ ficha, fichaId, onClose, onExcluir, onUpdate }) {
 
 export default FichaModal;
 
+// --- src\componentes\PainelUsuario.css ---
+
+/* src/componentes/PainelUsuario.css */
+.painel-usuario-container {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    background: var(--cor-fundo-painel);
+    color: var(--cor-texto-painel);
+    border: 1px solid var(--cor-borda-painel);
+    padding: 10px 15px;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-family: var(--fonte-ficha);
+    backdrop-filter: blur(5px);
+}
+
+.user-email {
+    font-size: 0.9em;
+    text-transform: uppercase;
+    opacity: 0.8;
+}
+
+.user-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.user-actions button {
+    background: transparent;
+    color: var(--cor-texto-painel);
+    border: 1px solid var(--cor-borda-painel);
+    padding: 5px 10px;
+    font-family: var(--fonte-ficha);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.user-actions button:hover {
+    background: var(--cor-titulo-painel);
+    color: var(--cor-fundo-painel);
+    border-color: var(--cor-titulo-painel);
+}
+
+.user-actions .logout-btn {
+    border-color: var(--cor-botao-perigo);
+    color: var(--cor-botao-perigo);
+}
+
+.user-actions .logout-btn:hover {
+    background: var(--cor-botao-perigo);
+    color: var(--cor-texto-inverso);
+}
+
+// --- src\componentes\PainelUsuario.js ---
+
+// src/componentes/PainelUsuario.js
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { logoutUsuario } from '../firebase/dataService';
+import './PainelUsuario.css';
+
+function PainelUsuario() {
+    const { currentUser } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        await logoutUsuario();
+        navigate('/login'); // Redireciona para o login após o logout
+    };
+
+    if (!currentUser) {
+        return null; // Não mostra nada se o usuário não estiver logado
+    }
+
+    return (
+        <div className="painel-usuario-container">
+            <span className="user-email">{currentUser.email}</span>
+            <div className="user-actions">
+                <button onClick={() => navigate('/usuario')}>Minha Conta</button>
+                <button onClick={handleLogout} className="logout-btn">Logout</button>
+            </div>
+        </div>
+    );
+}
+
+export default PainelUsuario;
+
 // --- src\componentes\RotaProtegida.js ---
 
 // src/componentes/RotaProtegida.js
@@ -573,16 +672,15 @@ export const useTheme = () => useContext(ThemeContext);
 
 // --- src\firebase\dataService.js ---
 
+// src/firebase/dataService.js
 import { db, rtdb } from './firebase-config.js';
 import { collection, getDocs, addDoc, doc, deleteDoc, setDoc } from 'firebase/firestore';
 import { ref, set, onValue, off, remove } from 'firebase/database';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from './firebase-config.js';
 
-// 1. DEFINA A TEMPORADA ATIVA AQUI
 const ACTIVE_SEASON = 'pacto';
 
-// 2. ATUALIZE AS FUNÇÕES PARA USAR A TEMPORADA
 export async function carregarFichas() {
     try {
         const path = `temporadas/${ACTIVE_SEASON}/fichas`;
@@ -602,14 +700,12 @@ export async function salvarFichaCompleta(dadosFicha) {
     try {
         const path = `temporadas/${ACTIVE_SEASON}/fichas`;
         const docRef = await addDoc(collection(db, path), dadosFicha);
-        
         const statusIniciais = {
             vida: dadosFicha.vida,
             sanidade: dadosFicha.sanidade,
             esforco: dadosFicha.esforco
         };
         await set(ref(rtdb, `sessoes/${ACTIVE_SEASON}/${docRef.id}`), statusIniciais);
-        
         return docRef.id;
     } catch (e) {
         console.error('Erro ao salvar nova ficha:', e);
@@ -632,23 +728,20 @@ export function escutarTodosStatusAoVivo(callback) {
 }
 
 export function escutarStatusAoVivo(fichaId, callback) {
-  const referencia = ref(rtdb, `sessoes/sessao_teste/${fichaId}`);
+  const referencia = ref(rtdb, `sessoes/${ACTIVE_SEASON}/${fichaId}`);
   onValue(referencia, (snapshot) => {
     const dados = snapshot.val();
     callback(dados);
   });
   return () => off(referencia);
 }
+
 export async function excluirFicha(fichaId) {
     try {
-        const fichaDocRef = doc(db, 'fichas', fichaId);
+        const fichaDocRef = doc(db, `temporadas/${ACTIVE_SEASON}/fichas`, fichaId);
         await deleteDoc(fichaDocRef);
-        console.log("Ficha excluída do Firestore com sucesso.");
-
-        const statusRtdbRef = ref(rtdb, `sessoes/sessao_teste/${fichaId}`);
+        const statusRtdbRef = ref(rtdb, `sessoes/${ACTIVE_SEASON}/${fichaId}`);
         await remove(statusRtdbRef);
-        console.log("Status excluído do Realtime Database com sucesso.");
-
         return true;
     } catch (error) {
         console.error("Erro ao excluir ficha: ", error);
@@ -658,9 +751,8 @@ export async function excluirFicha(fichaId) {
 }
 export async function atualizarFichaCompleta(fichaId, fichaData) {
     try {
-        const fichaDocRef = doc(db, 'fichas', fichaId);
+        const fichaDocRef = doc(db, `temporadas/${ACTIVE_SEASON}/fichas`, fichaId);
         await setDoc(fichaDocRef, fichaData);
-        console.log("Ficha atualizada no Firestore com sucesso.");
         return true;
     } catch (error) {
         console.error("Erro ao atualizar ficha: ", error);
@@ -668,17 +760,7 @@ export async function atualizarFichaCompleta(fichaId, fichaData) {
         return false;
     }
 }
-export function escutarTodosStatusAoVivo(callback) {
-  const referencia = ref(rtdb, 'sessoes/sessao_teste');
-  onValue(referencia, (snapshot) => {
-    const dados = snapshot.val() || {};
-    callback(dados);
-  });
-  // Retorna a função para parar de escutar
-  return () => off(referencia);
-}
 
-// Sistema de cadastro e login//
 export async function cadastrarUsuario(email, senha) {
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
@@ -702,6 +784,15 @@ export async function logoutUsuario() {
         await signOut(auth);
     } catch (error) {
         console.error("Erro ao fazer logout:", error);
+    }
+}
+export async function enviarEmailRedefinicaoSenha(email) {
+    try {
+        await sendPasswordResetEmail(auth, email);
+        return { success: true };
+    } catch (error) {
+        console.error("Erro ao enviar e-mail de redefinição:", error);
+        return { error: error.message };
     }
 }
 
@@ -920,6 +1011,8 @@ function TelaInicial() {
   );
 }
 
+export default TelaInicial;
+
 // --- src\telas\Auth.css ---
 
 /* src/telas/Auth.css */
@@ -1000,54 +1093,7 @@ function TelaInicial() {
     text-decoration: none;
 }
 
-// --- src\telas\MenuPaginas.css ---
-
-/* src/telas/MenuPaginas.css */
-.pagina-container {
-    background: var(--cor-fundo-painel);
-    color: var(--cor-texto-painel);
-    border: 2px solid var(--cor-borda-painel);
-    padding: 30px;
-    margin: 20px;
-    width: 100%;
-    max-width: 800px;
-    box-sizing: border-box;
-    font-family: var(--fonte-ficha);
-    text-align: center;
-}
-
-.pagina-container h1 {
-    font-size: 2.5em;
-    color: var(--cor-titulo-painel);
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--cor-borda-painel);
-    padding-bottom: 15px;
-    margin: 0 0 20px 0;
-}
-
-.pagina-container p {
-    font-size: 1.2em;
-    text-transform: none;
-    margin-bottom: 30px;
-}
-
-.pagina-container button {
-    background: var(--cor-fundo-inverso);
-    color: var(--cor-texto-inverso);
-    border: 2px solid var(--cor-borda-painel);
-    padding: 10px 20px;
-    font-family: var(--fonte-ficha);
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.pagina-container button:hover {
-    background: var(--cor-titulo-painel);
-    color: var(--cor-fundo-painel);
-}
-
-// --- src\telas\TelaCadastro.js ---
+// --- src\telas\cadastro\TelaCadastro.js ---
 
 // src/telas/TelaCadastro.js
 import React, { useState } from 'react';
@@ -1089,7 +1135,734 @@ function TelaCadastro() {
 
 export default TelaCadastro;
 
-// --- src\telas\TelaCriarFicha.css ---
+// --- src\telas\cadastro\TelaLogin.js ---
+
+// src/telas/TelaLogin.js
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { loginUsuario } from '../firebase/dataService';
+import './Auth.css'; // Usaremos um CSS compartilhado
+
+function TelaLogin() {
+    const navigate = useNavigate();
+    const [email, setEmail] = useState('');
+    const [senha, setSenha] = useState('');
+    const [error, setError] = useState('');
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setError('');
+        const result = await loginUsuario(email, senha);
+        if (result.error) {
+            setError('Falha no login. Verifique seu e-mail e senha.');
+        } else {
+            navigate('/jogar'); // Redireciona para a tela de jogar após o login
+        }
+    };
+
+    return (
+        <div className="auth-container">
+            <form onSubmit={handleLogin} className="auth-form">
+                <h2>Login</h2>
+                {error && <p className="auth-error">{error}</p>}
+                <input 
+                    type="email" 
+                    placeholder="E-mail" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)} 
+                    required 
+                />
+                <input 
+                    type="password" 
+                    placeholder="Senha" 
+                    value={senha}
+                    onChange={(e) => setSenha(e.target.value)} 
+                    required 
+                />
+                <button type="submit">Entrar</button>
+                <p className="auth-link">
+                    Não tem uma conta? <Link to="/cadastro">Cadastre-se</Link>
+                </p>
+            </form>
+        </div>
+    );
+}
+
+export default TelaLogin;
+
+// --- src\telas\cadastro\TelaUsuario.js ---
+
+// src/telas/TelaUsuario.js
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { enviarEmailRedefinicaoSenha } from '../firebase/dataService';
+import './MenuPaginas.css'; // Reutiliza o estilo das outras páginas de menu
+
+function TelaUsuario() {
+    const navigate = useNavigate();
+    const { currentUser } = useAuth();
+    const [mensagem, setMensagem] = useState('');
+    const [isError, setIsError] = useState(false);
+
+    const handlePasswordReset = async () => {
+        setMensagem('');
+        setIsError(false);
+        const result = await enviarEmailRedefinicaoSenha(currentUser.email);
+        if (result.success) {
+            setMensagem('E-mail de redefinição de senha enviado com sucesso! Verifique sua caixa de entrada.');
+        } else {
+            setMensagem('Ocorreu um erro ao enviar o e-mail. Tente novamente mais tarde.');
+            setIsError(true);
+        }
+    };
+
+    return (
+        <div className="pagina-container">
+            <h1>Minha Conta</h1>
+            <p><strong>E-mail:</strong> {currentUser?.email}</p>
+            
+            <div className="user-management">
+                <h3>Alterar Senha</h3>
+                <p>Clique no botão abaixo para receber um e-mail com o link para redefinir sua senha.</p>
+                <button onClick={handlePasswordReset}>Redefinir Senha</button>
+                {mensagem && (
+                    <p className={isError ? 'auth-error' : 'auth-success'}>{mensagem}</p>
+                )}
+            </div>
+
+            <button onClick={() => navigate(-1)} style={{marginTop: '30px'}}>Voltar</button>
+        </div>
+    );
+}
+
+export default TelaUsuario;
+
+// --- src\telas\inicial\TelaGrupo.css ---
+
+/* src/telas/TelaMestrar.css */
+.mestrar-container {
+    width: 100%;
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.mestrar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--cor-borda-painel);
+}
+
+.mestrar-header h1 {
+    font-family: var(--fonte-ficha);
+    color: var(--cor-titulo-painel);
+    font-size: 2.5em;
+    margin: 0;
+}
+
+.mestrar-header button {
+    background: var(--cor-fundo-inverso);
+    color: var(--cor-texto-inverso);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 10px 15px;
+    cursor: pointer;
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
+}
+.mestrar-header button:hover {
+    background: var(--cor-titulo-painel);
+    color: var(--cor-fundo-painel);
+}
+
+.grid-jogadores {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 30px;
+    justify-items: center; /* Centraliza os cards na grade */
+}
+
+.jogador-card {
+    background: #008000;
+    color: var(--cor-texto-painel);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 20px;
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
+    backdrop-filter: blur(5px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 200px; /* Largura fixa para os cards */
+}
+
+.jogador-card h2 {
+    font-family: var(--fonte-ficha);
+    color: var(--cor-titulo-painel);
+    font-size: 1.5em;
+    margin: 0;
+    text-align: center;
+}
+
+.imagem-container {
+    position: relative;
+    width: 150px; /* Imagem um pouco maior */
+    height: 150px;
+    flex-shrink: 0;
+}
+
+.jogador-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--cor-borda-painel);
+}
+
+.stat-overlay {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    border: 2px solid var(--cor-titulo-painel);
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+
+/* POSICIONAMENTO FINAL: Todos na parte de baixo */
+.stat-vida {
+    bottom: 0;
+    left: -10px;
+}
+
+.stat-sanidade {
+    bottom: -15px; /* Um pouco mais para baixo para ficar no centro */
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.stat-esforco {
+    bottom: 0;
+    right: -10px;
+}
+.footer-actions {
+    margin-top: 25px;
+    border-top: 2px solid var(--cor-borda-painel);
+    padding-top: 20px;
+}
+
+// --- src\telas\inicial\TelaGrupo.js ---
+
+// src/telas/TelaMestrar.js
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { carregarFichas, escutarTodosStatusAoVivo } from '../firebase/dataService.js';
+import logo from '../assets/logo.png';
+import './TelaGrupo.css';
+
+function TelaGrupo() {
+    const navigate = useNavigate();
+    const [fichas, setFichas] = useState({});
+    const [statusAoVivo, setStatusAoVivo] = useState({});
+
+    useEffect(() => {
+        const buscaDados = async () => {
+            const dadosFichas = await carregarFichas();
+            setFichas(dadosFichas);
+        };
+        buscaDados();
+
+        const pararDeEscutar = escutarTodosStatusAoVivo((dados) => {
+            setStatusAoVivo(dados);
+        });
+
+        return () => pararDeEscutar();
+    }, []);
+
+    const getImagemPersonagem = (nome) => {
+        if (!nome) return logo;
+        try {
+            return require(`../assets/personagens/${nome.toLowerCase()}.png`);
+        } catch (err) {
+            return logo;
+        }
+    };
+
+    return (
+        <div className="mestrar-container">
+            <div className="mestrar-header">
+                <h1>Painel do Mestre</h1>
+                <button onClick={() => navigate('/')}>Voltar ao Menu</button>
+            </div>
+            
+            <div className="grid-jogadores">
+                {Object.entries(fichas).map(([id, ficha]) => {
+                    const status = statusAoVivo[id] || { vida: ficha.vida, sanidade: ficha.sanidade, esforco: ficha.esforco };
+                    return (
+                        <div key={id} className="jogador-card">
+                            {/* ORDEM ALTERADA AQUI */}
+                            <h2>{ficha.nome}</h2>
+                            <div className="imagem-container">
+                                <img src={getImagemPersonagem(ficha.nome)} alt={ficha.nome} className="jogador-img" />
+                                
+                                <div className="stat-overlay stat-vida">
+                                    {`${status.vida ?? 0}/${ficha.vidaMax || 0}`}
+                                </div>
+                                <div className="stat-overlay stat-sanidade">
+                                    {`${status.sanidade ?? 0}/${ficha.sanidadeMax || 0}`}
+                                </div>
+                                <div className="stat-overlay stat-esforco">
+                                    {`${status.esforco ?? 0}/${ficha.esforcoMax || 0}`}
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+export default TelaGrupo;
+
+// --- src\telas\inicial\TelaJogar.css ---
+
+/* src/telas/TelaJogar.css */
+
+.menu-container {
+    background: var(--cor-fundo-painel);
+    color: var(--cor-texto-painel);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 25px;
+    text-align: center;
+    width: 550px;
+    max-width: 95%;
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
+    backdrop-filter: blur(5px);
+}
+
+.character-img {
+    width: 130px; height: 130px;
+    margin-bottom: 15px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid var(--cor-borda-painel);
+    background: #eee;
+}
+
+.menu-container h2 {
+    font-family: var(--fonte-ficha);
+    color: var(--cor-titulo-painel);
+    font-size: 2.5em;
+    letter-spacing: 2px;
+    margin-top: 0; margin-bottom: 20px;
+}
+
+.status-block { display: flex; align-items: center; gap: 10px; margin: 12px 0; }
+.bar-info { font-weight: bold; color: var(--cor-texto-painel); width: 80px; text-align: right; flex-shrink: 0; }
+
+.bar-label {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px 1px #000;
+    z-index: 2;
+}
+
+.status-bar {
+    background: var(--cor-barra-fundo);
+    border: 1px solid var(--cor-borda-painel);
+    border-radius: 0; height: 28px;
+    position: relative; flex-grow: 1;
+    overflow: hidden;
+}
+
+.bar-controls { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; display: flex; gap: 3px; opacity: 0; transition: opacity 0.2s ease-in-out; }
+.status-bar:hover .bar-controls { opacity: 1; }
+.left-controls { left: 6px; }
+.right-controls { right: 6px; }
+
+.bar-controls button {
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    color: #fff;
+    padding: 0 6px; margin: 0;
+    height: 22px; font-size: 14px;
+    line-height: 20px; border-radius: 0;
+    cursor: pointer;
+}
+.bar-controls button:hover { background: #000; }
+
+.hp-bar, .sanidade-bar, .esforco-bar { height: 100%; transition: width 0.5s ease; }
+.hp-bar { background: linear-gradient(to right, #6D0000, #D30000); }
+.sanidade-bar { background: linear-gradient(to right, #005C9E, #00A6FF); }
+.esforco-bar { background: linear-gradient(to right, #5D00A5, #A300FF); }
+
+.actions-container, .dice-roller { margin-top: 25px; border-top: 2px solid var(--cor-borda-painel); padding-top: 20px; }
+
+/* CORREÇÃO APLICADA AQUI */
+button, select {
+    background: var(--cor-titulo-painel); /* Fundo vermelho-sangue */
+    color: var(--cor-texto-inverso); /* Texto claro */
+    border: 2px solid var(--cor-titulo-painel); /* Borda da mesma cor */
+    padding: 10px 15px; margin: 5px;
+    border-radius: 0; cursor: pointer;
+    font-family: var(--fonte-ficha); font-weight: bold;
+    transition: all 0.2s; text-transform: uppercase;
+}
+
+button:hover, select:hover {
+    background: var(--cor-fundo-inverso); /* Fundo claro/preto no hover */
+    color: var(--cor-titulo-painel); /* Texto vermelho-sangue no hover */
+}
+button:disabled {
+    background: #ccc;
+    color: #888;
+    border-color: #888;
+    cursor: not-allowed;
+}
+select { width: calc(100% - 10px); }
+
+
+.dice-roller h3 {
+    font-family: var(--fonte-ficha); color: var(--cor-titulo-painel);
+    margin-top: 0; font-size: 1.5em;
+    border-bottom: 1px solid var(--cor-borda-painel);
+    padding-bottom: 5px; margin-bottom: 15px;
+}
+.dice-inputs { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 15px; }
+.dice-inputs label { font-weight: bold; }
+.dice-inputs span { font-size: 1.5em; font-weight: bold; }
+.dice-inputs input[type="number"] {
+    width: 60px; padding: 8px;
+    border: 1px solid var(--cor-borda-painel);
+    text-align: center; font-family: var(--fonte-ficha);
+    font-size: 1.2em; background: var(--cor-fundo-painel); color: var(--cor-texto-painel);
+}
+.dice-result {
+    margin-top: 15px;
+    border: 1px solid var(--cor-borda-painel);
+    padding: 10px; font-size: 1.2em; font-weight: bold;
+    color: var(--cor-texto-painel);
+    min-height: 30px; word-wrap: break-word;
+}
+select option {
+    background: var(--cor-fundo-painel);
+    color: var(--cor-texto-painel);
+}
+
+// --- src\telas\inicial\TelaJogar.js ---
+
+// src/telas/TelaJogar.js
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import './TelaJogar.css';
+import { carregarFichas, atualizarStatusAoVivo, escutarStatusAoVivo, excluirFicha } from '../firebase/dataService.js';
+import FichaModal from '../componentes/FichaModal.js';
+import logo from '../assets/logo.png';
+
+function TelaJogar() {
+    const navigate = useNavigate();
+    const [fichas, setFichas] = useState({});
+    const [fichaIdAtual, setFichaIdAtual] = useState('');
+    const [statusAoVivo, setStatusAoVivo] = useState(null);
+    const [modalVisivel, setModalVisivel] = useState(false);
+    
+    // NOVOS STATES PARA O ROLADOR DE DADOS
+    const [numDados, setNumDados] = useState(1);
+    const [ladosDado, setLadosDado] = useState(20);
+    const [resultadoDado, setResultadoDado] = useState(null);
+
+    // ... (useEffect e outras funções permanecem as mesmas) ...
+    useEffect(() => {
+        const buscaDados = async () => {
+            const dados = await carregarFichas();
+            setFichas(dados);
+        };
+        buscaDados();
+    }, []);
+
+    useEffect(() => {
+        if (!fichaIdAtual) {
+            setStatusAoVivo(null);
+            return;
+        }
+        const pararDeEscutar = escutarStatusAoVivo(fichaIdAtual, (dados) => {
+            if (dados) { setStatusAoVivo(dados); } 
+            else {
+                const fichaInicial = fichas[fichaIdAtual];
+                if (fichaInicial) {
+                    const statusInicial = { vida: fichaInicial.vida, sanidade: fichaInicial.sanidade, esforco: fichaInicial.esforco };
+                    atualizarStatusAoVivo(fichaIdAtual, statusInicial);
+                    setStatusAoVivo(statusInicial);
+                }
+            }
+        });
+        return () => pararDeEscutar();
+    }, [fichaIdAtual, fichas]);
+
+    const handleFichaUpdate = async () => {
+        const dados = await carregarFichas();
+        setFichas(dados);
+        fecharModal();
+        alert("Ficha atualizada com sucesso!");
+    };
+
+    const handleExcluirFicha = async () => {
+        if (!fichaIdAtual) return;
+        const confirmado = window.confirm(`Tem certeza que deseja excluir a ficha de ${fichas[fichaIdAtual].nome}? Esta ação não pode ser desfeita.`);
+        if (confirmado) {
+            const sucesso = await excluirFicha(fichaIdAtual);
+            if (sucesso) {
+                alert("Ficha excluída com sucesso!");
+                fecharModal();
+                setFichaIdAtual('');
+                const dados = await carregarFichas();
+                setFichas(dados);
+            }
+        }
+    };
+    
+    const handleSelecaoFicha = (event) => { setFichaIdAtual(event.target.value); };
+    const fichaSelecionada = fichas[fichaIdAtual] || null;
+    const calcularLarguraBarra = (valor, max) => {
+        if (!valor || !max || max === 0) return '0%';
+        return `${(valor / max) * 100}%`;
+    };
+    const abrirModal = () => setModalVisivel(true);
+    const fecharModal = () => setModalVisivel(false);
+    const handleAlterarStatus = (stat, valor) => {
+        if (!fichaSelecionada || !statusAoVivo) return;
+        const maxStat = fichaSelecionada[`${stat}Max`];
+        const currentStat = statusAoVivo[stat];
+        const novoValor = Math.max(0, Math.min(maxStat, currentStat + valor));
+        atualizarStatusAoVivo(fichaIdAtual, { ...statusAoVivo, [stat]: novoValor });
+    };
+    
+    // FUNÇÃO DE ROLAR DADOS ATUALIZADA
+    const rolarDados = () => {
+        if (numDados <= 0 || ladosDado <= 0) {
+            setResultadoDado("Valores inválidos.");
+            return;
+        }
+        let rolagens = [];
+        let soma = 0;
+        for (let i = 0; i < numDados; i++) {
+            const resultado = Math.floor(Math.random() * ladosDado) + 1;
+            rolagens.push(resultado);
+            soma += resultado;
+        }
+        // Formata o resultado para exibição
+        const textoResultado = `Rolagens (${numDados}d${ladosDado}): [${rolagens.join(', ')}] = ${soma}`;
+        setResultadoDado(textoResultado);
+    };
+
+    const getImagemPersonagem = (nome) => {
+        if (!nome) return logo;
+        try {
+            return require(`../assets/personagens/${nome.toLowerCase()}.png`);
+        } catch (err) {
+            return logo;
+        }
+    };
+    const imagemExibida = getImagemPersonagem(fichaSelecionada?.nome);
+
+    return (
+        <>
+            <div className="menu-container">
+                <img src={imagemExibida} alt="Personagem" className="character-img" />
+                <h2>{fichaSelecionada?.nome || 'Selecione um Agente'}</h2>
+                <select value={fichaIdAtual} onChange={handleSelecaoFicha}>
+                    <option value="">-- SELECIONAR AGENTE --</option>
+                    {Object.keys(fichas).map(id => (<option key={id} value={id}>{fichas[id].nome}</option>))}
+                </select>
+
+
+                <div className="status-block">{/* Vida */}</div>
+                <div className="status-block">{/* Sanidade */}</div>
+                <div className="status-block">{/* Esforço */}</div>
+                
+                <div className="actions-container">
+                    <button onClick={abrirModal} disabled={!fichaSelecionada}>Ficha</button>
+                    <button onClick={() => navigate(`/inventario/${fichaIdAtual}`)} disabled={!fichaSelecionada}>Inventário</button>
+                    <button onClick={() => navigate(`/habilidades/${fichaIdAtual}`)} disabled={!fichaSelecionada}>Habilidades</button>
+                    <button onClick={() => navigate(`/rituais/${fichaIdAtual}`)} disabled={!fichaSelecionada}>Rituais</button>
+                </div>
+
+                <div className="dice-roller">
+                    <h3>Rolador de Dados</h3>
+                    <div className="dice-inputs">
+                        <label>Qtd:</label>
+                        <input type="number" value={numDados} onChange={(e) => setNumDados(parseInt(e.target.value))} min="1"/>
+                        <span>d</span>
+                        <label>Lados:</label>
+                        <input type="number" value={ladosDado} onChange={(e) => setLadosDado(parseInt(e.target.value))} min="2"/>
+                        <button onClick={rolarDados}>Rolar</button>
+                    </div>
+                    <div className="dice-result">
+                        {resultadoDado || "Role os dados..."}
+                    </div>
+                </div>
+                <div className="footer-actions">
+                    <button onClick={() => navigate('/criar-ficha')}>Criar Nova Ficha</button>
+                    <button onClick={() => navigate('/')}>Voltar ao Menu</button>
+                </div>
+            </div>
+
+            {modalVisivel && <FichaModal ficha={fichaSelecionada} fichaId={fichaIdAtual} onClose={fecharModal} onExcluir={handleExcluirFicha} onUpdate={handleFichaUpdate} />}
+        </>
+    );
+}
+
+export default TelaJogar;
+
+// --- src\telas\inicial\TelaMestrar.js ---
+
+// src/telas/TelaMestrar.js (NOVO ARQUIVO)
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { carregarFichas, atualizarStatusAoVivo, escutarTodosStatusAoVivo } from '../firebase/dataService.js';
+import logo from '../assets/logo.png';
+import './TelaGrupo.css'; // Usará seu próprio CSS
+
+function TelaMestrar() {
+    const navigate = useNavigate();
+    const [fichas, setFichas] = useState({});
+    const [statusAoVivo, setStatusAoVivo] = useState({});
+
+    // ... (toda a lógica de carregar dados e listeners é a mesma da tela de grupo)
+
+    // Adicione de volta a função de controle
+    const handleAlterarStatus = (fichaId, stat, valor) => {
+        // ... (código da função que altera vida, sanidade, etc.)
+    };
+
+    // O return() será similar ao da TelaJogar, com as barras de status e botões de controle
+    return (
+        <div className="mestrar-container">
+            <h1>Painel do Mestre</h1>
+            {/* Grid de jogadores com barras de status e botões +/- */}
+        </div>
+    );
+}
+
+export default TelaMestrar;
+
+// --- src\telas\inicial\TelaOpcoes.css ---
+
+/* src/telas/TelaOpcoes.css */
+.opcoes-container {
+    background: var(--cor-fundo-painel);
+    color: var(--cor-texto-painel);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 30px;
+    text-align: center;
+    width: 500px;
+    max-width: 90%;
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
+}
+
+.opcoes-container h2 {
+    font-size: 2.5em;
+    color: var(--cor-titulo-painel);
+    margin: 0 0 10px 0;
+}
+
+.opcoes-container p {
+    font-size: 1.1em;
+    margin-bottom: 30px;
+    text-transform: none;
+}
+
+.theme-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.theme-buttons button {
+    background: transparent;
+    color: var(--cor-texto-painel);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 15px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.theme-buttons button:hover {
+    background: var(--cor-titulo-painel);
+    color: var(--cor-fundo-painel);
+    border-color: var(--cor-titulo-painel);
+}
+
+.voltar-btn {
+    background: #000;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+}
+button, select {
+    background: var(--cor-fundo-inverso);
+    color: var(--cor-texto-inverso);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 10px 15px; margin: 5px;
+    border-radius: 0; cursor: pointer;
+    font-family: var(--fonte-ficha); font-weight: bold;
+    transition: all 0.2s; text-transform: uppercase;
+}
+
+button:hover, select:hover {
+    background: var(--cor-destaque-vermelho); /* Vermelho no hover */
+    color: var(--cor-texto-inverso);
+    border-color: var(--cor-destaque-vermelho);
+}
+
+// --- src\telas\inicial\TelaOpcoes.js ---
+
+// src/telas/TelaOpcoes.js
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext'; // Importa nosso hook de tema
+import './TelaOpcoes.css';
+
+function TelaOpcoes() {
+    const navigate = useNavigate();
+    const { setTheme } = useTheme(); // Pega a função para trocar o tema
+
+    return (
+        <div className="opcoes-container">
+            <h2>Opções de Tema</h2>
+            <p>Escolha um tema visual para o aplicativo.</p>
+            <div className="theme-buttons">
+                {/* Cada botão chama setTheme com o nome do tema */}
+                <button onClick={() => setTheme('sariat')}>Culto de Sariat</button>
+                <button onClick={() => setTheme('parchment')}>Pergaminho Antigo</button>
+                <button onClick={() => setTheme('neon')}>Neon Retrô</button>
+            </div>
+            <button className="voltar-btn" onClick={() => navigate('/')}>Voltar ao Menu</button>
+        </div>
+    );
+}
+
+export default TelaOpcoes;
+
+// --- src\telas\jogador\TelaCriarFicha.css ---
 
 /* src/telas/TelaCriarFicha.css */
 .form-container {
@@ -1230,7 +2003,7 @@ export default TelaCadastro;
     color: var(--cor-texto-painel);
 }
 
-// --- src\telas\TelaCriarFicha.js ---
+// --- src\telas\jogador\TelaCriarFicha.js ---
 
 // src/telas/TelaCriarFicha.js
 import React, { useState } from 'react';
@@ -1400,204 +2173,7 @@ function TelaCriarFicha() {
 
 export default TelaCriarFicha;
 
-// --- src\telas\TelaGrupo.css ---
-
-/* src/telas/TelaMestrar.css */
-.mestrar-container {
-    width: 100%;
-    min-height: 100vh;
-    padding: 20px;
-    box-sizing: border-box;
-}
-
-.mestrar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid var(--cor-borda-painel);
-}
-
-.mestrar-header h1 {
-    font-family: var(--fonte-ficha);
-    color: var(--cor-titulo-painel);
-    font-size: 2.5em;
-    margin: 0;
-}
-
-.mestrar-header button {
-    background: var(--cor-fundo-inverso);
-    color: var(--cor-texto-inverso);
-    border: 2px solid var(--cor-borda-painel);
-    padding: 10px 15px;
-    cursor: pointer;
-    font-family: var(--fonte-ficha);
-    text-transform: uppercase;
-}
-.mestrar-header button:hover {
-    background: var(--cor-titulo-painel);
-    color: var(--cor-fundo-painel);
-}
-
-.grid-jogadores {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 30px;
-    justify-items: center; /* Centraliza os cards na grade */
-}
-
-.jogador-card {
-    background: #008000;
-    color: var(--cor-texto-painel);
-    border: 2px solid var(--cor-borda-painel);
-    padding: 20px;
-    font-family: var(--fonte-ficha);
-    text-transform: uppercase;
-    backdrop-filter: blur(5px);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    width: 200px; /* Largura fixa para os cards */
-}
-
-.jogador-card h2 {
-    font-family: var(--fonte-ficha);
-    color: var(--cor-titulo-painel);
-    font-size: 1.5em;
-    margin: 0;
-    text-align: center;
-}
-
-.imagem-container {
-    position: relative;
-    width: 150px; /* Imagem um pouco maior */
-    height: 150px;
-    flex-shrink: 0;
-}
-
-.jogador-img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid var(--cor-borda-painel);
-}
-
-.stat-overlay {
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2em;
-    font-weight: bold;
-    border: 2px solid var(--cor-titulo-painel);
-    box-shadow: 0 0 5px rgba(0,0,0,0.5);
-}
-
-/* POSICIONAMENTO FINAL: Todos na parte de baixo */
-.stat-vida {
-    bottom: 0;
-    left: -10px;
-}
-
-.stat-sanidade {
-    bottom: -15px; /* Um pouco mais para baixo para ficar no centro */
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.stat-esforco {
-    bottom: 0;
-    right: -10px;
-}
-.footer-actions {
-    margin-top: 25px;
-    border-top: 2px solid var(--cor-borda-painel);
-    padding-top: 20px;
-}
-
-// --- src\telas\TelaGrupo.js ---
-
-// src/telas/TelaMestrar.js
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { carregarFichas, escutarTodosStatusAoVivo } from '../firebase/dataService.js';
-import logo from '../assets/logo.png';
-import './TelaGrupo.css';
-
-function TelaGrupo() {
-    const navigate = useNavigate();
-    const [fichas, setFichas] = useState({});
-    const [statusAoVivo, setStatusAoVivo] = useState({});
-
-    useEffect(() => {
-        const buscaDados = async () => {
-            const dadosFichas = await carregarFichas();
-            setFichas(dadosFichas);
-        };
-        buscaDados();
-
-        const pararDeEscutar = escutarTodosStatusAoVivo((dados) => {
-            setStatusAoVivo(dados);
-        });
-
-        return () => pararDeEscutar();
-    }, []);
-
-    const getImagemPersonagem = (nome) => {
-        if (!nome) return logo;
-        try {
-            return require(`../assets/personagens/${nome.toLowerCase()}.png`);
-        } catch (err) {
-            return logo;
-        }
-    };
-
-    return (
-        <div className="mestrar-container">
-            <div className="mestrar-header">
-                <h1>Painel do Mestre</h1>
-                <button onClick={() => navigate('/')}>Voltar ao Menu</button>
-            </div>
-            
-            <div className="grid-jogadores">
-                {Object.entries(fichas).map(([id, ficha]) => {
-                    const status = statusAoVivo[id] || { vida: ficha.vida, sanidade: ficha.sanidade, esforco: ficha.esforco };
-                    return (
-                        <div key={id} className="jogador-card">
-                            {/* ORDEM ALTERADA AQUI */}
-                            <h2>{ficha.nome}</h2>
-                            <div className="imagem-container">
-                                <img src={getImagemPersonagem(ficha.nome)} alt={ficha.nome} className="jogador-img" />
-                                
-                                <div className="stat-overlay stat-vida">
-                                    {`${status.vida ?? 0}/${ficha.vidaMax || 0}`}
-                                </div>
-                                <div className="stat-overlay stat-sanidade">
-                                    {`${status.sanidade ?? 0}/${ficha.sanidadeMax || 0}`}
-                                </div>
-                                <div className="stat-overlay stat-esforco">
-                                    {`${status.esforco ?? 0}/${ficha.esforcoMax || 0}`}
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
-    );
-}
-
-export default TelaMestrar;
-
-// --- src\telas\TelaHabilidades.js ---
+// --- src\telas\jogador\TelaHabilidades.js ---
 
 // src/telas/TelaHabilidades.js
 import React from 'react';
@@ -1619,7 +2195,7 @@ function TelaHabilidades() {
 
 export default TelaHabilidades;
 
-// --- src\telas\TelaInventario.js ---
+// --- src\telas\jogador\TelaInventario.js ---
 
 // src/telas/TelaInventario.js
 import React from 'react';
@@ -1642,494 +2218,7 @@ function TelaInventario() {
 
 export default TelaInventario;
 
-// --- src\telas\TelaJogar.css ---
-
-/* src/telas/TelaJogar.css */
-
-.menu-container {
-    background: var(--cor-fundo-painel);
-    color: var(--cor-texto-painel);
-    border: 2px solid var(--cor-borda-painel);
-    padding: 25px;
-    text-align: center;
-    width: 550px;
-    max-width: 95%;
-    font-family: var(--fonte-ficha);
-    text-transform: uppercase;
-    backdrop-filter: blur(5px);
-}
-
-.character-img {
-    width: 130px; height: 130px;
-    margin-bottom: 15px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 3px solid var(--cor-borda-painel);
-    background: #eee;
-}
-
-.menu-container h2 {
-    font-family: var(--fonte-ficha);
-    color: var(--cor-titulo-painel);
-    font-size: 2.5em;
-    letter-spacing: 2px;
-    margin-top: 0; margin-bottom: 20px;
-}
-
-.status-block { display: flex; align-items: center; gap: 10px; margin: 12px 0; }
-.bar-info { font-weight: bold; color: var(--cor-texto-painel); width: 80px; text-align: right; flex-shrink: 0; }
-
-.bar-label {
-    position: absolute; top: 0; left: 0;
-    width: 100%; height: 100%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: bold;
-    color: #fff;
-    text-shadow: 1px 1px 1px #000;
-    z-index: 2;
-}
-
-.status-bar {
-    background: var(--cor-barra-fundo);
-    border: 1px solid var(--cor-borda-painel);
-    border-radius: 0; height: 28px;
-    position: relative; flex-grow: 1;
-    overflow: hidden;
-}
-
-.bar-controls { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; display: flex; gap: 3px; opacity: 0; transition: opacity 0.2s ease-in-out; }
-.status-bar:hover .bar-controls { opacity: 1; }
-.left-controls { left: 6px; }
-.right-controls { right: 6px; }
-
-.bar-controls button {
-    background: rgba(0, 0, 0, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    color: #fff;
-    padding: 0 6px; margin: 0;
-    height: 22px; font-size: 14px;
-    line-height: 20px; border-radius: 0;
-    cursor: pointer;
-}
-.bar-controls button:hover { background: #000; }
-
-.hp-bar, .sanidade-bar, .esforco-bar { height: 100%; transition: width 0.5s ease; }
-.hp-bar { background: linear-gradient(to right, #6D0000, #D30000); }
-.sanidade-bar { background: linear-gradient(to right, #005C9E, #00A6FF); }
-.esforco-bar { background: linear-gradient(to right, #5D00A5, #A300FF); }
-
-.actions-container, .dice-roller { margin-top: 25px; border-top: 2px solid var(--cor-borda-painel); padding-top: 20px; }
-
-/* CORREÇÃO APLICADA AQUI */
-button, select {
-    background: var(--cor-titulo-painel); /* Fundo vermelho-sangue */
-    color: var(--cor-texto-inverso); /* Texto claro */
-    border: 2px solid var(--cor-titulo-painel); /* Borda da mesma cor */
-    padding: 10px 15px; margin: 5px;
-    border-radius: 0; cursor: pointer;
-    font-family: var(--fonte-ficha); font-weight: bold;
-    transition: all 0.2s; text-transform: uppercase;
-}
-
-button:hover, select:hover {
-    background: var(--cor-fundo-inverso); /* Fundo claro/preto no hover */
-    color: var(--cor-titulo-painel); /* Texto vermelho-sangue no hover */
-}
-button:disabled {
-    background: #ccc;
-    color: #888;
-    border-color: #888;
-    cursor: not-allowed;
-}
-select { width: calc(100% - 10px); }
-
-
-.dice-roller h3 {
-    font-family: var(--fonte-ficha); color: var(--cor-titulo-painel);
-    margin-top: 0; font-size: 1.5em;
-    border-bottom: 1px solid var(--cor-borda-painel);
-    padding-bottom: 5px; margin-bottom: 15px;
-}
-.dice-inputs { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 15px; }
-.dice-inputs label { font-weight: bold; }
-.dice-inputs span { font-size: 1.5em; font-weight: bold; }
-.dice-inputs input[type="number"] {
-    width: 60px; padding: 8px;
-    border: 1px solid var(--cor-borda-painel);
-    text-align: center; font-family: var(--fonte-ficha);
-    font-size: 1.2em; background: var(--cor-fundo-painel); color: var(--cor-texto-painel);
-}
-.dice-result {
-    margin-top: 15px;
-    border: 1px solid var(--cor-borda-painel);
-    padding: 10px; font-size: 1.2em; font-weight: bold;
-    color: var(--cor-texto-painel);
-    min-height: 30px; word-wrap: break-word;
-}
-select option {
-    background: var(--cor-fundo-painel);
-    color: var(--cor-texto-painel);
-}
-
-// --- src\telas\TelaJogar.js ---
-
-// src/telas/TelaJogar.js
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './TelaJogar.css';
-import { carregarFichas, atualizarStatusAoVivo, escutarStatusAoVivo, excluirFicha } from '../firebase/dataService.js';
-import FichaModal from '../componentes/FichaModal.js';
-import logo from '../assets/logo.png';
-
-function TelaJogar() {
-    const navigate = useNavigate();
-    const [fichas, setFichas] = useState({});
-    const [fichaIdAtual, setFichaIdAtual] = useState('');
-    const [statusAoVivo, setStatusAoVivo] = useState(null);
-    const [modalVisivel, setModalVisivel] = useState(false);
-    
-    // NOVOS STATES PARA O ROLADOR DE DADOS
-    const [numDados, setNumDados] = useState(1);
-    const [ladosDado, setLadosDado] = useState(20);
-    const [resultadoDado, setResultadoDado] = useState(null);
-
-    // ... (useEffect e outras funções permanecem as mesmas) ...
-    useEffect(() => {
-        const buscaDados = async () => {
-            const dados = await carregarFichas();
-            setFichas(dados);
-        };
-        buscaDados();
-    }, []);
-
-    useEffect(() => {
-        if (!fichaIdAtual) {
-            setStatusAoVivo(null);
-            return;
-        }
-        const pararDeEscutar = escutarStatusAoVivo(fichaIdAtual, (dados) => {
-            if (dados) { setStatusAoVivo(dados); } 
-            else {
-                const fichaInicial = fichas[fichaIdAtual];
-                if (fichaInicial) {
-                    const statusInicial = { vida: fichaInicial.vida, sanidade: fichaInicial.sanidade, esforco: fichaInicial.esforco };
-                    atualizarStatusAoVivo(fichaIdAtual, statusInicial);
-                    setStatusAoVivo(statusInicial);
-                }
-            }
-        });
-        return () => pararDeEscutar();
-    }, [fichaIdAtual, fichas]);
-
-    const handleFichaUpdate = async () => {
-        const dados = await carregarFichas();
-        setFichas(dados);
-        fecharModal();
-        alert("Ficha atualizada com sucesso!");
-    };
-
-    const handleExcluirFicha = async () => {
-        if (!fichaIdAtual) return;
-        const confirmado = window.confirm(`Tem certeza que deseja excluir a ficha de ${fichas[fichaIdAtual].nome}? Esta ação não pode ser desfeita.`);
-        if (confirmado) {
-            const sucesso = await excluirFicha(fichaIdAtual);
-            if (sucesso) {
-                alert("Ficha excluída com sucesso!");
-                fecharModal();
-                setFichaIdAtual('');
-                const dados = await carregarFichas();
-                setFichas(dados);
-            }
-        }
-    };
-    
-    const handleSelecaoFicha = (event) => { setFichaIdAtual(event.target.value); };
-    const fichaSelecionada = fichas[fichaIdAtual] || null;
-    const calcularLarguraBarra = (valor, max) => {
-        if (!valor || !max || max === 0) return '0%';
-        return `${(valor / max) * 100}%`;
-    };
-    const abrirModal = () => setModalVisivel(true);
-    const fecharModal = () => setModalVisivel(false);
-    const handleAlterarStatus = (stat, valor) => {
-        if (!fichaSelecionada || !statusAoVivo) return;
-        const maxStat = fichaSelecionada[`${stat}Max`];
-        const currentStat = statusAoVivo[stat];
-        const novoValor = Math.max(0, Math.min(maxStat, currentStat + valor));
-        atualizarStatusAoVivo(fichaIdAtual, { ...statusAoVivo, [stat]: novoValor });
-    };
-    
-    // FUNÇÃO DE ROLAR DADOS ATUALIZADA
-    const rolarDados = () => {
-        if (numDados <= 0 || ladosDado <= 0) {
-            setResultadoDado("Valores inválidos.");
-            return;
-        }
-        let rolagens = [];
-        let soma = 0;
-        for (let i = 0; i < numDados; i++) {
-            const resultado = Math.floor(Math.random() * ladosDado) + 1;
-            rolagens.push(resultado);
-            soma += resultado;
-        }
-        // Formata o resultado para exibição
-        const textoResultado = `Rolagens (${numDados}d${ladosDado}): [${rolagens.join(', ')}] = ${soma}`;
-        setResultadoDado(textoResultado);
-    };
-
-    const getImagemPersonagem = (nome) => {
-        if (!nome) return logo;
-        try {
-            return require(`../assets/personagens/${nome.toLowerCase()}.png`);
-        } catch (err) {
-            return logo;
-        }
-    };
-    const imagemExibida = getImagemPersonagem(fichaSelecionada?.nome);
-
-    return (
-        <>
-            <div className="menu-container">
-                <img src={imagemExibida} alt="Personagem" className="character-img" />
-                <h2>{fichaSelecionada?.nome || 'Selecione um Agente'}</h2>
-                <select value={fichaIdAtual} onChange={handleSelecaoFicha}>
-                    <option value="">-- SELECIONAR AGENTE --</option>
-                    {Object.keys(fichas).map(id => (<option key={id} value={id}>{fichas[id].nome}</option>))}
-                </select>
-
-                {/* As barras de status continuam as mesmas */}
-                <div className="status-block"><span className="bar-info">Vida</span><div className="status-bar"><div className="hp-bar" style={{ width: calcularLarguraBarra(statusAoVivo?.vida, fichaSelecionada?.vidaMax) }}></div><span className="bar-label">{statusAoVivo?.vida ?? 0}/{fichaSelecionada?.vidaMax || 0}</span><div className="bar-controls left-controls"><button onClick={() => handleAlterarStatus('vida', -10)} disabled={!fichaSelecionada}>&lt;&lt;&lt;</button><button onClick={() => handleAlterarStatus('vida', -5)} disabled={!fichaSelecionada}>&lt;&lt;</button><button onClick={() => handleAlterarStatus('vida', -1)} disabled={!fichaSelecionada}>&lt;</button></div><div className="bar-controls right-controls"><button onClick={() => handleAlterarStatus('vida', 1)} disabled={!fichaSelecionada}>&gt;</button><button onClick={() => handleAlterarStatus('vida', 5)} disabled={!fichaSelecionada}>&gt;&gt;</button><button onClick={() => handleAlterarStatus('vida', 10)} disabled={!fichaSelecionada}>&gt;&gt;&gt;</button></div></div></div>
-                <div className="status-block"><span className="bar-info">Sanidade</span><div className="status-bar"><div className="sanidade-bar" style={{ width: calcularLarguraBarra(statusAoVivo?.sanidade, fichaSelecionada?.sanidadeMax) }}></div><span className="bar-label">{statusAoVivo?.sanidade ?? 0}/{fichaSelecionada?.sanidadeMax || 0}</span><div className="bar-controls left-controls"><button onClick={() => handleAlterarStatus('sanidade', -10)} disabled={!fichaSelecionada}>&lt;&lt;&lt;</button><button onClick={() => handleAlterarStatus('sanidade', -5)} disabled={!fichaSelecionada}>&lt;&lt;</button><button onClick={() => handleAlterarStatus('sanidade', -1)} disabled={!fichaSelecionada}>&lt;</button></div><div className="bar-controls right-controls"><button onClick={() => handleAlterarStatus('sanidade', 1)} disabled={!fichaSelecionada}>&gt;</button><button onClick={() => handleAlterarStatus('sanidade', 5)} disabled={!fichaSelecionada}>&gt;&gt;</button><button onClick={() => handleAlterarStatus('sanidade', 10)} disabled={!fichaSelecionada}>&gt;&gt;&gt;</button></div></div></div>
-                <div className="status-block"><span className="bar-info">Esforço</span><div className="status-bar"><div className="esforco-bar" style={{ width: calcularLarguraBarra(statusAoVivo?.esforco, fichaSelecionada?.esforcoMax) }}></div><span className="bar-label">{statusAoVivo?.esforco ?? 0}/{fichaSelecionada?.esforcoMax || 0}</span><div className="bar-controls left-controls"><button onClick={() => handleAlterarStatus('esforco', -10)} disabled={!fichaSelecionada}>&lt;&lt;&lt;</button><button onClick={() => handleAlterarStatus('esforco', -5)} disabled={!fichaSelecionada}>&lt;&lt;</button><button onClick={() => handleAlterarStatus('esforco', -1)} disabled={!fichaSelecionada}>&lt;</button></div><div className="bar-controls right-controls"><button onClick={() => handleAlterarStatus('esforco', 1)} disabled={!fichaSelecionada}>&gt;</button><button onClick={() => handleAlterarStatus('esforco', 5)} disabled={!fichaSelecionada}>&gt;&gt;</button><button onClick={() => handleAlterarStatus('esforco', 10)} disabled={!fichaSelecionada}>&gt;&gt;&gt;</button></div></div></div>
-                
-                <div className="actions-container">
-                    <button onClick={abrirModal} disabled={!fichaSelecionada}>Ficha</button>
-                    {/* BOTÕES NOVOS ADICIONADOS AQUI */}
-                    <button onClick={() => navigate(`/inventario/${fichaIdAtual}`)} disabled={!fichaSelecionada}>Inventário</button>
-                    <button onClick={() => navigate(`/habilidades/${fichaIdAtual}`)} disabled={!fichaSelecionada}>Habilidades</button>
-                    <button onClick={() => navigate(`/rituais/${fichaIdAtual}`)} disabled={!fichaSelecionada}>Rituais</button>
-                    
-
-                </div>
-
-                {/* ROLADOR DE DADOS ATUALIZADO */}
-                <div className="dice-roller">
-                    <h3>Rolador de Dados</h3>
-                    <div className="dice-inputs">
-                        <label>Qtd:</label>
-                        <input type="number" value={numDados} onChange={(e) => setNumDados(parseInt(e.target.value))} min="1"/>
-                        <span>d</span>
-                        <label>Lados:</label>
-                        <input type="number" value={ladosDado} onChange={(e) => setLadosDado(parseInt(e.target.value))} min="2"/>
-                        <button onClick={rolarDados}>Rolar</button>
-                    </div>
-                    <div className="dice-result">
-                        {resultadoDado || "Role os dados..."}
-                    </div>
-
-                    <div className="footer-actions">
-                        <button onClick={() => navigate('/criar-ficha')}>Criar Ficha</button>
-                        <button onClick={() => navigate('/')}>Voltar ao Menu</button>
-                    </div>
-                </div>
-            </div>
-
-            {modalVisivel && <FichaModal ficha={fichaSelecionada} fichaId={fichaIdAtual} onClose={fecharModal} onExcluir={handleExcluirFicha} onUpdate={handleFichaUpdate} />}
-        </>
-    );
-}
-
-export default TelaJogar;
-
-// --- src\telas\TelaLogin.js ---
-
-// src/telas/TelaLogin.js
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { loginUsuario } from '../firebase/dataService';
-import './Auth.css'; // Usaremos um CSS compartilhado
-
-function TelaLogin() {
-    const navigate = useNavigate();
-    const [email, setEmail] = useState('');
-    const [senha, setSenha] = useState('');
-    const [error, setError] = useState('');
-
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        setError('');
-        const result = await loginUsuario(email, senha);
-        if (result.error) {
-            setError('Falha no login. Verifique seu e-mail e senha.');
-        } else {
-            navigate('/jogar'); // Redireciona para a tela de jogar após o login
-        }
-    };
-
-    return (
-        <div className="auth-container">
-            <form onSubmit={handleLogin} className="auth-form">
-                <h2>Login</h2>
-                {error && <p className="auth-error">{error}</p>}
-                <input 
-                    type="email" 
-                    placeholder="E-mail" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)} 
-                    required 
-                />
-                <input 
-                    type="password" 
-                    placeholder="Senha" 
-                    value={senha}
-                    onChange={(e) => setSenha(e.target.value)} 
-                    required 
-                />
-                <button type="submit">Entrar</button>
-                <p className="auth-link">
-                    Não tem uma conta? <Link to="/cadastro">Cadastre-se</Link>
-                </p>
-            </form>
-        </div>
-    );
-}
-
-export default TelaLogin;
-
-// --- src\telas\TelaMestrar.js ---
-
-// src/telas/TelaMestrar.js (NOVO ARQUIVO)
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { carregarFichas, atualizarStatusAoVivo, escutarTodosStatusAoVivo } from '../firebase/dataService.js';
-import logo from '../assets/logo.png';
-import './TelaMestrar.css'; // Usará seu próprio CSS
-
-function TelaMestrar() {
-    const navigate = useNavigate();
-    const [fichas, setFichas] = useState({});
-    const [statusAoVivo, setStatusAoVivo] = useState({});
-
-    // ... (toda a lógica de carregar dados e listeners é a mesma da tela de grupo)
-
-    // Adicione de volta a função de controle
-    const handleAlterarStatus = (fichaId, stat, valor) => {
-        // ... (código da função que altera vida, sanidade, etc.)
-    };
-
-    // O return() será similar ao da TelaJogar, com as barras de status e botões de controle
-    return (
-        <div className="mestrar-container">
-            <h1>Painel do Mestre</h1>
-            {/* Grid de jogadores com barras de status e botões +/- */}
-        </div>
-    );
-}
-
-export default TelaMestrar;
-
-// --- src\telas\TelaOpcoes.css ---
-
-/* src/telas/TelaOpcoes.css */
-.opcoes-container {
-    background: var(--cor-fundo-painel);
-    color: var(--cor-texto-painel);
-    border: 2px solid var(--cor-borda-painel);
-    padding: 30px;
-    text-align: center;
-    width: 500px;
-    max-width: 90%;
-    font-family: var(--fonte-ficha);
-    text-transform: uppercase;
-}
-
-.opcoes-container h2 {
-    font-size: 2.5em;
-    color: var(--cor-titulo-painel);
-    margin: 0 0 10px 0;
-}
-
-.opcoes-container p {
-    font-size: 1.1em;
-    margin-bottom: 30px;
-    text-transform: none;
-}
-
-.theme-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-bottom: 30px;
-}
-
-.theme-buttons button {
-    background: transparent;
-    color: var(--cor-texto-painel);
-    border: 2px solid var(--cor-borda-painel);
-    padding: 15px;
-    font-size: 1.2em;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.theme-buttons button:hover {
-    background: var(--cor-titulo-painel);
-    color: var(--cor-fundo-painel);
-    border-color: var(--cor-titulo-painel);
-}
-
-.voltar-btn {
-    background: #000;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-}
-button, select {
-    background: var(--cor-fundo-inverso);
-    color: var(--cor-texto-inverso);
-    border: 2px solid var(--cor-borda-painel);
-    padding: 10px 15px; margin: 5px;
-    border-radius: 0; cursor: pointer;
-    font-family: var(--fonte-ficha); font-weight: bold;
-    transition: all 0.2s; text-transform: uppercase;
-}
-
-button:hover, select:hover {
-    background: var(--cor-destaque-vermelho); /* Vermelho no hover */
-    color: var(--cor-texto-inverso);
-    border-color: var(--cor-destaque-vermelho);
-}
-
-// --- src\telas\TelaOpcoes.js ---
-
-// src/telas/TelaOpcoes.js
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext'; // Importa nosso hook de tema
-import './TelaOpcoes.css';
-
-function TelaOpcoes() {
-    const navigate = useNavigate();
-    const { setTheme } = useTheme(); // Pega a função para trocar o tema
-
-    return (
-        <div className="opcoes-container">
-            <h2>Opções de Tema</h2>
-            <p>Escolha um tema visual para o aplicativo.</p>
-            <div className="theme-buttons">
-                {/* Cada botão chama setTheme com o nome do tema */}
-                <button onClick={() => setTheme('sariat')}>Culto de Sariat</button>
-                <button onClick={() => setTheme('parchment')}>Pergaminho Antigo</button>
-                <button onClick={() => setTheme('neon')}>Neon Retrô</button>
-            </div>
-            <button className="voltar-btn" onClick={() => navigate('/')}>Voltar ao Menu</button>
-        </div>
-    );
-}
-
-export default TelaOpcoes;
-
-// --- src\telas\TelaRituais.js ---
+// --- src\telas\jogador\TelaRituais.js ---
 
 // src/telas/TelaRituais.js
 import React from 'react';
@@ -2149,3 +2238,50 @@ function TelaRituais() {
 }
 
 export default TelaRituais;
+
+// --- src\telas\MenuPaginas.css ---
+
+/* src/telas/MenuPaginas.css */
+.pagina-container {
+    background: var(--cor-fundo-painel);
+    color: var(--cor-texto-painel);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 30px;
+    margin: 20px;
+    width: 100%;
+    max-width: 800px;
+    box-sizing: border-box;
+    font-family: var(--fonte-ficha);
+    text-align: center;
+}
+
+.pagina-container h1 {
+    font-size: 2.5em;
+    color: var(--cor-titulo-painel);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--cor-borda-painel);
+    padding-bottom: 15px;
+    margin: 0 0 20px 0;
+}
+
+.pagina-container p {
+    font-size: 1.2em;
+    text-transform: none;
+    margin-bottom: 30px;
+}
+
+.pagina-container button {
+    background: var(--cor-fundo-inverso);
+    color: var(--cor-texto-inverso);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 10px 20px;
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pagina-container button:hover {
+    background: var(--cor-titulo-painel);
+    color: var(--cor-fundo-painel);
+}

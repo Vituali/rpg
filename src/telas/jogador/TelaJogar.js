@@ -122,22 +122,18 @@ function TelaJogar() {
                     {Object.keys(fichas).map(id => (<option key={id} value={id}>{fichas[id].nome}</option>))}
                 </select>
 
-                {/* As barras de status continuam as mesmas */}
-                <div className="status-block"><span className="bar-info">Vida</span><div className="status-bar"><div className="hp-bar" style={{ width: calcularLarguraBarra(statusAoVivo?.vida, fichaSelecionada?.vidaMax) }}></div><span className="bar-label">{statusAoVivo?.vida ?? 0}/{fichaSelecionada?.vidaMax || 0}</span><div className="bar-controls left-controls"><button onClick={() => handleAlterarStatus('vida', -10)} disabled={!fichaSelecionada}>&lt;&lt;&lt;</button><button onClick={() => handleAlterarStatus('vida', -5)} disabled={!fichaSelecionada}>&lt;&lt;</button><button onClick={() => handleAlterarStatus('vida', -1)} disabled={!fichaSelecionada}>&lt;</button></div><div className="bar-controls right-controls"><button onClick={() => handleAlterarStatus('vida', 1)} disabled={!fichaSelecionada}>&gt;</button><button onClick={() => handleAlterarStatus('vida', 5)} disabled={!fichaSelecionada}>&gt;&gt;</button><button onClick={() => handleAlterarStatus('vida', 10)} disabled={!fichaSelecionada}>&gt;&gt;&gt;</button></div></div></div>
-                <div className="status-block"><span className="bar-info">Sanidade</span><div className="status-bar"><div className="sanidade-bar" style={{ width: calcularLarguraBarra(statusAoVivo?.sanidade, fichaSelecionada?.sanidadeMax) }}></div><span className="bar-label">{statusAoVivo?.sanidade ?? 0}/{fichaSelecionada?.sanidadeMax || 0}</span><div className="bar-controls left-controls"><button onClick={() => handleAlterarStatus('sanidade', -10)} disabled={!fichaSelecionada}>&lt;&lt;&lt;</button><button onClick={() => handleAlterarStatus('sanidade', -5)} disabled={!fichaSelecionada}>&lt;&lt;</button><button onClick={() => handleAlterarStatus('sanidade', -1)} disabled={!fichaSelecionada}>&lt;</button></div><div className="bar-controls right-controls"><button onClick={() => handleAlterarStatus('sanidade', 1)} disabled={!fichaSelecionada}>&gt;</button><button onClick={() => handleAlterarStatus('sanidade', 5)} disabled={!fichaSelecionada}>&gt;&gt;</button><button onClick={() => handleAlterarStatus('sanidade', 10)} disabled={!fichaSelecionada}>&gt;&gt;&gt;</button></div></div></div>
-                <div className="status-block"><span className="bar-info">Esforço</span><div className="status-bar"><div className="esforco-bar" style={{ width: calcularLarguraBarra(statusAoVivo?.esforco, fichaSelecionada?.esforcoMax) }}></div><span className="bar-label">{statusAoVivo?.esforco ?? 0}/{fichaSelecionada?.esforcoMax || 0}</span><div className="bar-controls left-controls"><button onClick={() => handleAlterarStatus('esforco', -10)} disabled={!fichaSelecionada}>&lt;&lt;&lt;</button><button onClick={() => handleAlterarStatus('esforco', -5)} disabled={!fichaSelecionada}>&lt;&lt;</button><button onClick={() => handleAlterarStatus('esforco', -1)} disabled={!fichaSelecionada}>&lt;</button></div><div className="bar-controls right-controls"><button onClick={() => handleAlterarStatus('esforco', 1)} disabled={!fichaSelecionada}>&gt;</button><button onClick={() => handleAlterarStatus('esforco', 5)} disabled={!fichaSelecionada}>&gt;&gt;</button><button onClick={() => handleAlterarStatus('esforco', 10)} disabled={!fichaSelecionada}>&gt;&gt;&gt;</button></div></div></div>
+
+                <div className="status-block">{/* Vida */}</div>
+                <div className="status-block">{/* Sanidade */}</div>
+                <div className="status-block">{/* Esforço */}</div>
                 
                 <div className="actions-container">
                     <button onClick={abrirModal} disabled={!fichaSelecionada}>Ficha</button>
-                    {/* BOTÕES NOVOS ADICIONADOS AQUI */}
                     <button onClick={() => navigate(`/inventario/${fichaIdAtual}`)} disabled={!fichaSelecionada}>Inventário</button>
                     <button onClick={() => navigate(`/habilidades/${fichaIdAtual}`)} disabled={!fichaSelecionada}>Habilidades</button>
                     <button onClick={() => navigate(`/rituais/${fichaIdAtual}`)} disabled={!fichaSelecionada}>Rituais</button>
-                    
-
                 </div>
 
-                {/* ROLADOR DE DADOS ATUALIZADO */}
                 <div className="dice-roller">
                     <h3>Rolador de Dados</h3>
                     <div className="dice-inputs">
@@ -151,11 +147,10 @@ function TelaJogar() {
                     <div className="dice-result">
                         {resultadoDado || "Role os dados..."}
                     </div>
-
-                    <div className="footer-actions">
-                        <button onClick={() => navigate('/criar-ficha')}>Criar Ficha</button>
-                        <button onClick={() => navigate('/')}>Voltar ao Menu</button>
-                    </div>
+                </div>
+                <div className="footer-actions">
+                    <button onClick={() => navigate('/criar-ficha')}>Criar Nova Ficha</button>
+                    <button onClick={() => navigate('/')}>Voltar ao Menu</button>
                 </div>
             </div>
 
