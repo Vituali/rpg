@@ -6,7 +6,6 @@ import './MenuPaginas.css';
 function TelaRituais() {
     const { fichaId } = useParams();
     const navigate = useNavigate();
-
     return (
         <div className="pagina-container">
             <h1>Rituais</h1>

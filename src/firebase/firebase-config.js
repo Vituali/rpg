@@ -1,14 +1,15 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { getAuth } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getDatabase } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+// src/firebase/firebase-config.js
+import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import { getDatabase } from 'firebase/database';
 
 const firebaseConfig = {
     apiKey: "AIzaSyCubXJd9jgkmn0hJWXS67yKqzTGycMcC9w",
     authDomain: "anima-rpg.firebaseapp.com",
     databaseURL: "https://anima-rpg-default-rtdb.firebaseio.com",
     projectId: "anima-rpg",
-    storageBucket: "anima-rpg.firebasestorage.app",
+    storageBucket: "anima-rpg.appspot.com",
     messagingSenderId: "524426526680",
     appId: "1:524426526680:web:ef17648b2155aff5587cad",
     measurementId: "G-N6ZT1FQRM6"

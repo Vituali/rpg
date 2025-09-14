@@ -1,9 +1,10 @@
 // src/firebase/dataService.js
 import { db, rtdb } from './firebase-config.js';
-// CORREÇÃO: Adicionado 'setDoc' à importação
-import { collection, getDocs, addDoc, doc, deleteDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { ref, set, onValue, off, remove } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+import { collection, getDocs, addDoc, doc, deleteDoc, setDoc } from 'firebase/firestore';
+import { ref, set, onValue, off, remove } from 'firebase/database';
 
+
+// O restante do arquivo (funções como carregarFichas, salvarFichaCompleta, etc.) continua o mesmo
 export async function carregarFichas() {
     try {
         const snapshot = await getDocs(collection(db, 'fichas'));
