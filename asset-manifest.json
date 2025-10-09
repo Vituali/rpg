@@ -1,17 +1,14 @@
 {
   "files": {
-    "main.css": "/rpg/static/css/main.cf9b64ac.css",
-    "main.js": "/rpg/static/js/main.1a180953.js",
-    "static/media/logo.png": "/rpg/static/media/logo.c0ef40d0469c1d967b4d.png",
+    "main.css": "/rpg/static/css/main.c739ea36.css",
+    "main.js": "/rpg/static/js/main.a377ba20.js",
     "static/media/fundo.png": "/rpg/static/media/fundo.cf8d2cd525cc086e010d.png",
-    "static/media/luiza.png": "/rpg/static/media/luiza.bc260e67b8b74f9f7f27.png",
-    "static/media/luiza2.png": "/rpg/static/media/luiza2.de6f8839a8bd72e5bf40.png",
     "index.html": "/rpg/index.html",
-    "main.cf9b64ac.css.map": "/rpg/static/css/main.cf9b64ac.css.map",
-    "main.1a180953.js.map": "/rpg/static/js/main.1a180953.js.map"
+    "main.c739ea36.css.map": "/rpg/static/css/main.c739ea36.css.map",
+    "main.a377ba20.js.map": "/rpg/static/js/main.a377ba20.js.map"
   },
   "entrypoints": [
-    "static/css/main.cf9b64ac.css",
-    "static/js/main.1a180953.js"
+    "static/css/main.c739ea36.css",
+    "static/js/main.a377ba20.js"
   ]
 }
