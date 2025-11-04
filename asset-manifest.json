@@ -1,15 +1,23 @@
 {
   "files": {
-    "main.css": "/rpg/static/css/main.0b8e38e3.css",
-    "main.js": "/rpg/static/js/main.c9cfc0ed.js",
+    "main.css": "/rpg/static/css/main.4cc9d033.css",
+    "main.js": "/rpg/static/js/main.6dae5597.js",
+    "static/media/logo.png": "/rpg/static/media/logo.c0ef40d0469c1d967b4d.png",
     "static/media/fundo.png": "/rpg/static/media/fundo.cf8d2cd525cc086e010d.png",
-    "static/media/PressStart2P.ttf": "/rpg/static/media/PressStart2P.2ebf1a35a67b4271603e.ttf",
+    "static/media/luiza.png": "/rpg/static/media/luiza.bc260e67b8b74f9f7f27.png",
+    "static/media/evandro.png": "/rpg/static/media/evandro.5e0770f8e3a5588703f0.png",
+    "static/media/mia.png": "/rpg/static/media/mia.e1f97b64db4307e7454a.png",
+    "static/media/aurelian.png": "/rpg/static/media/aurelian.0a1327d40b27d2a8d99d.png",
+    "static/media/cacau.png": "/rpg/static/media/cacau.cb47d1d2bfe7ee04b31f.png",
+    "static/media/luiza.fullsize.png": "/rpg/static/media/luiza.fullsize.de6f8839a8bd72e5bf40.png",
+    "static/media/heather.png": "/rpg/static/media/heather.707e1eeec9543204347b.png",
+    "static/media/hernerto.png": "/rpg/static/media/hernerto.bc36bfed3246f47389ac.png",
     "index.html": "/rpg/index.html",
-    "main.0b8e38e3.css.map": "/rpg/static/css/main.0b8e38e3.css.map",
-    "main.c9cfc0ed.js.map": "/rpg/static/js/main.c9cfc0ed.js.map"
+    "main.4cc9d033.css.map": "/rpg/static/css/main.4cc9d033.css.map",
+    "main.6dae5597.js.map": "/rpg/static/js/main.6dae5597.js.map"
   },
   "entrypoints": [
-    "static/css/main.0b8e38e3.css",
-    "static/js/main.c9cfc0ed.js"
+    "static/css/main.4cc9d033.css",
+    "static/js/main.6dae5597.js"
   ]
 }
