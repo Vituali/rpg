@@ -1,9 +1,9 @@
 // src/telas/mestre/TelaMestrar.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { carregarNomesDasTemporadas, carregarFichasPorTemporada, atualizarStatusAoVivo, escutarTodosStatusDaTemporada } from '../../firebase/dataService';
+import { carregarNomesDasTemporadas, carregarFichasPorTemporada, escutarTodosStatusDaTemporada, atualizarStatusAoVivo } from '../../firebase/dataService';
 import FichaModal from '../../componentes/FichaModal';
-import logo from '../../assets/logo.png';
+// A importação do logo foi removida daqui
 import './TelaMestrar.css';
 
 function TelaMestrar() {
@@ -14,29 +14,35 @@ function TelaMestrar() {
     const [statusAoVivo, setStatusAoVivo] = useState({});
     const [fichaParaEditar, setFichaParaEditar] = useState(null);
     const [idFichaEditando, setIdFichaEditando] = useState(null);
-    const [modalVisivel, setModalVisivel] = useState(false);
+    const [modalFichaVisivel, setModalFichaVisivel] = useState(false);
+    const logoPath = `${process.env.PUBLIC_URL}/assets/logo.png`; // Caminho correto para o logo
 
     useEffect(() => {
-        const buscaTemporadas = async () => {
-            const nomes = await carregarNomesDasTemporadas();
+        carregarNomesDasTemporadas().then(nomes => {
             setTemporadas(nomes);
             if (nomes.length > 0) {
-                setTemporadaSelecionada(nomes[0]);
+                const ultimaTemporada = localStorage.getItem('ultimaTemporadaMestre');
+                if (ultimaTemporada && nomes.includes(ultimaTemporada)) {
+                    setTemporadaSelecionada(ultimaTemporada);
+                } else {
+                    setTemporadaSelecionada(nomes[0]);
+                }
+            } else {
+                setFichas({});
+                setStatusAoVivo({});
             }
-        };
-        buscaTemporadas();
+        });
     }, []);
 
     useEffect(() => {
-        if (!temporadaSelecionada) return;
-        const buscaDadosDaTemporada = async () => {
-            const dadosFichas = await carregarFichasPorTemporada(temporadaSelecionada);
-            setFichas(dadosFichas);
-        };
-        buscaDadosDaTemporada();
-        const pararDeEscutar = escutarTodosStatusDaTemporada(temporadaSelecionada, (dados) => {
-            setStatusAoVivo(dados);
-        });
+        if (!temporadaSelecionada) {
+            setFichas({});
+            setStatusAoVivo({});
+            return;
+        }
+        localStorage.setItem('ultimaTemporadaMestre', temporadaSelecionada);
+        carregarFichasPorTemporada(temporadaSelecionada).then(setFichas);
+        const pararDeEscutar = escutarTodosStatusDaTemporada(temporadaSelecionada, setStatusAoVivo);
         return () => pararDeEscutar();
     }, [temporadaSelecionada]);
     
@@ -50,33 +56,54 @@ function TelaMestrar() {
         atualizarStatusAoVivo(temporadaSelecionada, fichaId, { ...status, [stat]: novoValor });
     };
 
+    const handleInputStatusChange = (fichaId, stat, novoValor) => {
+        const ficha = fichas[fichaId];
+        const status = statusAoVivo[fichaId];
+        if (!ficha || !status) return;
+        const maxStat = ficha[`${stat}Max`];
+        const valorNumerico = parseInt(novoValor, 10);
+        
+        if (isNaN(valorNumerico)) return;
+
+        const valorFinal = Math.max(0, Math.min(maxStat, valorNumerico));
+        atualizarStatusAoVivo(temporadaSelecionada, fichaId, { ...status, [stat]: valorFinal });
+    };
+
     const abrirModalParaEditar = (id, ficha) => {
         setIdFichaEditando(id);
         setFichaParaEditar(ficha);
-        setModalVisivel(true);
+        setModalFichaVisivel(true);
     };
-
-    const fecharModal = () => {
-        setModalVisivel(false);
-        setFichaParaEditar(null);
-        setIdFichaEditando(null);
+    
+    const fecharModalFicha = () => {
+        setModalFichaVisivel(false);
     };
 
     const handleFichaUpdate = () => {
-        fecharModal();
+        fecharModalFicha();
         carregarFichasPorTemporada(temporadaSelecionada).then(setFichas);
         alert("Ficha atualizada com sucesso!");
     };
     
-    const getImagemPersonagem = (nome) => {
-        if (!nome) return logo;
-        try {
-            return require(`../../assets/personagens/${nome.toLowerCase()}.png`);
-        } catch (err) {
-            return logo;
+    // FUNÇÃO DE IMAGEM ATUALIZADA
+    const getImagemPersonagem = (ficha) => {
+        if (!ficha) return logoPath;
+        
+        if (ficha.imagem) {
+            return `${process.env.PUBLIC_URL}/assets/personagens/${ficha.imagem}`;
         }
+        
+        if (ficha.nome) {
+            const nomeArquivo = ficha.nome.toLowerCase().replace(/ /g, '_') + '.png';
+            return `${process.env.PUBLIC_URL}/assets/personagens/${nomeArquivo}`;
+        }
+        
+        return logoPath;
     };
-    const calcularLarguraBarra = (valor, max) => !valor || !max ? '0%' : `${(valor / max) * 100}%`;
+    
+    const handleImageError = (e) => {
+        e.target.src = logoPath;
+    };
 
     return (
         <>
@@ -97,28 +124,101 @@ function TelaMestrar() {
                         const status = statusAoVivo[id] || { vida: ficha.vida, sanidade: ficha.sanidade, esforco: ficha.esforco };
                         return (
                             <div key={id} className="jogador-card">
-                                <img src={getImagemPersonagem(ficha.nome)} alt={ficha.nome} className="jogador-img" />
+                                <img 
+                                    src={getImagemPersonagem(ficha)} // Passa a ficha inteira
+                                    alt={ficha.nome} 
+                                    className="jogador-img"
+                                    onError={handleImageError}
+                                />
                                 <h2>{ficha.nome}</h2>
                                 
+                                {/* Bloco de Vida */}
                                 <div className="status-block">
                                     <span className="bar-info">Vida</span>
                                     <div className="status-bar">
-                                        <div className="hp-bar" style={{ width: calcularLarguraBarra(status.vida, ficha.vidaMax) }}></div>
-                                        <span className="bar-label">{status.vida ?? 0}/{ficha.vidaMax || 0}</span>
-                                        <div className="bar-controls left-controls"><button onClick={() => handleAlterarStatus(id, 'vida', -5)}>&lt;&lt;</button><button onClick={() => handleAlterarStatus(id, 'vida', -1)}>&lt;</button></div>
-                                        <div className="bar-controls right-controls"><button onClick={() => handleAlterarStatus(id, 'vida', 1)}>&gt;</button><button onClick={() => handleAlterarStatus(id, 'vida', 5)}>&gt;&gt;</button></div>
+                                        <div className="hp-bar" style={{ width: `${(status.vida / ficha.vidaMax) * 100}%` }}></div>
+                                        <div className="bar-label">
+                                            <input 
+                                                type="number" 
+                                                className="status-input"
+                                                value={status.vida ?? 0}
+                                                onChange={(e) => handleInputStatusChange(id, 'vida', e.target.value)}
+                                            />
+                                            / {ficha.vidaMax || '?'}
+                                        </div>
+                                        <div className="bar-controls left-controls">
+                                            <button onClick={() => handleAlterarStatus(id, 'vida', -10)}>&lt;&lt;</button>
+                                            <button onClick={() => handleAlterarStatus(id, 'vida', -1)}>&lt;</button>
+                                        </div>
+                                        <div className="bar-controls right-controls">
+                                            <button onClick={() => handleAlterarStatus(id, 'vida', 1)}>&gt;</button>
+                                            <button onClick={() => handleAlterarStatus(id, 'vida', 10)}>&gt;&gt;</button>
+                                        </div>
                                     </div>
                                 </div>
-                                {/* Repetir .status-block para Sanidade e Esforço */}
-                                
+
+                                {/* Bloco de Sanidade */}
+                                <div className="status-block">
+                                    <span className="bar-info">Sanidade</span>
+                                    <div className="status-bar">
+                                        <div className="sanidade-bar" style={{ width: `${(status.sanidade / ficha.sanidadeMax) * 100}%` }}></div>
+                                        <div className="bar-label">
+                                            <input 
+                                                type="number" 
+                                                className="status-input"
+                                                value={status.sanidade ?? 0}
+                                                onChange={(e) => handleInputStatusChange(id, 'sanidade', e.target.value)}
+                                            />
+                                            / {ficha.sanidadeMax || '?'}
+                                        </div>
+                                        <div className="bar-controls left-controls">
+                                            <button onClick={() => handleAlterarStatus(id, 'sanidade', -10)}>&lt;&lt;</button>
+                                            <button onClick={() => handleAlterarStatus(id, 'sanidade', -1)}>&lt;</button>
+                                        </div>
+                                        <div className="bar-controls right-controls">
+                                            <button onClick={() => handleAlterarStatus(id, 'sanidade', 1)}>&gt;</button>
+                                            <button onClick={() => handleAlterarStatus(id, 'sanidade', 10)}>&gt;&gt;</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Bloco de Esforço */}
+                                <div className="status-block">
+                                    <span className="bar-info">Esforço</span>
+                                    <div className="status-bar">
+                                        <div className="esforco-bar" style={{ width: `${(status.esforco / ficha.esforcoMax) * 100}%` }}></div>
+                                        <div className="bar-label">
+                                            <input 
+                                                type="number" 
+                                                className="status-input"
+                                                value={status.esforco ?? 0}
+                                                onChange={(e) => handleInputStatusChange(id, 'esforco', e.target.value)}
+                                            />
+                                            / {ficha.esforcoMax || '?'}
+                                        </div>
+                                        <div className="bar-controls left-controls">
+                                            <button onClick={() => handleAlterarStatus(id, 'esforco', -10)}>&lt;&lt;</button>
+                                            <button onClick={() => handleAlterarStatus(id, 'esforco', -1)}>&lt;</button>
+
+                                        </div>
+                                        <div className="bar-controls right-controls">
+                                            <button onClick={() => handleAlterarStatus(id, 'esforco', 1)}>&gt;</button>
+                                            <button onClick={() => handleAlterarStatus(id, 'esforco', 10)}>&gt;&gt;</button>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <button className="edit-btn" onClick={() => abrirModalParaEditar(id, ficha)}>Editar Ficha</button>
+                                <button className="edit-btn" style={{marginTop: '10px'}} onClick={() => navigate(`/editar-agente/${id}`)}>
+                                    Editar Inventário
+                                </button>
                             </div>
                         );
                     })}
                 </div>
             </div>
 
-            {modalVisivel && <FichaModal ficha={fichaParaEditar} fichaId={idFichaEditando} temporada={temporadaSelecionada} onClose={fecharModal} onUpdate={handleFichaUpdate} />}
+            {modalFichaVisivel && <FichaModal ficha={fichaParaEditar} fichaId={idFichaEditando} temporada={temporadaSelecionada} onClose={fecharModalFicha} onUpdate={handleFichaUpdate} />}
         </>
     );
 }

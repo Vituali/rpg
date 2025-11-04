@@ -1,0 +1,107 @@
+/* src/telas/mestre/TelaCriarItens.css */
+
+.gerenciador-itens-container {
+    display: flex;
+    gap: 30px;
+    width: 100%;
+    max-width: 1200px;
+}
+
+.lista-itens-painel, .editor-item-painel {
+    background: var(--cor-fundo-painel);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 20px;
+    backdrop-filter: blur(5px);
+}
+
+.lista-itens-painel {
+    flex: 1;
+}
+.editor-item-painel {
+    flex: 2;
+}
+
+.gerenciador-itens-container h2, .gerenciador-itens-container h3 {
+    color: var(--cor-titulo-painel);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--cor-borda-painel);
+    padding-bottom: 10px;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.lista-itens-painel button {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.lista-de-itens {
+    list-style: none;
+    padding: 0;
+    max-height: 450px;
+    overflow-y: auto;
+}
+
+.lista-de-itens li {
+    padding: 10px;
+    border: 1px solid var(--cor-borda-painel);
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.lista-de-itens li:hover {
+    background: var(--cor-fundo-inverso);
+    color: var(--cor-texto-inverso);
+}
+
+.lista-de-itens li.selecionado {
+    background: var(--cor-destaque-vermelho);
+    color: var(--cor-texto-inverso);
+    border-color: var(--cor-destaque-vermelho);
+}
+
+.editor-item-painel label {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+.editor-item-painel input, .editor-item-painel textarea, .editor-item-painel select {
+    width: 100%;
+    padding: 8px;
+    background: var(--cor-fundo-input);
+    color: var(--cor-texto-painel);
+    border: 1px solid var(--cor-borda-painel);
+    box-sizing: border-box;
+}
+.editor-item-painel textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.modificador-item {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.modificador-item select { width: 120px; }
+.modificador-item input[type="text"] { flex-grow: 1; }
+.modificador-item input[type="number"] { width: 80px; }
+.modificador-item .remover-mod-btn {
+    background: var(--cor-botao-perigo);
+    color: white;
+    border: none;
+    cursor: pointer;
+    padding: 5px 10px;
+}
+
+.editor-actions {
+    margin-top: 25px;
+    border-top: 1px solid var(--cor-borda-painel);
+    padding-top: 15px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+}

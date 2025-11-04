@@ -44,7 +44,6 @@ npm start
   "private": true,
   "homepage": "https://Vituali.github.io/rpg",
   "dependencies": {
-    "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
@@ -93,7 +92,7 @@ npm start
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="icon" href="%PUBLIC_URL%/icone.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta
@@ -101,35 +100,12 @@ npm start
       content="Web site created using create-react-app"
     />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
-
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>React App</title>
+    <title>Anima RPG</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
-
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
-
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
   </body>
 </html>
 
@@ -139,11 +115,19 @@ npm start
 {
   "short_name": "Anima RPG",
   "name": "Anima RPG Fichas",
+  "icons": [
+    {
+      "src": "icone.png",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/png"
+    }
+  ],
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#000000",
   "background_color": "#ffffff"
 }
+
 
 // --- src\App.css ---
 
@@ -218,6 +202,11 @@ import TelaRituais from './telas/jogador/TelaRituais';
 // Telas de Mestre
 import TelaGrupo from './telas/mestre/TelaGrupo';
 import TelaMestrar from './telas/mestre/TelaMestrar';
+import TelaCriarItens from './telas/mestre/TelaCriarItens';
+
+// Telas Comuns
+import TelaEditarAgente from './telas/comum/TelaEditarAgente';
+import TelaVerItens from './telas/comum/TelaVerItens'; // Importa a nova tela
 
 function App() {
   return (
@@ -237,13 +226,17 @@ function App() {
               <Route path="/criar-ficha" element={<RotaProtegida><TelaCriarFicha /></RotaProtegida>} />
               <Route path="/opcoes" element={<RotaProtegida><TelaOpcoes /></RotaProtegida>} />
               <Route path="/usuario" element={<RotaProtegida><TelaUsuario /></RotaProtegida>} />
-              
-              <Route path="/grupo" element={<RotaProtegida><TelaGrupo /></RotaProtegida>} />
-              <Route path="/mestrar" element={<RotaProtegida gmOnly={true}><TelaMestrar /></RotaProtegida>} />
+              <Route path="/ver-itens" element={<RotaProtegida><TelaVerItens /></RotaProtegida>} /> {/* Nova rota */}
               
               <Route path="/inventario/:fichaId" element={<RotaProtegida><TelaInventario /></RotaProtegida>} />
               <Route path="/habilidades/:fichaId" element={<RotaProtegida><TelaHabilidades /></RotaProtegida>} />
               <Route path="/rituais/:fichaId" element={<RotaProtegida><TelaRituais /></RotaProtegida>} />
+              <Route path="/editar-agente/:fichaId" element={<RotaProtegida><TelaEditarAgente /></RotaProtegida>} />
+
+              {/* Rotas Apenas para o Mestre */}
+              <Route path="/grupo" element={<RotaProtegida gmOnly={true}><TelaGrupo /></RotaProtegida>} />
+              <Route path="/mestrar" element={<RotaProtegida gmOnly={true}><TelaMestrar /></RotaProtegida>} />
+              <Route path="/criar-itens" element={<RotaProtegida gmOnly={true}><TelaCriarItens /></RotaProtegida>} />
             </Routes>
           </div>
         </Router>
@@ -253,6 +246,240 @@ function App() {
 }
 
 export default App;
+
+
+// --- src\componentes\CriarItemModal.css ---
+
+/* src/componentes/CriarItemModal.css */
+.modal { 
+    position: fixed; top: 0; left: 0; 
+    width: 100%; height: 100%; 
+    background: rgba(0, 0, 0, 0.85); 
+    z-index: 1000; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 20px; 
+    box-sizing: border-box; 
+}
+
+.criar-item-content { 
+    background: var(--cor-fundo-painel); 
+    color: var(--cor-texto-painel); 
+    border: 2px solid var(--cor-borda-painel); 
+    width: 100%; 
+    max-width: 600px; 
+    padding: 20px; 
+    position: relative; 
+    max-height: 90vh; 
+    overflow-y: auto; 
+}
+
+.criar-item-content h2, .criar-item-content h3, .criar-item-content h4 { 
+    color: var(--cor-titulo-painel); 
+    text-transform: uppercase; 
+    border-bottom: 1px solid var(--cor-borda-painel); 
+    padding-bottom: 10px; 
+    margin-top: 20px;
+}
+.criar-item-content h2 { margin-top: 0; }
+
+.close-btn { 
+    position: absolute; 
+    top: 10px; 
+    right: 15px; 
+    font-size: 2em; 
+    cursor: pointer; 
+    color: var(--cor-texto-painel); 
+}
+
+.modal-actions { 
+    margin-top: 20px; 
+    text-align: right; 
+}
+
+.save-btn { 
+    background: var(--cor-fundo-inverso); 
+    color: var(--cor-texto-inverso); 
+    border: 1px solid var(--cor-borda-painel); 
+    padding: 10px 20px; 
+    font-family: var(--fonte-ficha); 
+    text-transform: uppercase; 
+    cursor: pointer; 
+}
+
+.editor-item-painel label { 
+    display: block; 
+    margin-top: 15px; 
+    margin-bottom: 5px; 
+    font-weight: bold; 
+}
+
+.editor-item-painel input, .editor-item-painel textarea, .editor-item-painel select { 
+    width: 100%; 
+    padding: 8px; 
+    background: var(--cor-fundo-input); 
+    color: var(--cor-texto-painel); 
+    border: 1px solid var(--cor-borda-painel); 
+    box-sizing: border-box; 
+}
+
+.editor-item-painel textarea { 
+    min-height: 80px; 
+}
+
+.modificador-item { 
+    display: flex; 
+    gap: 10px; 
+    align-items: center; 
+    margin-bottom: 10px; 
+}
+.modificador-item select { width: 120px; }
+.modificador-item input[type="text"] { flex-grow: 1; }
+.modificador-item input[type="number"] { width: 80px; }
+.modificador-item button { 
+    background: var(--cor-botao-perigo); 
+    color: white; 
+    border: none; 
+    cursor: pointer; 
+    padding: 5px 10px; 
+}
+
+
+// --- src\componentes\CriarItemModal.js ---
+
+// src/componentes/CriarItemModal.js
+import React, { useState } from 'react';
+import { adicionarItemAoInventario } from '../firebase/dataService';
+import './CriarItemModal.css'; 
+
+const modeloItemVazio = {
+    nome: '',
+    descricao: '',
+    tipo: 'geral',
+    espacos: 1,
+    imagem: '', // Campo para a imagem
+    raridade: 'comum', // Campo para a raridade
+    modificadores: []
+};
+
+function CriarItemModal({ onClose, onItemCriado, temporada, fichaId }) {
+    const [item, setItem] = useState(modeloItemVazio);
+
+    const handleChange = (e) => {
+        const { name, value, type } = e.target;
+        const valor = type === 'number' ? parseInt(value) || 0 : value;
+        setItem(prev => ({ ...prev, [name]: valor }));
+    };
+
+    const handleAdicionarModificador = () => {
+        const novoModificador = { tipo: 'pericia', alvo: '', valor: 1 };
+        setItem(prev => ({
+            ...prev,
+            modificadores: [...(prev.modificadores || []), novoModificador]
+        }));
+    };
+    
+    const handleModificadorChange = (index, e) => {
+        const { name, value } = e.target;
+        const novosModificadores = [...item.modificadores];
+        novosModificadores[index] = { ...novosModificadores[index], [name]: value };
+        setItem(prev => ({ ...prev, modificadores: novosModificadores }));
+    };
+
+    const handleRemoverModificador = (index) => {
+        const novosModificadores = item.modificadores.filter((_, i) => i !== index);
+        setItem(prev => ({ ...prev, modificadores: novosModificadores }));
+    };
+
+    const handleCriarEDarItem = async () => {
+        if (!item.nome) {
+            alert("O nome do item é obrigatório!");
+            return;
+        }
+
+        const itemParaInventario = {
+            customData: item,
+            quantidade: 1,
+            equipado: false
+        };
+
+        const novoId = await adicionarItemAoInventario(temporada, fichaId, itemParaInventario);
+
+        if (novoId) {
+            alert(`Item "${item.nome}" criado e entregue ao jogador!`);
+            onItemCriado();
+        } else {
+            alert("Falha ao entregar o item.");
+        }
+    };
+
+    return (
+        <div className="modal">
+            <div className="criar-item-content">
+                <span className="close-btn" onClick={onClose}>×</span>
+                <h2>Criar Item Personalizado</h2>
+                <div className="editor-item-painel">
+                    <label>Nome do Item:</label>
+                    <input type="text" name="nome" value={item.nome} onChange={handleChange} />
+                    
+                    <label>Nome do Arquivo da Imagem (opcional, ex: item.png):</label>
+                    <input type="text" name="imagem" value={item.imagem} onChange={handleChange} />
+                    
+                    <label>Raridade:</label>
+                    <select name="raridade" value={item.raridade} onChange={handleChange}>
+                        <option value="comum">Comum</option>
+                        <option value="incomum">Incomum</option>
+                        <option value="raro">Raro</option>
+                        <option value="epico">Épico</option>
+                        <option value="lendario">Lendário</option>
+                        <option value="satanico">Satânico</option>
+                    </select>
+
+                    <label>Descrição:</label>
+                    <textarea name="descricao" value={item.descricao} onChange={handleChange}></textarea>
+                    
+                    <label>Tipo:</label>
+                    <select name="tipo" value={item.tipo} onChange={handleChange}>
+                        <option value="geral">Geral</option>
+                        <option value="arma">Arma</option>
+                        <option value="municao">Munição</option>
+                        <option value="armadura">Armadura</option>
+                        <option value="capacete">Capacete</option>
+                        <option value="capa">Capa</option>
+                        <option value="cinto">Cinto</option>
+                        <option value="botas">Botas</option>
+                        <option value="acessorio">Acessório</option>
+                    </select>
+                    
+                    <label>Espaços/Peso:</label>
+                    <input type="number" name="espacos" value={item.espacos} onChange={handleChange} />
+
+                    <h4>Modificadores</h4>
+                    {item.modificadores && item.modificadores.map((mod, index) => (
+                        <div key={index} className="modificador-item">
+                            <select name="tipo" value={mod.tipo} onChange={(e) => handleModificadorChange(index, e)}>
+                                <option value="pericia">Perícia</option>
+                                <option value="atributo">Atributo</option>
+                            </select>
+                            <input type="text" placeholder="Alvo (ex: adestramento)" name="alvo" value={mod.alvo} onChange={(e) => handleModificadorChange(index, e)} />
+                            <input type="number" placeholder="Valor" name="valor" value={mod.valor} onChange={(e) => handleModificadorChange(index, e)} />
+                            <button onClick={() => handleRemoverModificador(index)}>X</button>
+                        </div>
+                    ))}
+                    <button onClick={handleAdicionarModificador}>+ Adicionar Modificador</button>
+                    
+                    <div className="modal-actions">
+                        <button className="save-btn" onClick={handleCriarEDarItem}>Criar e Entregar Item</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default CriarItemModal;
+
 
 // --- src\componentes\FichaModal.css ---
 
@@ -268,7 +495,6 @@ export default App;
     padding: 20px; box-sizing: border-box;
 }
 
-/* CORREÇÃO APLICADA AQUI: max-height e overflow-y voltaram para o container principal */
 .modal-content.op-style {
     background: var(--cor-fundo-painel);
     color: var(--cor-texto-painel);
@@ -281,34 +507,53 @@ export default App;
     display: grid;
     grid-template-columns: auto 1fr;
     padding: 0;
-    max-height: 95vh; /* A altura máxima agora está aqui */
-    overflow-y: auto; /* A rolagem agora está aqui */
+    max-height: 95vh; 
+    overflow-y: auto; 
 }
 .modal-content.op-style * { box-sizing: border-box; }
 
+/* --- NOVO: Remove as setas dos inputs numéricos --- */
+.modal-content.op-style input[type=number]::-webkit-inner-spin-button, 
+.modal-content.op-style input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+.modal-content.op-style input[type=number] {
+  -moz-appearance: textfield; /* Para Firefox */
+}
+/* --- FIM DA REMOÇÃO DAS SETAS --- */
+
+
+/* --- ATUALIZAÇÃO DA SIDEBAR --- */
 .sheet-title-box {
     writing-mode: vertical-rl;
     transform: rotate(180deg);
-    background: var(--cor-fundo-inverso);
-    color: var(--cor-texto-inverso);
-    padding: 15px 8px;
-    font-size: 1.2em;
-    letter-spacing: 2px;
+    background: #111; /* Fundo mais escuro */
+    color: var(--cor-texto-painel); /* Texto mais sutil */
+    padding: 20px 10px; /* Mais preenchimento */
+    font-size: 1.3em; /* Um pouco maior */
+    letter-spacing: 4px; /* Mais espaçado */
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Borda para separar do conteúdo */
+    border-right: 2px solid var(--cor-borda-painel); 
+    /* Sombra interna para profundidade */
+    box-shadow: inset -5px 0 10px rgba(0,0,0,0.5); 
+    white-space: nowrap; /* Garante que não quebre a palavra */
+    /* Brilho sutil no texto */
+    text-shadow: 0 0 5px var(--cor-borda-painel); 
 }
 
-/* O wrapper agora tem altura flexível */
 .sheet-content-wrapper {
     padding: 20px 25px;
-    border-left: 2px solid var(--cor-borda-painel);
+    /* border-left removido para evitar borda dupla */
     position: relative;
-    /* overflow-y e height foram removidos daqui */
+    overflow-y: auto; /* Garante que o conteúdo interno possa rolar se necessário */
+    max-height: 95vh; /* Garante que o conteúdo não estoure a altura do modal */
 }
 
-/* ... O resto do arquivo continua exatamente o mesmo ... */
 .sheet-header { border-bottom: 3px solid var(--cor-borda-painel); padding-bottom: 5px; margin-bottom: 5px; display: flex; justify-content: flex-end; }
 .game-title-input { font-family: var(--fonte-ficha); font-size: 1.5em; letter-spacing: 1px; text-align: right; border: none; background: transparent; width: 100%; text-transform: uppercase; font-weight: bold; color: var(--cor-texto-painel); }
 .game-title-input:focus { outline: none; }
@@ -319,13 +564,13 @@ export default App;
 .info-field label { font-size: 0.7em; font-weight: bold; }
 .sheet-body { display: flex; gap: 20px; margin-top: 15px; }
 .sheet-column-left { flex: 0 0 320px; }
-.sheet-column-right { flex: 1; }
+.sheet-column-right { flex: 1; min-width: 0; } /* Adicionado min-width: 0 para flexbox */
 .attributes-hexagon-container { position: relative; width: 300px; height: 280px; margin: 20px auto 0 auto; }
 .hexagon-bg { position: absolute; width: 100%; height: 100%; background: radial-gradient(ellipse at center, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0) 70%); }
 .attr-hex-border { position: absolute; width: 90px; height: 100px; background: var(--cor-borda-painel); clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); z-index: 1; }
 .attr-hex { width: 100%; height: 100%; background-color: var(--cor-fundo-painel); clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: scale(0.96); }
 .attr-hex span { font-size: 1.3em; font-weight: bold; }
-.attr-hex input { width: 50px; font-size: 1.8em; border: 1px solid #ccc; text-align: center; padding: 2px; border-radius: 0; font-family: var(--fonte-ficha); margin-top: 2px; background: var(--cor-fundo-painel); color: var(--cor-texto-painel); }
+.attr-hex input { width: 50px; font-size: 1.8em; border: none; text-align: center; padding: 2px; border-radius: 0; font-family: var(--fonte-ficha); margin-top: 2px; background: var(--cor-fundo-painel); color: var(--cor-texto-painel); }
 .hex-inteligencia { top: 0; left: 50%; transform: translateX(-50%); }
 .hex-agilidade { top: 70px; right: 15px; }
 .hex-forca { top: 70px; left: 15px; }
@@ -335,38 +580,163 @@ export default App;
 .stat-box { border: 2px solid var(--cor-borda-painel); padding: 5px; text-align: center; }
 .stat-box label { font-size: 0.9em; font-weight: bold; }
 .stat-box input { width: 100%; border: none; font-size: 2em; text-align: center; font-family: var(--fonte-ficha); background: transparent; color: var(--cor-texto-painel); }
+
+/* --- ATUALIZAÇÃO DAS PERÍCIAS --- */
 .pericias-section { border: 2px solid var(--cor-borda-painel); }
 .pericias-header { background: var(--cor-fundo-inverso); color: var(--cor-texto-inverso); padding: 5px 10px; text-align: center; }
 .pericias-header h2 { margin: 0; font-size: 1.2em; font-weight: bold; }
 .pericias-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 15px; padding: 10px; max-height: 380px; overflow-y: auto; }
+
 .pericia-item {
     border: 1px solid var(--cor-borda-painel);
-    padding: 5px;
+    padding: 3px;
     display: grid;
-    grid-template-columns: 1fr auto;
+    /* ATUALIZAÇÃO: Define uma coluna de label flexível e uma de input fixa */
+    grid-template-columns: 1fr 30px; /* <- ALTERADO DE 60px PARA 45px */
     align-items: center;
-    gap: 10px;
+    gap: 5px;
 }
-.pericia-item label { display: flex; justify-content: space-between; font-size: 0.9em; margin-bottom: 2px; }
-.pericia-item label span { color: #888; }
-.pericia-item input { width: 100%; border: 1px solid #ccc; padding: 3px; text-align: center; border-radius: 0; font-size: 1.3em; background: var(--cor-fundo-painel); color: var(--cor-texto-painel); }
+.pericia-item label { 
+    display: flex; 
+    justify-content: space-between; 
+    font-size: 0.9em; 
+    margin-bottom: 0; /* Remove margem desnecessária */
+    /* NOVO: Impede que o texto quebre ou transborde */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; 
+}
+.pericia-item label span { 
+    color: #888; 
+    margin-left: 5px; /* Adiciona espaço para o (ATR) */
+}
+.pericia-item input { 
+    width: 100%; /* Ocupa 100% da sua coluna de grid (60px) */
+    border: 1px solid #ccc; 
+    padding: 0px; 
+    text-align: center; 
+    border-radius: 0; 
+    font-size: 1.0em; 
+    background: var(--cor-fundo-painel); 
+    color: var(--cor-texto-painel); 
+}
+/* --- FIM DA ATUALIZAÇÃO DAS PERÍCIAS --- */
+
+
 .modal-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 20px; border-top: 2px solid var(--cor-borda-painel); padding-top: 10px; }
 .save-btn.op-style, #excluirFichaBtn.op-style { font-family: var(--fonte-ficha); font-size: 1em; text-transform: uppercase; border: 2px solid var(--cor-borda-painel); border-radius: 0; padding: 8px 15px; cursor: pointer; }
 .save-btn.op-style { background: var(--cor-fundo-inverso); color: var(--cor-texto-inverso); }
 #excluirFichaBtn.op-style { background: var(--cor-botao-perigo); color: var(--cor-texto-inverso); }
 .close-btn.op-style { position: absolute; top: 10px; right: 15px; color: var(--cor-texto-painel); text-shadow: none; font-family: Arial, sans-serif; }
 
+/* ESTILOS PARA A SECÇÃO DO MESTRE */
+.gm-actions-section {
+    padding: 15px 25px;
+    border-top: 2px solid var(--cor-borda-painel);
+    margin-top: 15px;
+}
+
+.gm-actions-section h3 {
+    margin-top: 0;
+    color: var(--cor-titulo-painel);
+    font-size: 1.2em;
+    text-transform: uppercase; 
+    border-bottom: 1px solid var(--cor-borda-painel);
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+}
+
+/* Agrupador para campos de GM */
+.gm-field-group {
+    margin-bottom: 20px;
+}
+.gm-field-group label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+/* Estilo para o input de imagem do GM */
+.gm-field-group input[type="text"] {
+    width: 100%;
+    background: var(--cor-fundo-input);
+    color: var(--cor-texto-painel);
+    border: 1px solid var(--cor-borda-painel);
+    padding: 8px;
+    font-family: var(--fonte-ficha);
+    font-size: 1em;
+    box-sizing: border-box; 
+}
+
+
+.transfer-owner-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.transfer-owner-controls label {
+    font-weight: bold;
+    margin-bottom: 0; 
+}
+
+.transfer-owner-controls select {
+    flex-grow: 1;
+    background: var(--cor-fundo-input);
+    color: var(--cor-texto-painel);
+    border: 1px solid var(--cor-borda-painel);
+    padding: 8px;
+    font-family: var(--fonte-ficha);
+    font-size: 1em;
+}
+
+.transfer-owner-controls button {
+    font-family: var(--fonte-ficha);
+    font-size: 1em;
+    text-transform: uppercase;
+    border: 2px solid var(--cor-borda-painel);
+    padding: 8px 15px;
+    cursor: pointer;
+    background: var(--cor-fundo-inverso);
+    color: var(--cor-texto-inverso);
+}
+.transfer-owner-controls button:disabled {
+    background: #555;
+    color: #999;
+    border-color: #555;
+    cursor: not-allowed;
+}
+
+
 // --- src\componentes\FichaModal.js ---
 
 // src/componentes/FichaModal.js
 import React, { useState, useEffect } from 'react';
 import './FichaModal.css';
-import { atualizarFichaCompleta, atualizarStatusAoVivo } from '../firebase/dataService';
+import { atualizarFichaCompleta, atualizarStatusAoVivo, carregarTodosUsuarios } from '../firebase/dataService';
+import { useAuth } from '../context/AuthContext';
 
 function FichaModal({ ficha, fichaId, temporada, onClose, onExcluir, onUpdate }) {
   const [editedFicha, setEditedFicha] = useState(ficha);
+  const { isGM } = useAuth();
 
-  useEffect(() => { setEditedFicha(ficha); }, [ficha]);
+  // State for user transfer functionality
+  const [todosUsuarios, setTodosUsuarios] = useState([]);
+  const [usuarioSelecionadoId, setUsuarioSelecionadoId] = useState('');
+
+  useEffect(() => {
+    setEditedFicha(ficha);
+
+    // If the user is a GM, load all users to populate the transfer dropdown
+    if (isGM) {
+        const buscarUsuarios = async () => {
+            const usuarios = await carregarTodosUsuarios();
+            setTodosUsuarios(usuarios);
+        };
+        buscarUsuarios();
+    }
+  }, [ficha, isGM]);
 
   const handleChange = (e, section) => {
     const { name, value, type } = e.target;
@@ -374,8 +744,13 @@ function FichaModal({ ficha, fichaId, temporada, onClose, onExcluir, onUpdate })
 
     setEditedFicha(prev => {
         if (section) {
+            // Se for 'atributos', atualiza o sub-objeto
+            if (section === 'atributos') {
+                 return { ...prev, atributos: { ...prev.atributos, [name]: parsedValue }};
+            }
             return { ...prev, [section]: { ...prev[section], [name]: parsedValue }};
         }
+        // Para campos no nível raiz (como 'nome', 'jogador', 'imagem')
         return { ...prev, [name]: parsedValue };
     });
   };
@@ -395,7 +770,6 @@ function FichaModal({ ficha, fichaId, temporada, onClose, onExcluir, onUpdate })
         const sucessoFirestore = await atualizarFichaCompleta(temporada, fichaId, editedFicha);
 
         if (sucessoFirestore) {
-            // ATUALIZADO AQUI: Adiciona os valores máximos
             const statusParaRTDB = { 
                 vida: editedFicha.vida, 
                 vidaMax: editedFicha.vidaMax,
@@ -409,13 +783,47 @@ function FichaModal({ ficha, fichaId, temporada, onClose, onExcluir, onUpdate })
         }
     };
 
+  // Handler for transferring ownership
+  const handleTransferirDono = async () => {
+    if (!usuarioSelecionadoId) {
+        alert("Por favor, selecione um jogador para transferir a ficha.");
+        return;
+    }
+
+    const usuarioAlvo = todosUsuarios.find(u => u.uid === usuarioSelecionadoId);
+    if (!usuarioAlvo) {
+        alert("Jogador selecionado não encontrado.");
+        return;
+    }
+    
+    if (window.confirm(`Tem certeza que deseja transferir a ficha de ${editedFicha.nome} para ${usuarioAlvo.email}?`)) {
+        const fichaAtualizada = {
+            ...editedFicha,
+            ownerId: usuarioAlvo.uid,
+            ownerEmail: usuarioAlvo.email
+        };
+        
+        const sucesso = await atualizarFichaCompleta(temporada, fichaId, fichaAtualizada);
+        if (sucesso) {
+            alert("Ficha transferida com sucesso!");
+            onUpdate(); // This will close the modal and refresh the list
+        } else {
+            alert("Ocorreu um erro ao transferir a ficha.");
+        }
+    }
+  };
+
+
   if (!editedFicha) return null;
 
   const renderPericias = () => {
     const pericias = editedFicha.pericias || {};
-    return Object.keys(pericias).map(key => (
+    // ATUALIZAÇÃO: Pega as chaves, ordena alfabeticamente, e então mapeia
+    const chavesOrdenadas = Object.keys(pericias).sort((a, b) => a.localeCompare(b));
+
+    return chavesOrdenadas.map(key => (
       <div className="pericia-item" key={key}>
-          <label>
+          <label title={key.charAt(0).toUpperCase() + key.slice(1)}> {/* Adiciona um tooltip para nomes longos */}
               {key.charAt(0).toUpperCase() + key.slice(1)}
               <span>({pericias[key].atributo.substring(0, 3).toUpperCase()})</span>
           </label>
@@ -446,7 +854,6 @@ function FichaModal({ ficha, fichaId, temporada, onClose, onExcluir, onUpdate })
                     <input type="text" name="nome" value={editedFicha.nome} onChange={(e) => handleChange(e, null)} />
                     <label>PERSONAGEM</label>
                 </div>
-                {/* ATUALIZADO: Conectado para exibir e salvar o nome do jogador */}
                 <div className="info-field">
                     <input 
                         type="text" 
@@ -460,7 +867,6 @@ function FichaModal({ ficha, fichaId, temporada, onClose, onExcluir, onUpdate })
             </div>
 
             <main className="sheet-body">
-                {/* ... (o resto do JSX continua o mesmo) ... */}
                  <div className="sheet-column-left">
                     <section className="attributes-section">
                         <div className="attributes-hexagon-container">
@@ -491,6 +897,39 @@ function FichaModal({ ficha, fichaId, temporada, onClose, onExcluir, onUpdate })
                 </div>
             </main>
             
+            {/* GM-only section for transferring ownership */}
+            {isGM && (
+                <div className="gm-actions-section">
+                    <h3>Gerenciar Ficha (Mestre)</h3>
+                    
+                    {/* CAMPO DE IMAGEM ADICIONADO */}
+                    <div className="gm-field-group">
+                        <label>Imagem do Personagem (ex: nome_personagem.png):</label>
+                        <input 
+                            type="text" 
+                            name="imagem" 
+                            value={editedFicha.imagem || ''} 
+                            onChange={(e) => handleChange(e, null)} // Passa null para section
+                            placeholder="deixe em branco para usar o padrão"
+                        />
+                    </div>
+
+                    <div className="gm-field-group">
+                        <label>Dono Atual: ({editedFicha.ownerEmail || 'Sem dono'})</label>
+                        <div className="transfer-owner-controls">
+                            <label>Transferir para:</label>
+                            <select value={usuarioSelecionadoId} onChange={(e) => setUsuarioSelecionadoId(e.target.value)}>
+                                <option value="">-- Selecione um jogador --</option>
+                                {todosUsuarios.map(user => (
+                                    <option key={user.uid} value={user.uid}>{user.email}</option>
+                                ))}
+                            </select>
+                            <button onClick={handleTransferirDono} disabled={!usuarioSelecionadoId}>Transferir</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="modal-actions">
                 <button className="save-btn op-style" onClick={handleSave}>Salvar Alterações</button>
                 <button id="excluirFichaBtn" className="op-style" onClick={onExcluir}>Excluir Ficha</button>
@@ -503,6 +942,7 @@ function FichaModal({ ficha, fichaId, temporada, onClose, onExcluir, onUpdate })
 
 export default FichaModal;
 
+
 // --- src\componentes\PainelUsuario.css ---
 
 /* src/componentes/PainelUsuario.css */
@@ -513,15 +953,60 @@ export default FichaModal;
     background: var(--cor-fundo-painel);
     color: var(--cor-texto-painel);
     border: 1px solid var(--cor-borda-painel);
-    padding: 10px 15px;
     z-index: 2000;
+    font-family: var(--fonte-ficha);
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease-in-out; /* Adiciona transição suave */
+    overflow: hidden;
+}
+
+/* Estilo do painel quando minimizado (apenas o ícone) */
+.painel-usuario-container.collapsed {
+    padding: 0;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Estilo do painel quando expandido */
+.painel-usuario-container.expanded {
+    padding: 10px 15px;
     display: flex;
     align-items: center;
     gap: 15px;
-    font-family: var(--fonte-ficha);
-    backdrop-filter: blur(5px);
+    border-radius: 5px;
+    width: auto;
+    height: auto;
 }
 
+/* Botão de ícone para a visão minimizada */
+.user-icon-btn {
+    width: 120%;
+    height: 100%;
+    border-radius: 100%;
+    border: none;
+    background: transparent;
+    color: var(--cor-texto-painel);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1;
+}
+.user-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Ajuste para o ícone SVG */
+.user-icon-btn svg {
+    width: 22px; /* Ajuste o tamanho do ícone como desejar */
+    height: 22px;
+}
+
+/* Estilos existentes para o conteúdo do painel expandido */
 .user-email {
     font-size: 0.9em;
     text-transform: uppercase;
@@ -559,10 +1044,25 @@ export default FichaModal;
     color: var(--cor-texto-inverso);
 }
 
+/* Botão para fechar o painel expandido */
+.close-panel-btn {
+    background: none;
+    border: none;
+    color: var(--cor-texto-painel);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 5px;
+    margin-left: 10px;
+}
+.close-panel-btn:hover {
+    color: var(--cor-destaque-vermelho);
+}
+
+
 // --- src\componentes\PainelUsuario.js ---
 
 // src/componentes/PainelUsuario.js
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { logoutUsuario } from '../firebase/dataService';
@@ -571,28 +1071,47 @@ import './PainelUsuario.css';
 function PainelUsuario() {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
+    const [isExpanded, setIsExpanded] = useState(false);
 
     const handleLogout = async () => {
         await logoutUsuario();
-        navigate('/login'); // Redireciona para o login após o logout
+        navigate('/login');
     };
 
     if (!currentUser) {
-        return null; // Não mostra nada se o usuário não estiver logado
+        return null;
     }
 
+    const togglePanel = () => {
+        setIsExpanded(!isExpanded);
+    };
+
     return (
-        <div className="painel-usuario-container">
-            <span className="user-email">{currentUser.email}</span>
-            <div className="user-actions">
-                <button onClick={() => navigate('/usuario')}>Minha Conta</button>
-                <button onClick={handleLogout} className="logout-btn">Logout</button>
-            </div>
+        <div className={`painel-usuario-container ${isExpanded ? 'expanded' : 'collapsed'}`}>
+            {isExpanded ? (
+                <>
+                    <span className="user-email">{currentUser.email}</span>
+                    <div className="user-actions">
+                        <button onClick={() => navigate('/usuario')}>Minha Conta</button>
+                        <button onClick={handleLogout} className="logout-btn">Logout</button>
+                    </div>
+                    <button onClick={togglePanel} className="close-panel-btn">×</button>
+                </>
+            ) : (
+                <button onClick={togglePanel} className="user-icon-btn">
+                    {/* Ícone SVG de utilizador */}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </button>
+            )}
         </div>
     );
 }
 
 export default PainelUsuario;
+
 
 // --- src\componentes\RotaProtegida.js ---
 
@@ -619,6 +1138,7 @@ function RotaProtegida({ children, gmOnly = false }) {
 
 export default RotaProtegida;
 
+
 // --- src\config\gmConfig.js ---
 
 // src/config/gmConfig.js
@@ -633,20 +1153,25 @@ export const GM_UIDS = [
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/firebase-config';
-import { GM_UIDS } from '../config/gmConfig'; // Importa a lista de mestres
+import { getUserData } from '../firebase/dataService'; // Importa a nova função
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
     const [currentUser, setCurrentUser] = useState(null);
-    const [isGM, setIsGM] = useState(false); // Novo state para o Mestre
+    const [isGM, setIsGM] = useState(false);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, user => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
             setCurrentUser(user);
-            // Verifica se o UID do usuário logado está na lista de Mestres
-            setIsGM(user ? GM_UIDS.includes(user.uid) : false);
+            if (user) {
+                // Se houver um usuário, busca seus dados no Firestore
+                const userData = await getUserData(user.uid);
+                setIsGM(userData?.isGM || false); // Define isGM com base no banco de dados
+            } else {
+                setIsGM(false); // Se não houver usuário, não é GM
+            }
             setLoading(false);
         });
         return unsubscribe;
@@ -654,7 +1179,7 @@ export function AuthProvider({ children }) {
 
     const value = {
         currentUser,
-        isGM // Fornece a informação se é Mestre ou não
+        isGM
     };
 
     return (
@@ -665,6 +1190,7 @@ export function AuthProvider({ children }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
+
 
 // --- src\context\ThemeContext.js ---
 
@@ -695,14 +1221,54 @@ export function ThemeProvider({ children }) {
 // Hook customizado para facilitar o uso do contexto
 export const useTheme = () => useContext(ThemeContext);
 
+
+// --- src\firebase\dataService.js ---
+
 // --- src\firebase\dataService.js ---
 
 import { db, rtdb, auth } from './firebase-config.js';
-import { collection, getDocs, addDoc, doc, deleteDoc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, deleteDoc, setDoc, getDoc, query, where } from 'firebase/firestore';
 import { ref, set, onValue, off, remove } from 'firebase/database';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
 
-const ACTIVE_SEASON = 'pacto';
+// --- Funções de Utilizador e Cargos ---
+
+// NOVO: Carrega todos os utilizadores registados
+export async function carregarTodosUsuarios() {
+    try {
+        const snapshot = await getDocs(collection(db, 'users'));
+        const usuarios = [];
+        snapshot.forEach(doc => {
+            usuarios.push({ uid: doc.id, ...doc.data() });
+        });
+        return usuarios;
+    } catch (e) {
+        console.error("Erro ao carregar todos os utilizadores:", e);
+        return [];
+    }
+}
+
+export async function getUserData(uid) {
+    try {
+        const userDoc = await getDoc(doc(db, 'users', uid));
+        return userDoc.exists() ? userDoc.data() : null;
+    } catch (e) {
+        console.error("Erro ao buscar dados do utilizador:", e);
+        return null;
+    }
+}
+
+export async function criarUsuarioDB(uid, email) {
+    try {
+        await setDoc(doc(db, 'users', uid), {
+            email: email,
+            isGM: false,
+            createdAt: new Date()
+        });
+    } catch (e) {
+        console.error("Erro ao criar utilizador no DB:", e);
+    }
+}
 
 // --- Funções de Temporada e Ficha ---
 
@@ -733,13 +1299,30 @@ export async function carregarFichasPorTemporada(temporada) {
     }
 }
 
+export async function carregarFichasDoUsuario(temporada, userId) {
+    if (!temporada || !userId) return {};
+    try {
+        const path = `temporadas/${temporada}/fichas`;
+        const fichasCollectionRef = collection(db, path);
+        const q = query(fichasCollectionRef, where("ownerId", "==", userId));
+        const snapshot = await getDocs(q);
+        const fichas = {};
+        snapshot.forEach(doc => {
+            fichas[doc.id] = doc.data();
+        });
+        return fichas;
+    } catch (e) {
+        console.error(`Erro ao carregar fichas do utilizador ${userId}:`, e);
+        return {};
+    }
+}
+
+
 export async function salvarFichaCompleta(dadosFicha) {
     try {
-        const path = `temporadas/${ACTIVE_SEASON}/fichas`;
+        const path = `temporadas/${dadosFicha.temporada || 'pacto'}/fichas`;
         const docRef = await addDoc(collection(db, path), dadosFicha);
-        console.log(`Ficha salva na temporada ${ACTIVE_SEASON} com ID: `, docRef.id);
         
-        // CORRIGIDO AQUI: Adiciona os valores máximos e salva na temporada correta
         const statusIniciais = {
             vida: dadosFicha.vida,
             vidaMax: dadosFicha.vidaMax,
@@ -748,8 +1331,7 @@ export async function salvarFichaCompleta(dadosFicha) {
             esforco: dadosFicha.esforco,
             esforcoMax: dadosFicha.esforcoMax
         };
-        // Garante que está salvando na ACTIVE_SEASON
-        await set(ref(rtdb, `sessoes/${ACTIVE_SEASON}/${docRef.id}`), statusIniciais);
+        await set(ref(rtdb, `sessoes/${dadosFicha.temporada || 'pacto'}/${docRef.id}`), statusIniciais);
         
         return docRef.id;
     } catch (e) {
@@ -759,35 +1341,20 @@ export async function salvarFichaCompleta(dadosFicha) {
 }
 
 export async function excluirFicha(temporada, fichaId) {
-    if (!temporada || !fichaId) {
-        console.error("Temporada ou ID da ficha não fornecido.");
-        return false;
-    }
+    if (!temporada || !fichaId) return false;
     try {
-        // Caminho correto para o Firestore
-        const fichaDocRef = doc(db, `temporadas/${temporada}/fichas`, fichaId);
-        await deleteDoc(fichaDocRef);
-        console.log("Ficha excluída do Firestore com sucesso.");
-
-        // Caminho correto para o Realtime Database
-        const statusRtdbRef = ref(rtdb, `sessoes/${temporada}/${fichaId}`);
-        await remove(statusRtdbRef);
-        console.log("Status excluído do Realtime Database com sucesso.");
-
+        await deleteDoc(doc(db, `temporadas/${temporada}/fichas`, fichaId));
+        await remove(ref(rtdb, `sessoes/${temporada}/${fichaId}`));
         return true;
     } catch (error) {
         console.error("Erro ao excluir ficha: ", error);
-        alert("Erro ao excluir a ficha: " + error.message);
         return false;
     }
 }
 
-
-
 export async function atualizarFichaCompleta(temporada, fichaId, fichaData) {
     try {
-        const fichaDocRef = doc(db, `temporadas/${temporada}/fichas`, fichaId);
-        await setDoc(fichaDocRef, fichaData);
+        await setDoc(doc(db, `temporadas/${temporada}/fichas`, fichaId), fichaData);
         return true;
     } catch (error) {
         console.error("Erro ao atualizar ficha: ", error);
@@ -797,14 +1364,22 @@ export async function atualizarFichaCompleta(temporada, fichaId, fichaData) {
 
 // --- Funções de Status em Tempo Real ---
 
-export function escutarStatusDaTemporada(temporada, callback) {
+export function escutarTodosStatusDaTemporada(temporada, callback) {
   if (!temporada) return () => {};
   const referencia = ref(rtdb, `sessoes/${temporada}`);
   onValue(referencia, (snapshot) => {
-    const dados = snapshot.val() || {};
-    callback(dados);
+    callback(snapshot.val() || {});
   });
   return () => off(referencia);
+}
+
+export function escutarStatusDeUmPersonagem(temporada, fichaId, callback) {
+    if (!temporada || !fichaId) return () => {};
+    const referencia = ref(rtdb, `sessoes/${temporada}/${fichaId}`);
+    onValue(referencia, (snapshot) => {
+        callback(snapshot.val());
+    });
+    return () => off(referencia);
 }
 
 export function atualizarStatusAoVivo(temporada, fichaId, novosStatus) {
@@ -817,6 +1392,7 @@ export function atualizarStatusAoVivo(temporada, fichaId, novosStatus) {
 export async function cadastrarUsuario(email, senha) {
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+        await criarUsuarioDB(userCredential.user.uid, email);
         return { user: userCredential.user };
     } catch (error) {
         return { error: error.message };
@@ -845,30 +1421,228 @@ export async function enviarEmailRedefinicaoSenha(email) {
         await sendPasswordResetEmail(auth, email);
         return { success: true };
     } catch (error) {
-        console.error("Erro ao enviar e-mail de redefinição:", error);
         return { error: error.message };
     }
 }
-export function escutarTodosStatusDaTemporada(temporada, callback) {
-  if (!temporada) return () => {};
-  const referencia = ref(rtdb, `sessoes/${temporada}`);
-  onValue(referencia, (snapshot) => {
-    const dados = snapshot.val() || {};
-    callback(dados);
-  });
-  return () => off(referencia);
+
+// --- Funções de Itens e Inventário ---
+
+export async function carregarModelosDeItens() {
+    try {
+        const snapshot = await getDocs(collection(db, 'itens'));
+        const itens = {};
+        snapshot.forEach(doc => {
+            itens[doc.id] = doc.data();
+        });
+        return itens;
+    } catch (e) {
+        console.error('Erro ao carregar modelos de itens:', e);
+        return {};
+    }
 }
 
-// Escuta o status de UM personagem de uma temporada (para TelaJogar)
-export function escutarStatusDeUmPersonagem(temporada, fichaId, callback) {
-    if (!temporada || !fichaId) return () => {};
-    const referencia = ref(rtdb, `sessoes/${temporada}/${fichaId}`);
-    onValue(referencia, (snapshot) => {
-        const dados = snapshot.val();
-        callback(dados);
-    });
-    return () => off(referencia);
+export async function salvarItemModelo(itemId, dadosItem) {
+    try {
+        const docRef = doc(db, 'itens', itemId || `item_${Date.now()}`);
+        await setDoc(docRef, dadosItem);
+        return docRef.id;
+    } catch (e) {
+        console.error("Erro ao salvar modelo de item:", e);
+        return null;
+    }
 }
+
+export async function removerItemModelo(itemId) {
+    try {
+        await deleteDoc(doc(db, 'itens', itemId));
+        return true;
+    } catch (e) {
+        console.error("Erro ao remover modelo de item:", e);
+        return false;
+    }
+}
+
+export async function carregarInventarioDoPersonagem(temporada, fichaId) {
+    try {
+        const path = `temporadas/${temporada}/fichas/${fichaId}/inventario`;
+        const snapshot = await getDocs(collection(db, path));
+        const inventario = {};
+        snapshot.forEach(doc => {
+            inventario[doc.id] = doc.data();
+        });
+        return inventario;
+    } catch (e) {
+        console.error('Erro ao carregar inventário do personagem:', e);
+        return {};
+    }
+}
+
+export async function adicionarItemAoInventario(temporada, fichaId, dadosItem) {
+    try {
+        const path = `temporadas/${temporada}/fichas/${fichaId}/inventario`;
+        const docRef = await addDoc(collection(db, path), dadosItem);
+        return docRef.id;
+    } catch (e) {
+        console.error('Erro ao adicionar item ao inventário:', e);
+        return null;
+    }
+}
+
+export async function removerItemDoInventario(temporada, fichaId, inventarioItemId) {
+    try {
+        const path = `temporadas/${temporada}/fichas/${fichaId}/inventario/${inventarioItemId}`;
+        await deleteDoc(doc(db, path));
+        return true;
+    } catch (e) {
+        console.error('Erro ao remover item do inventário:', e);
+        return false;
+    }
+}
+
+export async function atualizarItemNoInventario(temporada, fichaId, inventarioItemId, updates) {
+    try {
+        const path = `temporadas/${temporada}/fichas/${fichaId}/inventario/${inventarioItemId}`;
+        await setDoc(doc(db, path), updates, { merge: true });
+        return true;
+    } catch (e) {
+        console.error('Erro ao atualizar item:', e);
+        return false;
+    }
+}
+
+export async function atualizarEquipamento(temporada, fichaId, novoEquipamento) {
+    try {
+        const path = `temporadas/${temporada}/fichas/${fichaId}`;
+        await setDoc(doc(db, path), { equipamento: novoEquipamento }, { merge: true });
+        return true;
+    } catch (e) {
+        console.error('Erro ao atualizar equipamento:', e);
+        return false;
+    }
+}
+
+export async function carregarFicha(temporada, fichaId) {
+    try {
+        const docRef = doc(db, `temporadas/${temporada}/fichas`, fichaId);
+        const docSnap = await getDoc(docRef);
+        return docSnap.exists() ? docSnap.data() : null;
+    } catch (e) {
+        console.error("Erro ao carregar ficha:", e);
+        return null;
+    }
+}
+
+export async function atualizarAtributosBaseFicha(temporada, fichaId, updates) {
+    try {
+        const path = `temporadas/${temporada}/fichas/${fichaId}`;
+        await setDoc(doc(db, path), updates, { merge: true });
+        return true;
+    } catch (e) {
+        console.error('Erro ao atualizar atributos base da ficha:', e);
+        return false;
+    }
+}
+
+// --- Funções de Habilidades ---
+
+export async function carregarHabilidades(temporada, fichaId) {
+    try {
+        const path = `temporadas/${temporada}/fichas/${fichaId}/habilidades`;
+        const snapshot = await getDocs(collection(db, path));
+        const habilidades = {};
+        snapshot.forEach(doc => {
+            habilidades[doc.id] = doc.data();
+        });
+        return habilidades;
+    } catch (e) {
+        console.error('Erro ao carregar habilidades:', e);
+        return {};
+    }
+}
+
+export async function adicionarHabilidade(temporada, fichaId, dadosHabilidade) {
+    try {
+        const path = `temporadas/${temporada}/fichas/${fichaId}/habilidades`;
+        const docRef = await addDoc(collection(db, path), dadosHabilidade);
+        return docRef.id;
+    } catch (e) {
+        console.error('Erro ao adicionar habilidade:', e);
+        return null;
+    }
+}
+
+export async function atualizarHabilidade(temporada, fichaId, habilidadeId, updates) {
+    try {
+        const path = `temporadas/${temporada}/fichas/${fichaId}/habilidades/${habilidadeId}`;
+        await setDoc(doc(db, path), updates);
+        return true;
+    } catch (e) {
+        console.error('Erro ao atualizar habilidade:', e);
+        return false;
+    }
+}
+
+export async function removerHabilidade(temporada, fichaId, habilidadeId) {
+    try {
+        const path = `temporadas/${temporada}/fichas/${fichaId}/habilidades/${habilidadeId}`;
+        await deleteDoc(doc(db, path));
+        return true;
+    } catch (e) {
+        console.error('Erro ao remover habilidade:', e);
+        return false;
+    }
+}
+
+// --- Funções de Rituais ---
+
+export async function carregarRituais(temporada, fichaId) {
+    try {
+        const path = `temporadas/${temporada}/fichas/${fichaId}/rituais`;
+        const snapshot = await getDocs(collection(db, path));
+        const rituais = {};
+        snapshot.forEach(doc => {
+            rituais[doc.id] = doc.data();
+        });
+        return rituais;
+    } catch (e) {
+        console.error('Erro ao carregar rituais:', e);
+        return {};
+    }
+}
+
+export async function adicionarRitual(temporada, fichaId, dadosRitual) {
+    try {
+        const path = `temporadas/${temporada}/fichas/${fichaId}/rituais`;
+        const docRef = await addDoc(collection(db, path), dadosRitual);
+        return docRef.id;
+    } catch (e) {
+        console.error('Erro ao adicionar ritual:', e);
+        return null;
+    }
+}
+
+export async function atualizarRitual(temporada, fichaId, ritualId, updates) {
+    try {
+        const path = `temporadas/${temporada}/fichas/${fichaId}/rituais/${ritualId}`;
+        await setDoc(doc(db, path), updates);
+        return true;
+    } catch (e) {
+        console.error('Erro ao atualizar ritual:', e);
+        return false;
+    }
+}
+
+export async function removerRitual(temporada, fichaId, ritualId) {
+    try {
+        const path = `temporadas/${temporada}/fichas/${fichaId}/rituais/${ritualId}`;
+        await deleteDoc(doc(db, path));
+        return true;
+    } catch (e) {
+        console.error('Erro ao remover ritual:', e);
+        return false;
+    }
+}
+
 
 // --- src\firebase\firebase-config.js ---
 
@@ -895,6 +1669,7 @@ const auth = getAuth(app);
 const rtdb = getDatabase(app);
 
 export { db, auth, rtdb };
+
 
 // --- src\index.css ---
 
@@ -951,7 +1726,7 @@ html {
 body {
   color: var(--cor-texto-principal);
   font-family: var(--fonte-corpo);
-  background-image: url('./assets/fundo.png');
+  background-image: url('/public/assets/fundo.png');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -969,27 +1744,10 @@ body {
   align-items: center;
   justify-content: center;
 }
-/* TEMA 2: Pergaminho Antigo */
-body.theme-parchment {
-  --cor-fundo-painel: #f7f3e8; /* Cor de pergaminho */
-  --cor-texto-painel: #4a2d1a; /* Marrom escuro */
-  --cor-borda-painel: #8c6b4f; /* Borda marrom */
-  --cor-titulo-painel: #8c0000; /* Vermelho escuro */
-  --cor-barra-fundo: rgba(0, 0, 0, 0.1);
-  --cor-barra-progresso: #8c6b4f;
-}
 
-/* TEMA 3: Neon Retrô */
-body.theme-neon {
-  --cor-fundo-painel: rgba(18, 10, 24, 0.8);
-  --cor-texto-painel: #f0f0f0;
-  --cor-borda-painel: #6a0dad;
-  --cor-titulo-painel: #e0b0ff;
-  --cor-barra-fundo: rgba(0, 0, 0, 0.5);
-  --cor-barra-progresso: #9d00ff;
-}
 
 // --- src\index.js ---
+
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -1002,6 +1760,7 @@ root.render(
     <App />
   </React.StrictMode>
 );
+
 
 // --- src\TelaInicial.css ---
 
@@ -1056,6 +1815,7 @@ root.render(
     transform: scale(1.1);
 }
 
+
 // --- src\TelaInicial.js ---
 
 // src/TelaInicial.js
@@ -1063,19 +1823,25 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import './TelaInicial.css';
-import logo from './assets/logo.png';
 
 function TelaInicial() {
   const { isGM } = useAuth();
+  const logoPath = `${process.env.PUBLIC_URL}/assets/logo.png`;
 
   return (
     <div className="tela-container">
-      <img src={logo} alt="Logo do Jogo" className="game-logo" />
+      <img src={logoPath} alt="Logo do Jogo" className="game-logo" />
       <nav className="main-menu">
         <ul>
           <li><Link to="/jogar">Jogar</Link></li>
-          <li><Link to="/grupo">Ver Grupo</Link></li>
-          {isGM && <li><Link to="/mestrar">Painel do Mestre</Link></li>}
+          <li><Link to="/ver-itens">Ver Itens</Link></li>
+          {isGM && (
+            <>
+              <li><Link to="/grupo">Ver Grupo</Link></li>
+              <li><Link to="/mestrar">Painel do Mestre</Link></li>
+              <li><Link to="/criar-itens">Criar Itens</Link></li>
+            </>
+          )}
           <li><Link to="/opcoes">Opções</Link></li>
         </ul>
       </nav>
@@ -1084,6 +1850,7 @@ function TelaInicial() {
 }
 
 export default TelaInicial;
+
 
 // --- src\telas\auth\Auth.css ---
 
@@ -1165,7 +1932,9 @@ export default TelaInicial;
     text-decoration: none;
 }
 
+
 // --- src\telas\auth\TelaCadastro.js ---
+
 
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -1204,7 +1973,9 @@ function TelaCadastro() {
 }
 export default TelaCadastro;
 
+
 // --- src\telas\auth\TelaLogin.js ---
+
 
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -1245,7 +2016,9 @@ function TelaLogin() {
 }
 export default TelaLogin;
 
+
 // --- src\telas\auth\TelaUsuario.js ---
+
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -1286,54 +2059,1356 @@ function TelaUsuario() {
 }
 export default TelaUsuario;
 
+
+// --- src\telas\comum\TelaEditarAgente.css ---
+
+/* src/telas/comum/TelaEditarAgente.css */
+
+.editor-agente-container {
+    max-width: 1200px;
+}
+
+.editor-layout-superior {
+    display: flex;
+    gap: 30px;
+    margin-top: 20px;
+    text-align: left;
+}
+
+.painel-bau, .painel-inventario-jogador {
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--cor-borda-painel);
+    padding: 20px;
+    flex: 1 1;
+    transition: all 0.2s ease-in-out;
+}
+
+.painel-bau h2, .painel-inventario-jogador h2 {
+    margin-top: 0;
+    color: var(--cor-titulo-painel);
+    border-bottom: 1px solid var(--cor-borda-painel);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* --- ESTILOS VISUAIS PARA O BAÚ E INVENTÁRIO --- */
+.bau-grid, .inventario-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid var(--cor-borda-painel);
+    background: rgba(0,0,0,0.1);
+    min-height: 350px;
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.slot-visual {
+    width: 60px;
+    height: 60px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid #333;
+}
+
+.item-visual {
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative; /* Necessário para posicionar o nome */
+}
+
+/* ESTILOS ATUALIZADOS E NOVOS */
+.item-nome-visual {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    font-size: 0.7em;
+    padding: 2px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    color: #fff;
+    font-weight: bold;
+    background-color: rgba(0, 0, 0, 0.6);
+    text-align: center;
+}
+
+.item-fallback-logo {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+    opacity: 0.2;
+}
+
+.item-sprite {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* --- ESTILOS DE RARIDADE --- */
+.item-visual.raridade-comum { background-color: #2e2e38; border: 1px solid #5a5a6e; }
+.item-visual.raridade-incomum { background-color: #1e6a4c; border: 1px solid #2ecc71; }
+.item-visual.raridade-raro { background-color: #2c3e50; border: 1px solid #3498db; }
+.item-visual.raridade-epico { background-color: #4a148c; border: 1px solid #9b59b6; }
+.item-visual.raridade-lendario { background-color: #a84300; border: 1px solid #f39c12; }
+@keyframes brilho-satanico { 0% { border-color: #ff0000; box-shadow: 0 0 5px #ff0000; } 50% { border-color: #8b0000; box-shadow: 0 0 15px #ff0000, inset 0 0 5px rgba(255, 0, 0, 0.5); } 100% { border-color: #ff0000; box-shadow: 0 0 5px #ff0000; } }
+.item-visual.raridade-satanico { background-color: #3d0000; border: 1px solid #ff0000; animation: brilho-satanico 2s infinite ease-in-out; }
+
+.painel-inventario-jogador.drag-over, .painel-bau.drag-over {
+    border-color: var(--cor-destaque-vermelho);
+    box-shadow: 0 0 15px var(--cor-destaque-vermelho);
+}
+
+.aviso-inventario {
+    background-color: #a84300;
+    color: white;
+    padding: 10px;
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: bold;
+    border: 1px solid #f39c12;
+    border-radius: 4px;
+}
+
+/* --- NOVO RODAPÉ DE STATUS PARA ESTA TELA --- */
+.inventario-rodape-edicao {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--cor-borda-painel);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+.rodape-stat {
+    font-size: 0.9em;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.rodape-icon { width: 16px; height: 16px; }
+.dinheiro-display { color: #fdd835; }
+.prestigio-display { color: #e0b0ff; }
+.peso-display { color: #b0b0b0; }
+
+/* --- PAINEL DE GERENCIAMENTO INFERIOR --- */
+.painel-gerenciamento-inferior {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--cor-borda-painel);
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+}
+
+.painel-gerenciamento-inferior > div {
+    flex: 1;
+}
+
+.painel-gerenciamento-inferior h3 {
+    margin-top: 0;
+    color: var(--cor-titulo-painel);
+    border-bottom: 1px solid var(--cor-borda-painel);
+    padding-bottom: 10px;
+}
+
+.adicionar-item-custom button {
+    width: 100%;
+}
+
+.painel-edicao-stats label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.painel-edicao-stats .stats-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.painel-edicao-stats input {
+    width: 100%;
+}
+
+.painel-edicao-stats button {
+    width: 100%;
+}
+
+
+// --- src\telas\comum\TelaEditarAgente.js ---
+
+// src/telas/comum/TelaEditarAgente.js
+import React, { useState, useEffect, useMemo } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+    carregarFicha,
+    carregarModelosDeItens,
+    carregarInventarioDoPersonagem,
+    adicionarItemAoInventario,
+    removerItemDoInventario,
+    atualizarAtributosBaseFicha
+} from '../../firebase/dataService';
+import CriarItemModal from '../../componentes/CriarItemModal';
+import './TelaEditarAgente.css';
+
+const MAX_INVENTARIO = 30;
+
+function TelaEditarAgente() {
+    const { fichaId } = useParams();
+    const navigate = useNavigate();
+    const temporada = 'pacto';
+
+    const [ficha, setFicha] = useState(null);
+    const [modelosDeItens, setModelosDeItens] = useState({});
+    const [inventario, setInventario] = useState({});
+    const [loading, setLoading] = useState(true);
+    const [modalCriarItemVisivel, setModalCriarItemVisivel] = useState(false);
+    const logoPath = `${process.env.PUBLIC_URL}/assets/logo.png`;
+
+    useEffect(() => {
+        const buscarDados = async () => {
+            setLoading(true);
+            const [fichaData, modelosData, inventarioData] = await Promise.all([
+                carregarFicha(temporada, fichaId),
+                carregarModelosDeItens(),
+                carregarInventarioDoPersonagem(temporada, fichaId)
+            ]);
+    
+            if (fichaData) setFicha(fichaData);
+            setModelosDeItens(modelosData);
+            setInventario(inventarioData);
+            setLoading(false);
+        };
+
+        buscarDados();
+    }, [fichaId]);
+
+    const pesoAtual = useMemo(() => {
+        return Object.values(inventario).reduce((acc, item) => {
+            const dadosDoItem = item.itemId ? modelosDeItens[item.itemId] : item.customData;
+            const pesoItem = dadosDoItem?.espacos || 0;
+            return acc + (pesoItem * (item.quantidade || 1));
+        }, 0);
+    }, [inventario, modelosDeItens]);
+
+    const percentualInventario = useMemo(() => {
+        return (Object.keys(inventario).length / MAX_INVENTARIO) * 100;
+    }, [inventario]);
+
+    const recarregarInventario = async () => {
+        const inventarioData = await carregarInventarioDoPersonagem(temporada, fichaId);
+        setInventario(inventarioData);
+    };
+
+    const handleItemCustomCriado = () => {
+        setModalCriarItemVisivel(false);
+        recarregarInventario();
+    };
+
+    const handleFichaChange = (e) => {
+        const { name, value } = e.target;
+        const valorNumerico = parseInt(value, 10);
+        setFicha(prev => ({ ...prev, [name]: isNaN(valorNumerico) ? 0 : valorNumerico }));
+    };
+    
+    const handleSalvarAtributos = async () => {
+        const updates = {
+            dinheiro: ficha.dinheiro || 0,
+            prestigio: ficha.prestigio || 0,
+            pesoMax: ficha.pesoMax || 0
+        };
+        const sucesso = await atualizarAtributosBaseFicha(temporada, fichaId, updates);
+        if (sucesso) alert("Atributos salvos com sucesso!");
+        else alert("Falha ao salvar os atributos.");
+    };
+
+    const handleDragStart = (e, dragInfo) => e.dataTransfer.setData("dragInfo", JSON.stringify(dragInfo));
+
+    const handleDropNoInventario = async (e) => {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over');
+        const dragInfo = JSON.parse(e.dataTransfer.getData("dragInfo"));
+
+        if (dragInfo.origem !== 'bau') return;
+        if (Object.keys(inventario).length >= MAX_INVENTARIO) {
+            alert("Inventário cheio!");
+            return;
+        }
+
+        const itemParaInventario = { itemId: dragInfo.itemId, quantidade: 1, equipado: false };
+        const novoId = await adicionarItemAoInventario(temporada, fichaId, itemParaInventario);
+        if (novoId) recarregarInventario();
+    };
+    
+    const handleDropNoBau = async (e) => {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over');
+        const dragInfo = JSON.parse(e.dataTransfer.getData("dragInfo"));
+
+        if (dragInfo.origem !== 'inventario') return;
+        
+        const sucesso = await removerItemDoInventario(temporada, fichaId, dragInfo.inventarioItemId);
+        if (sucesso) recarregarInventario();
+    };
+
+    const handleDragOver = (e) => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); };
+    const handleDragLeave = (e) => { e.currentTarget.classList.remove('drag-over'); };
+    const handleItemImageError = (e) => { e.target.src = logoPath; e.target.style.padding = '5px'; };
+    
+    const RenderizarItem = ({ itemModel }) => {
+        if (!itemModel) return null;
+        const raridadeClass = `raridade-${itemModel.raridade || 'comum'}`;
+        return (
+            <div className={`item-visual ${raridadeClass}`} title={itemModel.descricao}>
+                {itemModel.imagem ? (
+                    <img src={`${process.env.PUBLIC_URL}/assets/itens/${itemModel.imagem}`} alt={itemModel.nome} className="item-sprite" onError={handleItemImageError} />
+                ) : (
+                    <div className="item-nome-visual">{itemModel.nome}</div>
+                )}
+            </div>
+        );
+    };
+
+    if (loading) return <div className="pagina-container">Carregando editor do agente...</div>;
+    if (!ficha) return <div className="pagina-container">Ficha não encontrada.</div>;
+
+    return (
+        <>
+            <div className="pagina-container editor-agente-container">
+                <h1>Editar Agente: {ficha.nome}</h1>
+                
+                {/* SEÇÃO SUPERIOR: BAÚ E INVENTÁRIO */}
+                <div className="editor-layout-superior">
+                    <div 
+                        className="painel-bau"
+                        onDrop={handleDropNoBau}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                    >
+                        <h2>Baú de Itens (Arraste para devolver)</h2>
+                        <div className="bau-grid">
+                            {Object.entries(modelosDeItens).map(([id, item]) => (
+                                <div
+                                    key={id}
+                                    className="slot-visual"
+                                    draggable
+                                    onDragStart={(e) => handleDragStart(e, { origem: 'bau', itemId: id })}
+                                >
+                                    <RenderizarItem itemModel={item} />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div 
+                        className="painel-inventario-jogador"
+                        onDrop={handleDropNoInventario}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                    >
+                        <h2>Inventário do Personagem (Arraste para cá)</h2>
+                        {percentualInventario >= 70 && (
+                            <div className="aviso-inventario">
+                                Atenção: Inventário com {Math.round(percentualInventario)}% da capacidade!
+                            </div>
+                        )}
+                        <div className="inventario-grid">
+                            {Object.entries(inventario).map(([invId, item]) => {
+                                const dadosDoItem = item.itemId ? modelosDeItens[item.itemId] : item.customData;
+                                return (
+                                    <div 
+                                        key={invId}
+                                        className="slot-visual"
+                                        draggable
+                                        onDragStart={(e) => handleDragStart(e, { origem: 'inventario', inventarioItemId: invId })}
+                                    >
+                                        <RenderizarItem itemModel={dadosDoItem} />
+                                    </div>
+                                );
+                            })}
+                            {Array.from({ length: MAX_INVENTARIO - Object.keys(inventario).length }).map((_, index) => (
+                                <div key={`empty-${index}`} className="slot-visual"></div>
+                            ))}
+                        </div>
+                        {/* RODAPÉ DE STATUS ADICIONADO AQUI */}
+                        <div className="inventario-rodape-edicao">
+                            <div className="rodape-stat dinheiro-display">
+                                <img src={`${process.env.PUBLIC_URL}/assets/gold.png`} alt="Gold" className="rodape-icon" />
+                                <span>{ficha?.dinheiro?.toLocaleString('pt-BR') || 0}</span>
+                            </div>
+                            <div className="rodape-stat prestigio-display">
+                                <img src={`${process.env.PUBLIC_URL}/assets/prestige.png`} alt="Prestige" className="rodape-icon" />
+                                <span>{ficha?.prestigio || 0}</span>
+                            </div>
+                            <div className="rodape-stat peso-display">
+                                <img src={`${process.env.PUBLIC_URL}/assets/peso.png`} alt="Peso" className="rodape-icon" />
+                                <span>{pesoAtual} / {ficha?.pesoMax || 0}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* SEÇÃO INFERIOR: GERENCIAMENTO */}
+                <div className="painel-gerenciamento-inferior">
+                    <div className="adicionar-item-custom">
+                        <h3>Criar Item Personalizado</h3>
+                        <button onClick={() => setModalCriarItemVisivel(true)}>Criar Item Homebrew</button>
+                    </div>
+                    <div className="painel-edicao-stats">
+                        <h3>Atributos Base</h3>
+                        <div className="stats-inputs">
+                            <div>
+                                <label>Dinheiro (Gold):</label>
+                                <input type="number" name="dinheiro" value={ficha.dinheiro || 0} onChange={handleFichaChange} />
+                            </div>
+                            <div>
+                                <label>Pontos de Prestígio:</label>
+                                <input type="number" name="prestigio" value={ficha.prestigio || 0} onChange={handleFichaChange} />
+                            </div>
+                            <div>
+                                <label>Peso Máximo:</label>
+                                <input type="number" name="pesoMax" value={ficha.pesoMax || 0} onChange={handleFichaChange} />
+                            </div>
+                        </div>
+                        <button onClick={handleSalvarAtributos}>Salvar Atributos</button>
+                    </div>
+                </div>
+
+                <button onClick={() => navigate(-1)} style={{ marginTop: '30px' }}>Voltar</button>
+            </div>
+
+            {modalCriarItemVisivel && (
+                <CriarItemModal
+                    onClose={() => setModalCriarItemVisivel(false)}
+                    onItemCriado={handleItemCustomCriado}
+                    temporada={temporada}
+                    fichaId={fichaId}
+                />
+            )}
+        </>
+    );
+}
+
+export default TelaEditarAgente;
+
+
+// --- src\telas\comum\TelaVerItens.css ---
+
+/* src/telas/comum/TelaVerItens.css */
+
+@font-face {
+  font-family: 'PressStart2P';
+  src: url('/public/assets/PressStart2P.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.ver-itens-container {
+    display: flex;
+    gap: 30px;
+    width: 100%;
+    max-width: 1000px;
+    text-align: left;
+    font-family: 'PressStart2P', sans-serif;
+    image-rendering: pixelated;
+}
+
+.lista-itens-painel-visualizacao, .detalhes-item-painel {
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--cor-borda-painel);
+    padding: 20px;
+    height: 600px;
+}
+
+.lista-itens-painel-visualizacao {
+    flex: 1;
+}
+
+.detalhes-item-painel {
+    flex: 2;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.ver-itens-container h2 {
+    margin-top: 0;
+    color: var(--cor-titulo-painel);
+    border-bottom: 1px solid var(--cor-borda-painel);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-size: 1em;
+}
+
+.lista-de-itens-visualizacao {
+    list-style: none;
+    padding: 0;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.lista-de-itens-visualizacao li {
+    padding: 10px;
+    border: 1px solid var(--cor-borda-painel);
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.7em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lista-de-itens-visualizacao li:hover {
+    background: var(--cor-fundo-inverso);
+    color: var(--cor-texto-inverso);
+}
+
+.item-lista-icone {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid #444;
+    flex-shrink: 0;
+}
+
+
+.item-detalhe-cabecalho {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.item-detalhe-info {
+    flex-grow: 1;
+}
+
+.item-detalhe-imagem {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    border: 2px solid var(--cor-borda-painel);
+    background: rgba(0,0,0,0.3);
+    flex-shrink: 0;
+    image-rendering: pixelated;
+}
+
+/* SELETORES CORRIGIDOS PARA AUMENTAR A ESPECIFICIDADE */
+.detalhes-item-painel .item-detalhe-tipo {
+    font-weight: normal; 
+    text-transform: uppercase;
+    color: var(--cor-texto-painel);
+    opacity: 0.7;
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 0.6em;
+}
+
+.detalhes-item-painel .raridade-texto {
+    font-weight: normal;
+    text-transform: uppercase;
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 0;
+    margin-top: 0; 
+    font-size: 0.6em;
+}
+
+.raridade-comum { background-color: #5a5a6e; color: #fff; }
+.raridade-incomum { background-color: #2ecc71; color: #fff; }
+.raridade-raro { background-color: #3498db; color: #fff; }
+.raridade-epico { background-color: #9b59b6; color: #fff; }
+.raridade-lendario { background-color: #f39c12; color: #fff; }
+.raridade-satanico { background-color: #e74c3c; color: #fff; }
+
+.detalhes-item-painel .item-detalhe-descricao {
+    font-size: 0.8em;
+    text-transform: none;
+    white-space: pre-wrap;
+    margin-top: 0;
+    line-height: 1.5;
+}
+
+.item-detalhe-modificadores {
+    margin-top: auto;
+}
+
+.item-detalhe-modificadores h3 {
+    color: var(--cor-titulo-painel);
+    border-top: 1px solid var(--cor-borda-painel);
+    padding-top: 15px;
+    margin-top: 20px;
+    font-size: 0.9em;
+}
+
+.item-detalhe-modificadores ul {
+    list-style: none;
+    padding-left: 0;
+    text-transform: none;
+    font-size: 0.7em;
+}
+
+.item-detalhe-modificadores li::before {
+    content: '> ';
+    color: var(--cor-titulo-painel);
+}
+
+.selecione-um-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    opacity: 0.5;
+    text-align: center;
+}
+.selecione-um-item img {
+    max-width: 150px;
+    margin-bottom: 20px;
+}
+
+
+// --- src\telas\comum\TelaVerItens.js ---
+
+// src/telas/comum/TelaVerItens.js
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { carregarModelosDeItens } from '../../firebase/dataService';
+import './TelaVerItens.css';
+
+function TelaVerItens() {
+    const navigate = useNavigate();
+    const [itens, setItens] = useState({});
+    const [itemSelecionado, setItemSelecionado] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const logoPath = `${process.env.PUBLIC_URL}/assets/logo.png`;
+
+    useEffect(() => {
+        const buscarItens = async () => {
+            setLoading(true);
+            const itensData = await carregarModelosDeItens();
+            setItens(itensData);
+            setLoading(false);
+        };
+        buscarItens();
+    }, []);
+
+    const handleSelecionarItem = (item) => {
+        setItemSelecionado(item);
+    };
+    
+    const handleImageError = (e) => {
+        e.target.style.display = 'none';
+    };
+
+    if (loading) {
+        return <div className="pagina-container">A carregar itens...</div>;
+    }
+
+    return (
+        <div className="pagina-container">
+            <div className="ver-itens-container">
+                <div className="lista-itens-painel-visualizacao">
+                    <h2>Compêndio de Itens</h2>
+                    <ul className="lista-de-itens-visualizacao">
+                        {Object.entries(itens).map(([id, item]) => (
+                            <li key={id} onClick={() => handleSelecionarItem(item)}>
+                                {item.imagem && (
+                                    <img 
+                                        src={`${process.env.PUBLIC_URL}/assets/itens/${item.imagem}`} 
+                                        alt={item.nome}
+                                        className="item-lista-icone"
+                                        onError={handleImageError}
+                                    />
+                                )}
+                                <span>{item.nome}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                <div className="detalhes-item-painel">
+                    {itemSelecionado ? (
+                        <>
+                            <h2>{itemSelecionado.nome}</h2>
+
+                            <div className="item-detalhe-cabecalho">
+                                <div className="item-detalhe-info">
+                                    <p className="item-detalhe-tipo">
+                                        Tipo: {itemSelecionado.tipo || 'Geral'}
+                                    </p>
+                                    <p className={`raridade-texto raridade-${itemSelecionado.raridade || 'comum'}`}>
+                                        Raridade: {itemSelecionado.raridade || 'comum'}
+                                    </p>
+                                </div>
+                                {itemSelecionado.imagem && (
+                                    <img 
+                                        src={`${process.env.PUBLIC_URL}/assets/itens/${itemSelecionado.imagem}`} 
+                                        alt={itemSelecionado.nome}
+                                        className="item-detalhe-imagem"
+                                        onError={handleImageError}
+                                    />
+                                )}
+                            </div>
+
+                            <p className="item-detalhe-descricao">{itemSelecionado.descricao}</p>
+                            
+                            {itemSelecionado.modificadores && itemSelecionado.modificadores.length > 0 && (
+                                <div className="item-detalhe-modificadores">
+                                    <h3>Modificadores</h3>
+                                    <ul>
+                                        {itemSelecionado.modificadores.map((mod, index) => (
+                                            <li key={index}>
+                                                +{mod.valor} em {mod.alvo} ({mod.tipo})
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <div className="selecione-um-item">
+                            <img src={logoPath} alt="Logo" />
+                            <p>Selecione um item da lista para ver os detalhes.</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+            <button onClick={() => navigate('/')} style={{ marginTop: '30px' }}>Voltar ao Menu</button>
+        </div>
+    );
+}
+
+export default TelaVerItens;
+
+
 // --- src\telas\jogador\TelaHabilidades.js ---
 
-// src/telas/TelaHabilidades.js
-import React from 'react';
+// src/telas/jogador/TelaHabilidades.js
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import '../MenuPaginas.css';
+import { 
+    carregarHabilidades, 
+    adicionarHabilidade, 
+    atualizarHabilidade, 
+    removerHabilidade 
+} from '../../firebase/dataService';
+import '../mestre/TelaCriarItens.css'; // Reutilizando o CSS da tela de criar itens
+
+const modeloVazio = {
+    nome: '',
+    elemento: '',
+    custo: '',
+    dados: ''
+};
 
 function TelaHabilidades() {
     const { fichaId } = useParams();
     const navigate = useNavigate();
+    const temporada = 'pacto';
+
+    const [habilidades, setHabilidades] = useState({});
+    const [itemAtual, setItemAtual] = useState(modeloVazio);
+    const [editandoId, setEditandoId] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    const fetchHabilidades = async () => {
+        setLoading(true);
+        const data = await carregarHabilidades(temporada, fichaId);
+        setHabilidades(data);
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        fetchHabilidades();
+    }, [fichaId]);
+
+    const handleSelecionar = (id, habilidade) => {
+        setItemAtual(habilidade);
+        setEditandoId(id);
+    };
+
+    const handleNovo = () => {
+        setItemAtual(modeloVazio);
+        setEditandoId(null);
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setItemAtual(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSalvar = async () => {
+        if (!itemAtual.nome) {
+            alert("O nome é obrigatório!");
+            return;
+        }
+
+        let sucesso;
+        if (editandoId) {
+            sucesso = await atualizarHabilidade(temporada, fichaId, editandoId, itemAtual);
+        } else {
+            sucesso = await adicionarHabilidade(temporada, fichaId, itemAtual);
+        }
+
+        if (sucesso) {
+            alert("Habilidade salva com sucesso!");
+            fetchHabilidades();
+            handleNovo();
+        } else {
+            alert("Falha ao salvar a habilidade.");
+        }
+    };
+
+    const handleRemover = async (id, nome) => {
+        if (window.confirm(`Tem certeza que deseja remover "${nome}"?`)) {
+            const sucesso = await removerHabilidade(temporada, fichaId, id);
+            if (sucesso) {
+                alert("Habilidade removida!");
+                fetchHabilidades();
+                handleNovo();
+            } else {
+                alert("Falha ao remover a habilidade.");
+            }
+        }
+    };
+
+    if (loading) {
+        return <div className="pagina-container">Carregando habilidades...</div>;
+    }
 
     return (
         <div className="pagina-container">
-            <h1>Habilidades</h1>
-            <p>Habilidades para o personagem com ID: {fichaId}</p>
-            <button onClick={() => navigate('/jogar')}>Voltar</button>
+            <div className="gerenciador-itens-container">
+                <div className="lista-itens-painel">
+                    <h2>Habilidades</h2>
+                    <button onClick={handleNovo}>+ Nova Habilidade</button>
+                    <ul className="lista-de-itens">
+                        {Object.entries(habilidades).map(([id, hab]) => (
+                            <li 
+                                key={id} 
+                                onClick={() => handleSelecionar(id, hab)} 
+                                className={editandoId === id ? 'selecionado' : ''}
+                            >
+                                {hab.nome}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                <div className="editor-item-painel">
+                    <h3>{editandoId ? 'Editando Habilidade' : 'Nova Habilidade'}</h3>
+                    
+                    <label>Nome:</label>
+                    <input type="text" name="nome" value={itemAtual.nome} onChange={handleChange} />
+                    
+                    <label>Elemento:</label>
+                    <input type="text" name="elemento" value={itemAtual.elemento} onChange={handleChange} placeholder="Ex: Sangue, Conhecimento..." />
+                    
+                    <label>Custo:</label>
+                    <input type="text" name="custo" value={itemAtual.custo} onChange={handleChange} placeholder="Ex: 5 PE, 1 Ação Padrão..." />
+                    
+                    <label>Dados Usados / Efeito:</label>
+                    <textarea name="dados" value={itemAtual.dados} onChange={handleChange} placeholder="Ex: 2d6+FOR, +5 em testes de..." style={{minHeight: '100px'}}></textarea>
+                    
+                    <div className="editor-actions">
+                        <button className="salvar-btn" onClick={handleSalvar}>Salvar</button>
+                        {editandoId && (
+                            <button className="remover-btn" onClick={() => handleRemover(editandoId, itemAtual.nome)}>
+                                Remover
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+            <button onClick={() => navigate('/jogar')} style={{ marginTop: '30px' }}>Voltar</button>
         </div>
     );
 }
 
 export default TelaHabilidades;
 
+
+// --- src\telas\jogador\TelaInventario.css ---
+
+/* src/telas/jogador/TelaInventario.css */
+
+.inventario-screen-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.inventario-janela {
+    width: 350px; 
+    background: #1a1a1a;
+    border: 3px solid #444;
+    box-shadow: 0 0 15px rgba(0,0,0,0.7);
+    padding: 10px;
+    font-family: var(--fonte-ficha);
+    color: #ccc;
+}
+
+.inventario-cabecalho {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #444;
+}
+.inventario-cabecalho h3 { margin: 0; }
+
+.cabecalho-botoes {
+    display: flex;
+    gap: 8px;
+}
+
+.fechar-btn, .gerenciar-btn {
+    color: #fff;
+    border: 1px solid #400;
+    cursor: pointer;
+    font-family: var(--fonte-ficha);
+    padding: 2px 8px;
+    font-size: 0.9em;
+}
+.fechar-btn { background: #800; }
+.gerenciar-btn { background: #444; border-color: #666; }
+.gerenciar-btn:hover { background: #666; }
+
+
+/* LAYOUT DE EQUIPAMENTO ATUALIZADO PARA 3 COLUNAS */
+.equipamento-painel-visual {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Alterado para 3 colunas */
+    grid-template-rows: repeat(10, 32px); /* 6 linhas para um layout mais vertical */
+    gap: 2px;
+    margin-bottom: 10px;
+    grid-template-areas:
+        "acessorio1 capacete    acessorio2"
+        "acessorio1 capacete    acessorio2"
+        "acessorio1 capacete acessorio2"
+        "arma       armadura    municao"
+        "arma       armadura    municao"
+        "arma       armadura    municao "
+        "arma       cinto    municao"
+        "acessorio3 cinto   acessorio4"
+        "acessorio3 botas       acessorio4"
+        "acessorio3 botas       acessorio4";
+}
+
+/* Posicionando cada slot em sua área designada */
+.slot-capacete  { grid-area: capacete; }
+.slot-capa      { grid-area: capa; }
+.slot-armadura  { grid-area: armadura; }
+.slot-arma      { grid-area: arma; }
+.slot-municao   { grid-area: municao; }
+.slot-botas     { grid-area: botas; }
+.slot-acessorio1 { grid-area: acessorio1; }
+.slot-acessorio2 { grid-area: acessorio2; }
+.slot-acessorio3 { grid-area: acessorio3; }
+.slot-acessorio4 { grid-area: acessorio4; }
+.slot-cinto     { grid-area: cinto; }
+
+.slot {
+    background: rgba(0,0,0,0.5);
+    border: 1px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    transition: all 0.2s;
+    font-size: 0.8em;
+}
+
+.slot.drag-over {
+    border-color: var(--cor-destaque-vermelho);
+    background: rgba(211, 0, 0, 0.2);
+}
+.slot-nome { color: #666; font-size: 0.9em; }
+
+.mochila-painel-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr); 
+    gap: 3px;
+    border-top: 1px solid #444;
+    padding-top: 10px;
+}
+.mochila-painel-grid .slot {
+    height: 45px;
+}
+
+.item-inventario {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    overflow: hidden;
+    transition: all 0.2s;
+}
+.item-nome { font-size: 0.9em; padding: 2px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+
+.item-sprite {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* --- ESTILOS DE RARIDADE --- */
+.item-inventario.raridade-comum {
+    background-color: #2e2e38;
+    border: 1px solid #5a5a6e;
+}
+.item-inventario.raridade-incomum {
+    background-color: #1e6a4c;
+    border: 1px solid #2ecc71;
+}
+.item-inventario.raridade-raro {
+    background-color: #2c3e50;
+    border: 1px solid #3498db;
+}
+.item-inventario.raridade-epico {
+    background-color: #4a148c;
+    border: 1px solid #9b59b6;
+}
+.item-inventario.raridade-lendario {
+    background-color: #a84300;
+    border: 1px solid #f39c12;
+}
+
+@keyframes brilho-satanico {
+    0% { border-color: #ff0000; box-shadow: 0 0 5px #ff0000; }
+    50% { border-color: #8b0000; box-shadow: 0 0 15px #ff0000, inset 0 0 5px rgba(255, 0, 0, 0.5); }
+    100% { border-color: #ff0000; box-shadow: 0 0 5px #ff0000; }
+}
+
+.item-inventario.raridade-satanico {
+    background-color: #3d0000;
+    border: 1px solid #ff0000;
+    animation: brilho-satanico 2s infinite ease-in-out;
+}
+
+
+/* --- ESTILOS DO RODAPÉ --- */
+.inventario-rodape {
+    margin-top: 10px;
+    padding-top: 5px;
+    border-top: 1px solid #444;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.rodape-stat {
+    background: #000;
+    padding: 5px 8px;
+    border: 1px solid #444;
+    font-size: 0.9em;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.3s, background-color 0.3s; /* Adiciona transição suave */
+}
+.rodape-icon {
+    width: 16px;
+    height: 16px;
+}
+.dinheiro-display { color: #fdd835; }
+.prestigio-display { color: #e0b0ff; }
+.peso-display { color: #b0b0b0; }
+
+/* --- NOVOS ESTILOS DE ALERTA DE PESO --- */
+.peso-display.atencao {
+    color: #fdd835; /* Amarelo (mesma cor do dinheiro) */
+}
+.peso-display.pesado {
+    color: #e74c3c; /* Vermelho */
+}
+
+@keyframes piscar-vermelho {
+    0% { background-color: #e74c3c; color: #fff; }
+    50% { background-color: #2c0b08; color: #e74c3c; }
+    100% { background-color: #e74c3c; color: #fff; }
+}
+
+.peso-display.sobrecarregado {
+    animation: piscar-vermelho 1.5s infinite;
+}
+
+
 // --- src\telas\jogador\TelaInventario.js ---
 
-// src/telas/TelaInventario.js
-import React from 'react';
+// src/telas/jogador/TelaInventario.js
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import '../MenuPaginas.css'; // Usaremos um CSS compartilhado
+import { carregarFicha, carregarModelosDeItens, carregarInventarioDoPersonagem, atualizarEquipamento, atualizarItemNoInventario } from '../../firebase/dataService';
+import './TelaInventario.css';
 
 function TelaInventario() {
-    const { fichaId } = useParams(); // Pega o ID da ficha pela URL
+    const { fichaId } = useParams();
     const navigate = useNavigate();
+    const temporada = 'pacto';
+
+    const [ficha, setFicha] = useState(null);
+    const [modelosDeItens, setModelosDeItens] = useState({});
+    const [inventario, setInventario] = useState({});
+    const [equipamento, setEquipamento] = useState({});
+    const [loading, setLoading] = useState(true);
+    const logoPath = `${process.env.PUBLIC_URL}/assets/logo.png`;
+
+    useEffect(() => {
+        const buscarDados = async () => {
+            setLoading(true);
+            const fichaData = await carregarFicha(temporada, fichaId);
+            const modelosData = await carregarModelosDeItens();
+            const inventarioData = await carregarInventarioDoPersonagem(temporada, fichaId);
+
+            if (fichaData) {
+                setFicha(fichaData);
+                setEquipamento(fichaData.equipamento || {});
+            }
+            setModelosDeItens(modelosData);
+            setInventario(inventarioData);
+            setLoading(false);
+        };
+        buscarDados();
+    }, [fichaId]);
+
+    const pesoAtual = useMemo(() => {
+        return Object.values(inventario).reduce((acc, item) => {
+            const dadosDoItem = item.itemId ? modelosDeItens[item.itemId] : item.customData;
+            const pesoItem = dadosDoItem?.espacos || 0;
+            return acc + (pesoItem * (item.quantidade || 1));
+        }, 0);
+    }, [inventario, modelosDeItens]);
+
+    // NOVA FUNÇÃO: Determina a classe CSS com base no peso
+    const getPesoClasse = () => {
+        if (!ficha || !ficha.pesoMax || ficha.pesoMax === 0) return '';
+        const percentual = (pesoAtual / ficha.pesoMax) * 100;
+
+        if (percentual >= 100) return 'sobrecarregado';
+        if (percentual >= 90) return 'pesado';
+        if (percentual >= 70) return 'atencao';
+        return '';
+    };
+
+    const handleDragStart = (e, dragInfo) => {
+        e.dataTransfer.setData("dragInfo", JSON.stringify(dragInfo));
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.currentTarget.classList.add('drag-over');
+    };
+    
+    const handleDragLeave = (e) => {
+        e.currentTarget.classList.remove('drag-over');
+    };
+
+    const handleDropOnSlot = async (e, slotAlvo) => {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over');
+        const dragInfo = JSON.parse(e.dataTransfer.getData("dragInfo"));
+
+        if (dragInfo.origem === 'slot') return; 
+
+        const inventarioItemId = dragInfo.inventarioItemId; 
+        const itemArrastado = inventario[inventarioItemId];
+        
+        if (!itemArrastado || itemArrastado.equipado) return;
+
+        const itemJaEquipadoId = equipamento[slotAlvo]; 
+        const inventarioUpdates = {};
+
+        if (itemJaEquipadoId) {
+            await atualizarItemNoInventario(temporada, fichaId, itemJaEquipadoId, { equipado: false });
+            inventarioUpdates[itemJaEquipadoId] = { ...inventario[itemJaEquipadoId], equipado: false };
+        }
+
+        const novoEquipamento = { ...equipamento, [slotAlvo]: inventarioItemId };
+        await atualizarItemNoInventario(temporada, fichaId, inventarioItemId, { equipado: true });
+        inventarioUpdates[inventarioItemId] = { ...inventario[inventarioItemId], equipado: true };
+        
+        await atualizarEquipamento(temporada, fichaId, novoEquipamento);
+
+        setEquipamento(novoEquipamento);
+        setInventario(prev => ({
+            ...prev,
+            ...inventarioUpdates
+        }));
+    };
+
+    const handleDropOnMochila = async (e) => {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over');
+        const dragInfo = JSON.parse(e.dataTransfer.getData("dragInfo"));
+
+        if (dragInfo.origem !== 'slot') return;
+
+        const { inventarioItemId, slotOrigem } = dragInfo;
+
+        const novoEquipamento = { ...equipamento, [slotOrigem]: null };
+
+        await atualizarItemNoInventario(temporada, fichaId, inventarioItemId, { equipado: false });
+        await atualizarEquipamento(temporada, fichaId, novoEquipamento);
+
+        setEquipamento(novoEquipamento);
+        setInventario(prev => ({
+            ...prev,
+            [inventarioItemId]: { ...prev[inventarioItemId], equipado: false }
+        }));
+    };
+    
+    if (loading) {
+        return <div className="pagina-container">A carregar inventário...</div>;
+    }
+
+    const handleItemImageError = (e) => {
+        e.target.src = logoPath;
+        e.target.style.padding = '5px';
+    };
+    
+    const renderizarItem = (invId, itemData) => {
+        let dadosDoItem;
+        if (itemData.itemId) {
+            dadosDoItem = modelosDeItens[itemData.itemId];
+        } else if (itemData.customData) {
+            dadosDoItem = itemData.customData;
+        }
+        if (!dadosDoItem) return <span className="slot-nome">Inválido</span>;
+
+        const raridadeClass = `raridade-${dadosDoItem.raridade || 'comum'}`;
+
+        return (
+            <div className={`item-inventario ${raridadeClass}`} title={dadosDoItem.descricao}>
+                {dadosDoItem.imagem ? (
+                    <img 
+                        src={`${process.env.PUBLIC_URL}/assets/itens/${dadosDoItem.imagem}`} 
+                        alt={dadosDoItem.nome}
+                        className="item-sprite"
+                        onError={handleItemImageError}
+                    />
+                ) : (
+                    <div className="item-nome">{dadosDoItem.nome}</div>
+                )}
+            </div>
+        );
+    };
+
+    const slotsEquipamento = [
+        { nome: 'capacete' }, { nome: 'armadura' },
+        { nome: 'arma' }, { nome: 'municao' }, { nome: 'botas' },
+        { nome: 'acessorio1' }, { nome: 'acessorio2' }, { nome: 'acessorio3' },
+        { nome: 'acessorio4' }, { nome: 'cinto' }
+    ];
 
     return (
-        <div className="pagina-container">
-            <h1>Inventário</h1>
-            <p>Conteúdo do inventário para o personagem com ID: {fichaId}</p>
-            {/* Futuramente, aqui será exibida a lista de itens da ficha */}
-            <button onClick={() => navigate('/jogar')}>Voltar</button>
+        <div className="inventario-screen-container">
+            <div className="inventario-janela">
+                <div className="inventario-cabecalho">
+                    <h3>Inventário</h3>
+                    <div className="cabecalho-botoes">
+                        <button className="gerenciar-btn" onClick={() => navigate(`/editar-agente/${fichaId}`)}>Gerenciar</button>
+                        <button className="fechar-btn" onClick={() => navigate(`/jogar`)}>X</button>
+                    </div>
+                </div>
+
+                <div className="equipamento-painel-visual">
+                    {slotsEquipamento.map(slot => {
+                        const inventarioItemId = equipamento[slot.nome];
+                        const itemNoSlot = inventarioItemId ? inventario[inventarioItemId] : null;
+                        const nomeSlotCapitalizado = slot.nome.charAt(0).toUpperCase() + slot.nome.slice(1).replace(/[0-9]/g, ' $&');
+
+                        return (
+                            <div 
+                                key={slot.nome}
+                                className={`slot slot-${slot.nome}`} 
+                                onDragOver={handleDragOver} 
+                                onDragLeave={handleDragLeave} 
+                                onDrop={(e) => handleDropOnSlot(e, slot.nome)}
+                                draggable={!!itemNoSlot}
+                                onDragStart={(e) => itemNoSlot && handleDragStart(e, { origem: 'slot', inventarioItemId, slotOrigem: slot.nome })}
+                            >
+                                {itemNoSlot ? renderizarItem(inventarioItemId, itemNoSlot) : <span className="slot-nome">{nomeSlotCapitalizado}</span>}
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div 
+                    className="mochila-painel-grid"
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDropOnMochila}
+                >
+                     {Object.entries(inventario).map(([invId, item]) => {
+                        if (item.equipado) return null;
+                        return (
+                            <div 
+                                key={invId} 
+                                className="slot"
+                                draggable={true}
+                                onDragStart={(e) => handleDragStart(e, { origem: 'mochila', inventarioItemId: invId })}
+                            >
+                               {renderizarItem(invId, item)}
+                            </div>
+                        );
+                    })}
+                    {Array.from({ length: 30 - Object.values(inventario).filter(i => !i.equipado).length }).map((_, index) => (
+                        <div key={`empty-${index}`} className="slot"></div>
+                    ))}
+                </div>
+                
+                <div className="inventario-rodape">
+                    <div className="rodape-stat dinheiro-display">
+                        <img src={`${process.env.PUBLIC_URL}/assets/gold.png`} alt="Gold" className="rodape-icon" />
+                        <span>{ficha?.dinheiro?.toLocaleString('pt-BR') || 0}</span>
+                    </div>
+                    <div className="rodape-stat prestigio-display">
+                        <img src={`${process.env.PUBLIC_URL}/assets/prestige.png`} alt="Prestige" className="rodape-icon" />
+                        <span>{ficha?.prestigio || 0}</span>
+                    </div>
+                    <div className={`rodape-stat peso-display ${getPesoClasse()}`}>
+                        <img src={`${process.env.PUBLIC_URL}/assets/peso.png`} alt="Peso" className="rodape-icon" />
+                        <span>{pesoAtual} / {ficha?.pesoMax || 0}</span>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
 
 export default TelaInventario;
 
+
 // --- src\telas\jogador\TelaJogar.css ---
 
-/* src/telas/TelaJogar.css */
+/* src/telas/jogador/TelaJogar.css */
 
 .menu-container {
     background: var(--cor-fundo-painel);
@@ -1355,6 +3430,7 @@ export default TelaInventario;
     border-radius: 50%;
     border: 3px solid var(--cor-borda-painel);
     background: #eee;
+    transition: filter 0.5s ease-in-out;
 }
 
 .menu-container h2 {
@@ -1365,7 +3441,18 @@ export default TelaInventario;
     margin-top: 0; margin-bottom: 20px;
 }
 
-.status-block { display: flex; align-items: center; gap: 10px; margin: 12px 0; }
+.selecao-agente-view, .personagem-view {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.selecao-agente-view select {
+    margin-bottom: 20px;
+}
+
+.status-block { display: flex; align-items: center; gap: 10px; margin: 12px 0; width: 100%;}
 .bar-info { font-weight: bold; color: var(--cor-texto-painel); width: 80px; text-align: right; flex-shrink: 0; }
 
 .bar-label {
@@ -1376,6 +3463,29 @@ export default TelaInventario;
     color: #fff;
     text-shadow: 1px 1px 1px #000;
     z-index: 2;
+    gap: 4px;
+}
+
+.status-input {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: var(--fonte-ficha);
+    font-weight: bold;
+    font-size: 14px;
+    width: auto; 
+    max-width: 50px;
+    text-align: right; /* ALINHAMENTO CORRIGIDO */
+    padding: 0 2px;
+    -moz-appearance: textfield; 
+}
+.status-input:focus {
+    outline: 1px solid rgba(255, 255, 255, 0.5);
+}
+.status-input::-webkit-outer-spin-button,
+.status-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .status-bar {
@@ -1399,6 +3509,7 @@ export default TelaInventario;
     height: 22px; font-size: 14px;
     line-height: 20px; border-radius: 0;
     cursor: pointer;
+    min-width: 28px;
 }
 .bar-controls button:hover { background: #000; }
 
@@ -1407,13 +3518,12 @@ export default TelaInventario;
 .sanidade-bar { background: linear-gradient(to right, #005C9E, #00A6FF); }
 .esforco-bar { background: linear-gradient(to right, #5D00A5, #A300FF); }
 
-.actions-container, .dice-roller { margin-top: 25px; border-top: 2px solid var(--cor-borda-painel); padding-top: 20px; }
+.actions-container, .dice-roller, .footer-actions { margin-top: 25px; border-top: 2px solid var(--cor-borda-painel); padding-top: 20px; width: 100%; }
 
-/* CORREÇÃO APLICADA AQUI */
 button, select {
-    background: var(--cor-titulo-painel); /* Fundo vermelho-sangue */
-    color: var(--cor-texto-inverso); /* Texto claro */
-    border: 2px solid var(--cor-titulo-painel); /* Borda da mesma cor */
+    background: var(--cor-titulo-painel);
+    color: var(--cor-texto-inverso);
+    border: 2px solid var(--cor-titulo-painel);
     padding: 10px 15px; margin: 5px;
     border-radius: 0; cursor: pointer;
     font-family: var(--fonte-ficha); font-weight: bold;
@@ -1421,8 +3531,7 @@ button, select {
 }
 
 button:hover, select:hover {
-    filter: brightness(1.2); /* Deixa o botão 20% mais claro */
-    /* Remove as regras antigas de background e color para o hover */
+    filter: brightness(1.2);
 }
 button:disabled {
     background: #ccc;
@@ -1460,52 +3569,106 @@ select option {
     color: var(--cor-texto-painel);
 }
 
+/* --- ANIMAÇÕES E CLASSES DE STATUS --- */
+@keyframes tremer {
+  0% { transform: translate(1px, 1px) rotate(0deg); }
+  10% { transform: translate(-1px, -2px) rotate(-1deg); }
+  20% { transform: translate(-3px, 0px) rotate(1deg); }
+  30% { transform: translate(3px, 2px) rotate(0deg); }
+  40% { transform: translate(1px, -1px) rotate(1deg); }
+  50% { transform: translate(-1px, 2px) rotate(-1deg); }
+  60% { transform: translate(-3px, 1px) rotate(0deg); }
+  70% { transform: translate(3px, 1px) rotate(-1deg); }
+  80% { transform: translate(-1px, -1px) rotate(1deg); }
+  90% { transform: translate(1px, 2px) rotate(0deg); }
+  100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+@keyframes pulsar-esforco {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+.character-img.sem-vida {
+    filter: grayscale(100%);
+}
+
+.character-img.sem-sanidade {
+    animation: tremer 0.5s infinite;
+}
+
+.character-img.sem-esforco {
+    animation: pulsar-esforco 1.5s infinite ease-in-out;
+}
+
+.character-img.sem-sanidade.sem-esforco {
+    animation: tremer 0.5s infinite, pulsar-esforco 1.5s infinite ease-in-out;
+}
+
+
 // --- src\telas\jogador\TelaJogar.js ---
 
 // src/telas/jogador/TelaJogar.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './TelaJogar.css';
-// CORRIGIDO: Importa as funções corretas que usam 'temporada'
-import { carregarFichasPorTemporada, atualizarStatusAoVivo, escutarStatusDeUmPersonagem, excluirFicha } from '../../firebase/dataService.js';
+import { useAuth } from '../../context/AuthContext'; // Importa o hook de autenticação
+import { carregarFichasDoUsuario, atualizarStatusAoVivo, escutarStatusDeUmPersonagem, excluirFicha } from '../../firebase/dataService.js';
 import FichaModal from '../../componentes/FichaModal.js';
-import logo from '../../assets/logo.png';
 
 function TelaJogar() {
     const navigate = useNavigate();
+    const { currentUser } = useAuth(); // Obtém o utilizador atual
     const [fichas, setFichas] = useState({});
-    const [fichaIdAtual, setFichaIdAtual] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [fichaIdAtual, setFichaIdAtual] = useState(localStorage.getItem('ultimaFichaJogar') || '');
     const [statusAoVivo, setStatusAoVivo] = useState(null);
     const [modalVisivel, setModalVisivel] = useState(false);
     const [numDados, setNumDados] = useState(1);
     const [ladosDado, setLadosDado] = useState(20);
     const [resultadoDado, setResultadoDado] = useState(null);
 
-    const temporadaAtiva = 'pacto'; // Define a temporada ativa para esta tela
+    const temporadaAtiva = 'pacto';
+    const logoPath = `${process.env.PUBLIC_URL}/assets/logo.png`;
 
-    // Carrega as fichas da temporada ativa
+    // Carrega as fichas DO UTILIZADOR LOGADO
     useEffect(() => {
+        if (!currentUser) return;
+
         const buscaDados = async () => {
-            const dados = await carregarFichasPorTemporada(temporadaAtiva);
+            setLoading(true);
+            const dados = await carregarFichasDoUsuario(temporadaAtiva, currentUser.uid);
             setFichas(dados);
+
+            const ultimaFicha = localStorage.getItem('ultimaFichaJogar');
+            if (ultimaFicha && !dados[ultimaFicha]) {
+                setFichaIdAtual('');
+                localStorage.removeItem('ultimaFichaJogar');
+            }
+            setLoading(false);
         };
         buscaDados();
-    }, []);
+    }, [currentUser]);
 
-    // Escuta as alterações de status do personagem SELECIONADO
     useEffect(() => {
-        if (!fichaIdAtual) {
+        if (!fichaIdAtual || !currentUser) {
             setStatusAoVivo(null);
             return;
         }
         
+        localStorage.setItem('ultimaFichaJogar', fichaIdAtual);
         const pararDeEscutar = escutarStatusDeUmPersonagem(temporadaAtiva, fichaIdAtual, (dados) => {
             if (dados) {
                 setStatusAoVivo(dados);
             } else {
                 const fichaInicial = fichas[fichaIdAtual];
                 if (fichaInicial) {
-                    const statusInicial = { vida: fichaInicial.vida, sanidade: fichaInicial.sanidade, esforco: fichaInicial.esforco };
+                    const statusInicial = { 
+                        vida: fichaInicial.vida, vidaMax: fichaInicial.vidaMax,
+                        sanidade: fichaInicial.sanidade, sanidadeMax: fichaInicial.sanidadeMax,
+                        esforco: fichaInicial.esforco, esforcoMax: fichaInicial.esforcoMax
+                    };
                     atualizarStatusAoVivo(temporadaAtiva, fichaIdAtual, statusInicial);
                     setStatusAoVivo(statusInicial);
                 }
@@ -1513,26 +3676,26 @@ function TelaJogar() {
         });
         
         return () => pararDeEscutar();
-    }, [fichaIdAtual, fichas]);
+    }, [fichaIdAtual, fichas, currentUser]);
 
     const handleFichaUpdate = async () => {
-        const dados = await carregarFichasPorTemporada(temporadaAtiva);
+        if (!currentUser) return;
+        const dados = await carregarFichasDoUsuario(temporadaAtiva, currentUser.uid);
         setFichas(dados);
         fecharModal();
         alert("Ficha atualizada com sucesso!");
     };
 
     const handleExcluirFicha = async () => {
-        if (!fichaIdAtual) return;
-        const confirmado = window.confirm(`Tem certeza que deseja excluir a ficha de ${fichas[fichaIdAtual].nome}?`);
-        if (confirmado) {
-            // ATUALIZADO AQUI: Passando a temporada para a função
+        if (!fichaIdAtual || !currentUser) return;
+        if (window.confirm(`Tem certeza que deseja excluir a ficha de ${fichas[fichaIdAtual].nome}?`)) {
             const sucesso = await excluirFicha(temporadaAtiva, fichaIdAtual);
             if (sucesso) {
                 alert("Ficha excluída com sucesso!");
                 fecharModal();
                 setFichaIdAtual('');
-                const dados = await carregarFichasPorTemporada(temporadaAtiva);
+                localStorage.removeItem('ultimaFichaJogar');
+                const dados = await carregarFichasDoUsuario(temporadaAtiva, currentUser.uid);
                 setFichas(dados);
             }
         }
@@ -1540,19 +3703,31 @@ function TelaJogar() {
     
     const handleSelecaoFicha = (event) => { setFichaIdAtual(event.target.value); };
     const fichaSelecionada = fichas[fichaIdAtual] || null;
-    const calcularLarguraBarra = (valor, max) => !valor || !max ? '0%' : `${(valor / max) * 100}%`;
     const abrirModal = () => setModalVisivel(true);
     const fecharModal = () => setModalVisivel(false);
-
-    // CORRIGIDO: A chamada para atualizarStatusAoVivo agora inclui a temporada
+    
     const handleAlterarStatus = (stat, valor) => {
         if (!fichaSelecionada || !statusAoVivo) return;
-        const maxStat = fichaSelecionada[`${stat}Max`];
+        const maxStat = statusAoVivo[`${stat}Max`];
         const currentStat = statusAoVivo[stat];
         const novoValor = Math.max(0, Math.min(maxStat, currentStat + valor));
         atualizarStatusAoVivo(temporadaAtiva, fichaIdAtual, { ...statusAoVivo, [stat]: novoValor });
     };
-    
+
+    const handleInputStatusChange = (stat, novoValor) => {
+        if (!fichaSelecionada || !statusAoVivo) return;
+        const maxStat = statusAoVivo[`${stat}Max`];
+        const valorNumerico = parseInt(novoValor, 10);
+        
+        if (isNaN(valorNumerico)) {
+            setStatusAoVivo(prev => ({...prev, [stat]: 0}));
+            return;
+        }
+
+        const valorFinal = Math.max(0, Math.min(maxStat, valorNumerico));
+        atualizarStatusAoVivo(temporadaAtiva, fichaIdAtual, { ...statusAoVivo, [stat]: valorFinal });
+    };
+
     const rolarDados = () => {
         if (numDados <= 0 || ladosDado <= 0) return;
         let rolagens = [];
@@ -1562,75 +3737,148 @@ function TelaJogar() {
         const soma = rolagens.reduce((a, b) => a + b, 0);
         setResultadoDado(`Rolagens (${numDados}d${ladosDado}): [${rolagens.join(', ')}] = ${soma}`);
     };
-
-    const getImagemPersonagem = (nome) => {
-        if (!nome) return logo;
-        try {
-            return require(`../../assets/personagens/${nome.toLowerCase()}.png`);
-        } catch (err) {
-            return logo;
+    
+    // FUNÇÃO DE IMAGEM ATUALIZADA
+    const getImagemPersonagem = (ficha) => {
+        if (!ficha) return logoPath;
+        
+        // 1. Verifica se existe um nome de arquivo customizado no campo 'imagem'
+        if (ficha.imagem) {
+            return `${process.env.PUBLIC_URL}/assets/personagens/${ficha.imagem}`;
         }
+        
+        // 2. Se não, usa o nome do personagem como fallback
+        if (ficha.nome) {
+            const nomeArquivo = ficha.nome.toLowerCase().replace(/ /g, '_') + '.png';
+            return `${process.env.PUBLIC_URL}/assets/personagens/${nomeArquivo}`;
+        }
+        
+        // 3. Se não tiver nenhum, usa o logo padrão
+        return logoPath;
     };
-    const imagemExibida = getImagemPersonagem(fichaSelecionada?.nome);
+    
+    const imagemExibida = getImagemPersonagem(fichaSelecionada); // Passa a ficha inteira
+    
+    const getCharacterImageClasses = () => {
+        let classes = 'character-img';
+        if (!statusAoVivo) return classes;
+
+        if (statusAoVivo.vida <= 0) classes += ' sem-vida';
+        if (statusAoVivo.sanidade <= 0) classes += ' sem-sanidade';
+        if (statusAoVivo.esforco <= 0) classes += ' sem-esforco';
+        
+        return classes;
+    };
+
+    const handleImageError = (e) => {
+        e.target.src = logoPath;
+    };
+
+    // Ecrã de carregamento
+    if (loading) {
+        return <div className="pagina-container">A carregar os seus agentes...</div>
+    }
+
+    // Ecrã para novos utilizadores sem fichas
+    if (Object.keys(fichas).length === 0) {
+        return (
+            <div className="menu-container">
+                 <img src={logoPath} alt="Logo" className="character-img" />
+                 <h2>Nenhum Agente Encontrado</h2>
+                 <p>Você ainda não tem um personagem. Crie um para começar a jogar!</p>
+                 <div className="footer-actions">
+                     <button onClick={() => navigate('/criar-ficha')}>Criar Nova Ficha</button>
+                     <button onClick={() => navigate('/')}>Voltar ao Menu</button>
+                 </div>
+            </div>
+        );
+    }
 
     return (
         <>
             <div className="menu-container">
-                <img src={imagemExibida} alt="Personagem" className="character-img" />
-                <h2>{fichaSelecionada?.nome || 'Selecione um Agente'}</h2>
-                <select value={fichaIdAtual} onChange={handleSelecaoFicha}>
-                    <option value="">-- SELECIONAR AGENTE --</option>
-                    {Object.keys(fichas).map(id => (<option key={id} value={id}>{fichas[id].nome}</option>))}
-                </select>
-                
-                <div className="status-block">
-                    <span className="bar-info">Vida</span>
-                    <div className="status-bar">
-                        <div className="hp-bar" style={{ width: calcularLarguraBarra(statusAoVivo?.vida, fichaSelecionada?.vidaMax) }}></div>
-                        <span className="bar-label">{statusAoVivo?.vida ?? 0}/{fichaSelecionada?.vidaMax || 0}</span>
-                        <div className="bar-controls left-controls"><button onClick={() => handleAlterarStatus('vida', -10)} disabled={!fichaSelecionada}>&lt;&lt;&lt;</button><button onClick={() => handleAlterarStatus('vida', -5)} disabled={!fichaSelecionada}>&lt;&lt;</button><button onClick={() => handleAlterarStatus('vida', -1)} disabled={!fichaSelecionada}>&lt;</button></div>
-                        <div className="bar-controls right-controls"><button onClick={() => handleAlterarStatus('vida', 1)} disabled={!fichaSelecionada}>&gt;</button><button onClick={() => handleAlterarStatus('vida', 5)} disabled={!fichaSelecionada}>&gt;&gt;</button><button onClick={() => handleAlterarStatus('vida', 10)} disabled={!fichaSelecionada}>&gt;&gt;&gt;</button></div>
+                {!fichaSelecionada ? (
+                    <div className="selecao-agente-view">
+                        <img src={logoPath} alt="Logo" className="character-img" />
+                        <h2>Selecione o seu Agente</h2>
+                        <select value={fichaIdAtual} onChange={handleSelecaoFicha}>
+                            <option value="">-- SELECIONAR AGENTE --</option>
+                            {Object.keys(fichas).map(id => (<option key={id} value={id}>{fichas[id].nome}</option>))}
+                        </select>
+                        <div className="footer-actions">
+                            <button onClick={() => navigate('/criar-ficha')}>Criar Novo Agente</button>
+                            <button onClick={() => navigate('/')}>Voltar ao Menu</button>
+                        </div>
                     </div>
-                </div>
-                <div className="status-block">
-                    <span className="bar-info">Sanidade</span>
-                    <div className="status-bar">
-                        <div className="sanidade-bar" style={{ width: calcularLarguraBarra(statusAoVivo?.sanidade, fichaSelecionada?.sanidadeMax) }}></div>
-                        <span className="bar-label">{statusAoVivo?.sanidade ?? 0}/{fichaSelecionada?.sanidadeMax || 0}</span>
-                        <div className="bar-controls left-controls"><button onClick={() => handleAlterarStatus('sanidade', -10)} disabled={!fichaSelecionada}>&lt;&lt;&lt;</button><button onClick={() => handleAlterarStatus('sanidade', -5)} disabled={!fichaSelecionada}>&lt;&lt;</button><button onClick={() => handleAlterarStatus('sanidade', -1)} disabled={!fichaSelecionada}>&lt;</button></div>
-                        <div className="bar-controls right-controls"><button onClick={() => handleAlterarStatus('sanidade', 1)} disabled={!fichaSelecionada}>&gt;</button><button onClick={() => handleAlterarStatus('sanidade', 5)} disabled={!fichaSelecionada}>&gt;&gt;</button><button onClick={() => handleAlterarStatus('sanidade', 10)} disabled={!fichaSelecionada}>&gt;&gt;&gt;</button></div>
+                ) : (
+                    <div className="personagem-view">
+                        <img src={imagemExibida} alt="Personagem" className={getCharacterImageClasses()} onError={handleImageError} />
+                        <h2>{fichaSelecionada.nome}</h2>
+
+                        {/* Bloco de Vida */}
+                        <div className="status-block">
+                            <span className="bar-info">Vida</span>
+                            <div className="status-bar">
+                                <div className="hp-bar" style={{ width: `${(statusAoVivo?.vida / statusAoVivo?.vidaMax) * 100}%` }}></div>
+                                <div className="bar-label">
+                                    <input type="number" className="status-input" value={statusAoVivo?.vida ?? 0} onChange={(e) => handleInputStatusChange('vida', e.target.value)} />
+                                    / {statusAoVivo?.vidaMax || 0}
+                                </div>
+                                <div className="bar-controls left-controls"><button onClick={() => handleAlterarStatus('vida', -10)}>&lt;&lt;&lt;</button><button onClick={() => handleAlterarStatus('vida', -5)}>&lt;&lt;</button><button onClick={() => handleAlterarStatus('vida', -1)}>&lt;</button></div>
+                                <div className="bar-controls right-controls"><button onClick={() => handleAlterarStatus('vida', 1)}>&gt;</button><button onClick={() => handleAlterarStatus('vida', 5)}>&gt;&gt;</button><button onClick={() => handleAlterarStatus('vida', 10)}>&gt;&gt;&gt;</button></div>
+                            </div>
+                        </div>
+
+                        {/* Bloco de Sanidade */}
+                        <div className="status-block">
+                            <span className="bar-info">Sanidade</span>
+                            <div className="status-bar">
+                                <div className="sanidade-bar" style={{ width: `${(statusAoVivo?.sanidade / statusAoVivo?.sanidadeMax) * 100}%` }}></div>
+                                <div className="bar-label">
+                                    <input type="number" className="status-input" value={statusAoVivo?.sanidade ?? 0} onChange={(e) => handleInputStatusChange('sanidade', e.target.value)} />
+                                    / {statusAoVivo?.sanidadeMax || 0}
+                                </div>
+                                <div className="bar-controls left-controls"><button onClick={() => handleAlterarStatus('sanidade', -10)}>&lt;&lt;&lt;</button><button onClick={() => handleAlterarStatus('sanidade', -5)}>&lt;&lt;</button><button onClick={() => handleAlterarStatus('sanidade', -1)}>&lt;</button></div>
+                                <div className="bar-controls right-controls"><button onClick={() => handleAlterarStatus('sanidade', 1)}>&gt;</button><button onClick={() => handleAlterarStatus('sanidade', 5)}>&gt;&gt;</button><button onClick={() => handleAlterarStatus('sanidade', 10)}>&gt;&gt;&gt;</button></div>
+                            </div>
+                        </div>
+                        
+                        {/* Bloco de Esforço */}
+                        <div className="status-block">
+                            <span className="bar-info">Esforço</span>
+                            <div className="status-bar">
+                                <div className="esforco-bar" style={{ width: `${(statusAoVivo?.esforco / statusAoVivo?.esforcoMax) * 100}%` }}></div>
+                                <div className="bar-label">
+                                    <input type="number" className="status-input" value={statusAoVivo?.esforco ?? 0} onChange={(e) => handleInputStatusChange('esforco', e.target.value)} />
+                                    / {statusAoVivo?.esforcoMax || 0}
+                                </div>
+                                <div className="bar-controls left-controls"><button onClick={() => handleAlterarStatus('esforco', -10)}>&lt;&lt;&lt;</button><button onClick={() => handleAlterarStatus('esforco', -5)}>&lt;&lt;</button><button onClick={() => handleAlterarStatus('esforco', -1)}>&lt;</button></div>
+                                <div className="bar-controls right-controls"><button onClick={() => handleAlterarStatus('esforco', 1)}>&gt;</button><button onClick={() => handleAlterarStatus('esforco', 5)}>&gt;&gt;</button><button onClick={() => handleAlterarStatus('esforco', 10)}>&gt;&gt;&gt;</button></div>
+                            </div>
+                        </div>
+                        
+                        <div className="actions-container">
+                            <button onClick={abrirModal}>Ficha</button>
+                            <button onClick={() => navigate(`/inventario/${fichaIdAtual}`)}>Inventário</button>
+                            <button onClick={() => navigate(`/habilidades/${fichaIdAtual}`)}>Habilidades</button>
+                            <button onClick={() => navigate(`/rituais/${fichaIdAtual}`)}>Rituais</button>
+                        </div>
+                        <div className="dice-roller">
+                            <h3>Rolador de Dados</h3>
+                            <div className="dice-inputs">
+                                <label>Qtd:</label> <input type="number" value={numDados} onChange={(e) => setNumDados(parseInt(e.target.value))} min="1"/>
+                                <span>d</span>
+                                <label>Lados:</label> <input type="number" value={ladosDado} onChange={(e) => setLadosDado(parseInt(e.target.value))} min="2"/>
+                                <button onClick={rolarDados}>Rolar</button>
+                            </div>
+                            <div className="dice-result">{resultadoDado || "Role os dados..."}</div>
+                        </div>
+                        <div className="footer-actions">
+                            <button onClick={() => { setFichaIdAtual(''); localStorage.removeItem('ultimaFichaJogar'); }}>Trocar Agente</button>
+                            <button onClick={() => navigate('/')}>Voltar ao Menu</button>
+                        </div>
                     </div>
-                </div>
-                <div className="status-block">
-                    <span className="bar-info">Esforço</span>
-                    <div className="status-bar">
-                        <div className="esforco-bar" style={{ width: calcularLarguraBarra(statusAoVivo?.esforco, fichaSelecionada?.esforcoMax) }}></div>
-                        <span className="bar-label">{statusAoVivo?.esforco ?? 0}/{fichaSelecionada?.esforcoMax || 0}</span>
-                        <div className="bar-controls left-controls"><button onClick={() => handleAlterarStatus('esforco', -10)} disabled={!fichaSelecionada}>&lt;&lt;&lt;</button><button onClick={() => handleAlterarStatus('esforco', -5)} disabled={!fichaSelecionada}>&lt;&lt;</button><button onClick={() => handleAlterarStatus('esforco', -1)} disabled={!fichaSelecionada}>&lt;</button></div>
-                        <div className="bar-controls right-controls"><button onClick={() => handleAlterarStatus('esforco', 1)} disabled={!fichaSelecionada}>&gt;</button><button onClick={() => handleAlterarStatus('esforco', 5)} disabled={!fichaSelecionada}>&gt;&gt;</button><button onClick={() => handleAlterarStatus('esforco', 10)} disabled={!fichaSelecionada}>&gt;&gt;&gt;</button></div>
-                    </div>
-                </div>
-                
-                <div className="actions-container">
-                    <button onClick={abrirModal} disabled={!fichaSelecionada}>Ficha</button>
-                    <button onClick={() => navigate(`/inventario/${fichaIdAtual}`)} disabled={!fichaSelecionada}>Inventário</button>
-                    <button onClick={() => navigate(`/habilidades/${fichaIdAtual}`)} disabled={!fichaSelecionada}>Habilidades</button>
-                    <button onClick={() => navigate(`/rituais/${fichaIdAtual}`)} disabled={!fichaSelecionada}>Rituais</button>
-                </div>
-                <div className="dice-roller">
-                    <h3>Rolador de Dados</h3>
-                    <div className="dice-inputs">
-                        <label>Qtd:</label> <input type="number" value={numDados} onChange={(e) => setNumDados(parseInt(e.target.value))} min="1"/>
-                        <span>d</span>
-                        <label>Lados:</label> <input type="number" value={ladosDado} onChange={(e) => setLadosDado(parseInt(e.target.value))} min="2"/>
-                        <button onClick={rolarDados}>Rolar</button>
-                    </div>
-                    <div className="dice-result">{resultadoDado || "Role os dados..."}</div>
-                </div>
-                <div className="footer-actions">
-                    <button onClick={() => navigate('/criar-ficha')}>Criar Nova Ficha</button>
-                    <button onClick={() => navigate('/')}>Voltar ao Menu</button>
-                </div>
+                )}
             </div>
             {modalVisivel && <FichaModal ficha={fichaSelecionada} fichaId={fichaIdAtual} temporada={temporadaAtiva} onClose={fecharModal} onExcluir={handleExcluirFicha} onUpdate={handleFichaUpdate} />}
         </>
@@ -1639,26 +3887,153 @@ function TelaJogar() {
 
 export default TelaJogar;
 
+
 // --- src\telas\jogador\TelaRituais.js ---
 
-// src/telas/TelaRituais.js
-import React from 'react';
+// src/telas/jogador/TelaRituais.js
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import '../MenuPaginas.css';
+import { 
+    carregarRituais, 
+    adicionarRitual, 
+    atualizarRitual, 
+    removerRitual 
+} from '../../firebase/dataService';
+import '../mestre/TelaCriarItens.css'; // Reutilizando o CSS da tela de criar itens
+
+const modeloVazio = {
+    nome: '',
+    elemento: '',
+    custo: '',
+    dados: ''
+};
 
 function TelaRituais() {
     const { fichaId } = useParams();
     const navigate = useNavigate();
+    const temporada = 'pacto';
+
+    const [rituais, setRituais] = useState({});
+    const [itemAtual, setItemAtual] = useState(modeloVazio);
+    const [editandoId, setEditandoId] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    const fetchRituais = async () => {
+        setLoading(true);
+        const data = await carregarRituais(temporada, fichaId);
+        setRituais(data);
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        fetchRituais();
+    }, [fichaId]);
+
+    const handleSelecionar = (id, ritual) => {
+        setItemAtual(ritual);
+        setEditandoId(id);
+    };
+
+    const handleNovo = () => {
+        setItemAtual(modeloVazio);
+        setEditandoId(null);
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setItemAtual(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSalvar = async () => {
+        if (!itemAtual.nome) {
+            alert("O nome é obrigatório!");
+            return;
+        }
+
+        let sucesso;
+        if (editandoId) {
+            sucesso = await atualizarRitual(temporada, fichaId, editandoId, itemAtual);
+        } else {
+            sucesso = await adicionarRitual(temporada, fichaId, itemAtual);
+        }
+
+        if (sucesso) {
+            alert("Ritual salvo com sucesso!");
+            fetchRituais();
+            handleNovo();
+        } else {
+            alert("Falha ao salvar o ritual.");
+        }
+    };
+
+    const handleRemover = async (id, nome) => {
+        if (window.confirm(`Tem certeza que deseja remover "${nome}"?`)) {
+            const sucesso = await removerRitual(temporada, fichaId, id);
+            if (sucesso) {
+                alert("Ritual removido!");
+                fetchRituais();
+                handleNovo();
+            } else {
+                alert("Falha ao remover o ritual.");
+            }
+        }
+    };
+
+    if (loading) {
+        return <div className="pagina-container">Carregando rituais...</div>;
+    }
+
     return (
         <div className="pagina-container">
-            <h1>Rituais</h1>
-            <p>Rituais para o personagem com ID: {fichaId}</p>
-            <button onClick={() => navigate('/jogar')}>Voltar</button>
+            <div className="gerenciador-itens-container">
+                <div className="lista-itens-painel">
+                    <h2>Rituais</h2>
+                    <button onClick={handleNovo}>+ Novo Ritual</button>
+                    <ul className="lista-de-itens">
+                        {Object.entries(rituais).map(([id, rit]) => (
+                            <li 
+                                key={id} 
+                                onClick={() => handleSelecionar(id, rit)} 
+                                className={editandoId === id ? 'selecionado' : ''}
+                            >
+                                {rit.nome}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                <div className="editor-item-painel">
+                    <h3>{editandoId ? 'Editando Ritual' : 'Novo Ritual'}</h3>
+                    
+                    <label>Nome:</label>
+                    <input type="text" name="nome" value={itemAtual.nome} onChange={handleChange} />
+                    
+                    <label>Elemento:</label>
+                    <input type="text" name="elemento" value={itemAtual.elemento} onChange={handleChange} placeholder="Ex: Sangue, Conhecimento..." />
+                    
+                    <label>Custo:</label>
+                    <input type="text" name="custo" value={itemAtual.custo} onChange={handleChange} placeholder="Ex: 5 PE, 1 Ação Padrão..." />
+                    
+                    <label>Dados Usados / Efeito:</label>
+                    <textarea name="dados" value={itemAtual.dados} onChange={handleChange} placeholder="Ex: 2d6+FOR, +5 em testes de..." style={{minHeight: '100px'}}></textarea>
+                    
+                    <div className="editor-actions">
+                        <button className="salvar-btn" onClick={handleSalvar}>Salvar</button>
+                        {editandoId && (
+                            <button className="remover-btn" onClick={() => handleRemover(editandoId, itemAtual.nome)}>
+                                Remover
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+            <button onClick={() => navigate('/jogar')} style={{ marginTop: '30px' }}>Voltar</button>
         </div>
     );
 }
 
 export default TelaRituais;
+
 
 // --- src\telas\MenuPaginas.css ---
 
@@ -1707,17 +4082,312 @@ export default TelaRituais;
     color: var(--cor-fundo-painel);
 }
 
+
+// --- src\telas\mestre\TelaCriarItens.css ---
+
+/* src/telas/mestre/TelaCriarItens.css */
+
+.gerenciador-itens-container {
+    display: flex;
+    gap: 30px;
+    width: 100%;
+    max-width: 1200px;
+}
+
+.lista-itens-painel, .editor-item-painel {
+    background: var(--cor-fundo-painel);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 20px;
+    backdrop-filter: blur(5px);
+}
+
+.lista-itens-painel {
+    flex: 1;
+}
+.editor-item-painel {
+    flex: 2;
+}
+
+.gerenciador-itens-container h2, .gerenciador-itens-container h3 {
+    color: var(--cor-titulo-painel);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--cor-borda-painel);
+    padding-bottom: 10px;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.lista-itens-painel button {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.lista-de-itens {
+    list-style: none;
+    padding: 0;
+    max-height: 450px;
+    overflow-y: auto;
+}
+
+.lista-de-itens li {
+    padding: 10px;
+    border: 1px solid var(--cor-borda-painel);
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.lista-de-itens li:hover {
+    background: var(--cor-fundo-inverso);
+    color: var(--cor-texto-inverso);
+}
+
+.lista-de-itens li.selecionado {
+    background: var(--cor-destaque-vermelho);
+    color: var(--cor-texto-inverso);
+    border-color: var(--cor-destaque-vermelho);
+}
+
+.editor-item-painel label {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+.editor-item-painel input, .editor-item-painel textarea, .editor-item-painel select {
+    width: 100%;
+    padding: 8px;
+    background: var(--cor-fundo-input);
+    color: var(--cor-texto-painel);
+    border: 1px solid var(--cor-borda-painel);
+    box-sizing: border-box;
+}
+.editor-item-painel textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.modificador-item {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.modificador-item select { width: 120px; }
+.modificador-item input[type="text"] { flex-grow: 1; }
+.modificador-item input[type="number"] { width: 80px; }
+.modificador-item .remover-mod-btn {
+    background: var(--cor-botao-perigo);
+    color: white;
+    border: none;
+    cursor: pointer;
+    padding: 5px 10px;
+}
+
+.editor-actions {
+    margin-top: 25px;
+    border-top: 1px solid var(--cor-borda-painel);
+    padding-top: 15px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+}
+
+
+// --- src\telas\mestre\TelaCriarItens.js ---
+
+// src/telas/mestre/TelaCriarItens.js
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { carregarModelosDeItens, salvarItemModelo, removerItemModelo } from '../../firebase/dataService';
+import './TelaCriarItens.css';
+
+const modeloItemVazio = {
+    nome: '',
+    descricao: '',
+    tipo: 'geral',
+    espacos: 1,
+    imagem: '',
+    raridade: 'comum',
+    modificadores: []
+};
+
+function TelaCriarItens() {
+    const navigate = useNavigate();
+    const [itens, setItens] = useState({});
+    const [itemAtual, setItemAtual] = useState(modeloItemVazio);
+    const [editandoId, setEditandoId] = useState(null);
+
+    useEffect(() => {
+        const buscarItens = async () => {
+            const itensData = await carregarModelosDeItens();
+            setItens(itensData);
+        };
+        buscarItens();
+    }, []);
+
+    const handleSelecionarItem = (itemId) => {
+        setEditandoId(itemId);
+        setItemAtual({ raridade: 'comum', ...itens[itemId] });
+    };
+
+    const handleNovoItem = () => {
+        setEditandoId(null);
+        setItemAtual(modeloItemVazio);
+    };
+
+    const handleChange = (e) => {
+        const { name, value, type } = e.target;
+        const valor = type === 'number' ? parseInt(value) || 0 : value;
+        setItemAtual(prev => ({ ...prev, [name]: valor }));
+    };
+
+    const handleAdicionarModificador = () => {
+        const novoModificador = { tipo: 'pericia', alvo: '', valor: 1 };
+        setItemAtual(prev => ({
+            ...prev,
+            modificadores: [...(prev.modificadores || []), novoModificador]
+        }));
+    };
+    
+    const handleModificadorChange = (index, e) => {
+        const { name, value } = e.target;
+        const novosModificadores = [...itemAtual.modificadores];
+        novosModificadores[index] = { ...novosModificadores[index], [name]: value };
+        setItemAtual(prev => ({ ...prev, modificadores: novosModificadores }));
+    };
+
+    const handleRemoverModificador = (index) => {
+        const novosModificadores = itemAtual.modificadores.filter((_, i) => i !== index);
+        setItemAtual(prev => ({ ...prev, modificadores: novosModificadores }));
+    };
+
+    const handleSalvar = async () => {
+        if (!itemAtual.nome) {
+            alert("O nome do item é obrigatório!");
+            return;
+        }
+        const idSalvo = await salvarItemModelo(editandoId, itemAtual);
+        if (idSalvo) {
+            alert("Item salvo com sucesso!");
+            const itensData = await carregarModelosDeItens();
+            setItens(itensData);
+            if (!editandoId) { 
+                handleNovoItem();
+            }
+        }
+    };
+
+    const handleRemover = async () => {
+        if (!editandoId) return;
+        if (window.confirm(`Tem certeza que deseja remover o item "${itemAtual.nome}"?`)) {
+            const sucesso = await removerItemModelo(editandoId);
+            if (sucesso) {
+                alert("Item removido com sucesso!");
+                const itensData = await carregarModelosDeItens();
+                setItens(itensData);
+                handleNovoItem();
+            }
+        }
+    };
+
+    return (
+        <div className="pagina-container">
+            <div className="gerenciador-itens-container">
+                <div className="lista-itens-painel">
+                    <h2>Itens Globais</h2>
+                    <button onClick={handleNovoItem}>+ Criar Novo Item</button>
+                    <ul className="lista-de-itens">
+                        {Object.entries(itens).map(([id, item]) => (
+                            <li key={id} onClick={() => handleSelecionarItem(id)} className={editandoId === id ? 'selecionado' : ''}>
+                                {item.nome}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+                <div className="editor-item-painel">
+                    <h3>{editandoId ? 'Editando Item' : 'Novo Item'}</h3>
+                    <label>Nome do Item:</label>
+                    <input type="text" name="nome" value={itemAtual.nome} onChange={handleChange} />
+                    
+                    <label>Nome do Arquivo da Imagem (ex: manopla.png):</label>
+                    <input type="text" name="imagem" value={itemAtual.imagem || ''} onChange={handleChange} />
+
+                    <label>Descrição:</label>
+                    <textarea name="descricao" value={itemAtual.descricao || ''} onChange={handleChange}></textarea>
+
+                    <label>Raridade:</label>
+                    <select name="raridade" value={itemAtual.raridade} onChange={handleChange}>
+                        <option value="comum">Comum</option>
+                        <option value="incomum">Incomum</option>
+                        <option value="raro">Raro</option>
+                        <option value="epico">Épico</option>
+                        <option value="lendario">Lendário</option>
+                        <option value="satanico">Satânico</option>
+                    </select>
+
+                    <label>Tipo:</label>
+                    <select name="tipo" value={itemAtual.tipo} onChange={handleChange}>
+                        <option value="geral">Geral</option>
+                        <option value="arma">Arma</option>
+                        <option value="armadura">Armadura</option>
+                        <option value="acessorio">Acessório</option>
+                        <option value="capacete">Capacete</option>
+                        <option value="peitoral">Peitoral</option>
+                        <option value="calcas">Calças</option>
+                        <option value="luvas">Luvas</option>
+                        <option value="botas">Botas</option>
+                        <option value="escudo">Escudo</option>
+                        <option value="capa">Capa</option>
+                        <option value="municao">Munição</option>
+                        <option value="cinto">Cinto</option>
+                        <option value="anel">Anel</option>
+                    </select>
+                    
+                    <label>Espaços no Inventário:</label>
+                    <input type="number" name="espacos" value={itemAtual.espacos} onChange={handleChange} />
+
+                    <h3>Modificadores</h3>
+                    {itemAtual.modificadores && itemAtual.modificadores.map((mod, index) => (
+                        <div key={index} className="modificador-item">
+                            <select name="tipo" value={mod.tipo} onChange={(e) => handleModificadorChange(index, e)}>
+                                <option value="pericia">Perícia</option>
+                                <option value="atributo">Atributo</option>
+                            </select>
+                            <input type="text" placeholder="Alvo (ex: adestramento)" name="alvo" value={mod.alvo} onChange={(e) => handleModificadorChange(index, e)} />
+                            <input type="number" placeholder="Valor" name="valor" value={mod.valor} onChange={(e) => handleModificadorChange(index, e)} />
+                            <button className="remover-mod-btn" onClick={() => handleRemoverModificador(index)}>X</button>
+                        </div>
+                    ))}
+                    <button onClick={handleAdicionarModificador}>+ Adicionar Modificador</button>
+                    
+                    <div className="editor-actions">
+                        <button className="salvar-btn" onClick={handleSalvar}>Salvar</button>
+                        {editandoId && <button className="remover-btn" onClick={handleRemover}>Remover Item</button>}
+                    </div>
+                </div>
+            </div>
+            <button onClick={() => navigate('/')} style={{ marginTop: '30px' }}>Voltar ao Menu</button>
+        </div>
+    );
+}
+
+export default TelaCriarItens;
+
+
 // --- src\telas\mestre\TelaGrupo.css ---
 
-/* src/telas/TelaMestrar.css */
-.mestrar-container {
+/* src/telas/mestre/TelaGrupo.css */
+
+/* Estilos gerais para o container da página de grupo */
+.grupo-container {
     width: 100%;
     min-height: 100vh;
     padding: 20px;
     box-sizing: border-box;
 }
 
-.mestrar-header {
+.grupo-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1726,14 +4396,14 @@ export default TelaRituais;
     border-bottom: 2px solid var(--cor-borda-painel);
 }
 
-.mestrar-header h1 {
+.grupo-header h1 {
     font-family: var(--fonte-ficha);
     color: var(--cor-titulo-painel);
     font-size: 2.5em;
     margin: 0;
 }
 
-.mestrar-header button {
+.grupo-header button {
     background: var(--cor-fundo-inverso);
     color: var(--cor-texto-inverso);
     border: 2px solid var(--cor-borda-painel);
@@ -1742,7 +4412,7 @@ export default TelaRituais;
     font-family: var(--fonte-ficha);
     text-transform: uppercase;
 }
-.mestrar-header button:hover {
+.grupo-header button:hover {
     background: var(--cor-titulo-painel);
     color: var(--cor-fundo-painel);
 }
@@ -1754,22 +4424,21 @@ export default TelaRituais;
     justify-items: center; /* Centraliza os cards na grade */
 }
 
-.jogador-card {
-    background: #008000;
-    color: var(--cor-texto-painel);
+/* --- ESTILOS ESPECÍFICOS PARA OS CARDS NO "VER GRUPO" --- */
+.grupo-container .jogador-card {
+    background: #008000; /* FUNDO VERDE PARA GRAVAÇÃO */
     border: 2px solid var(--cor-borda-painel);
     padding: 20px;
     font-family: var(--fonte-ficha);
     text-transform: uppercase;
-    backdrop-filter: blur(5px);
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 15px;
-    width: 200px; /* Largura fixa para os cards */
+    width: 200px;
 }
 
-.jogador-card h2 {
+.grupo-container .jogador-card h2 {
     font-family: var(--fonte-ficha);
     color: var(--cor-titulo-painel);
     font-size: 1.5em;
@@ -1777,22 +4446,23 @@ export default TelaRituais;
     text-align: center;
 }
 
-.imagem-container {
+.grupo-container .imagem-container {
     position: relative;
-    width: 150px; /* Imagem um pouco maior */
+    width: 150px;
     height: 150px;
     flex-shrink: 0;
 }
 
-.jogador-img {
+.grupo-container .jogador-img {
     width: 100%;
     height: 100%;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid var(--cor-borda-painel);
+    transition: filter 0.5s ease-in-out; /* Adiciona transição suave */
 }
 
-.stat-overlay {
+.grupo-container .stat-overlay {
     position: absolute;
     width: 40px;
     height: 40px;
@@ -1808,27 +4478,48 @@ export default TelaRituais;
     box-shadow: 0 0 5px rgba(0,0,0,0.5);
 }
 
-/* POSICIONAMENTO FINAL: Todos na parte de baixo */
-.stat-vida {
-    bottom: 0;
-    left: -10px;
+.grupo-container .stat-vida { bottom: 0; left: -10px; }
+.grupo-container .stat-sanidade { bottom: -15px; left: 50%; transform: translateX(-50%); }
+.grupo-container .stat-esforco { bottom: 0; right: -10px; }
+
+
+/* --- NOVAS ANIMAÇÕES E CLASSES DE STATUS --- */
+@keyframes tremer {
+  0% { transform: translate(1px, 1px) rotate(0deg); }
+  10% { transform: translate(-1px, -2px) rotate(-1deg); }
+  20% { transform: translate(-3px, 0px) rotate(1deg); }
+  30% { transform: translate(3px, 2px) rotate(0deg); }
+  40% { transform: translate(1px, -1px) rotate(1deg); }
+  50% { transform: translate(-1px, 2px) rotate(-1deg); }
+  60% { transform: translate(-3px, 1px) rotate(0deg); }
+  70% { transform: translate(3px, 1px) rotate(-1deg); }
+  80% { transform: translate(-1px, -1px) rotate(1deg); }
+  90% { transform: translate(1px, 2px) rotate(0deg); }
+  100% { transform: translate(1px, -2px) rotate(-1deg); }
 }
 
-.stat-sanidade {
-    bottom: -15px; /* Um pouco mais para baixo para ficar no centro */
-    left: 50%;
-    transform: translateX(-50%);
+@keyframes pulsar-esforco {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
 }
 
-.stat-esforco {
-    bottom: 0;
-    right: -10px;
+.grupo-container .jogador-img.sem-vida {
+    filter: grayscale(100%);
 }
-.footer-actions {
-    margin-top: 25px;
-    border-top: 2px solid var(--cor-borda-painel);
-    padding-top: 20px;
+
+.grupo-container .jogador-img.sem-sanidade {
+    animation: tremer 0.5s infinite;
 }
+
+.grupo-container .jogador-img.sem-esforco {
+    animation: pulsar-esforco 1.5s infinite ease-in-out;
+}
+
+.grupo-container .jogador-img.sem-sanidade.sem-esforco {
+    animation: tremer 0.5s infinite, pulsar-esforco 1.5s infinite ease-in-out;
+}
+
 
 // --- src\telas\mestre\TelaGrupo.js ---
 
@@ -1836,7 +4527,6 @@ export default TelaRituais;
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { carregarFichasPorTemporada, escutarTodosStatusDaTemporada } from '../../firebase/dataService.js';
-import logo from '../../assets/logo.png';
 import './TelaGrupo.css';
 
 function TelaGrupo() {
@@ -1846,41 +4536,56 @@ function TelaGrupo() {
     const [loading, setLoading] = useState(true);
     
     const temporadaAtiva = 'pacto';
+    const logoPath = `${process.env.PUBLIC_URL}/assets/logo.png`;
 
     useEffect(() => {
         let pararDeEscutar;
-
-        const buscaDados = async () => {
-            setLoading(true);
-            
+        setLoading(true);
+        const buscaDadosIniciais = async () => {
             const dadosFichas = await carregarFichasPorTemporada(temporadaAtiva);
             setFichas(dadosFichas);
-
-            // Ativa o "ouvinte" de tempo real para os status
-            pararDeEscutar = escutarTodosStatusDaTemporada(temporadaAtiva, (dados) => {
-                setStatusAoVivo(dados);
+            pararDeEscutar = escutarTodosStatusDaTemporada(temporadaAtiva, (dadosStatus) => {
+                setStatusAoVivo(dadosStatus);
+                setLoading(false);
             });
-            
-            // Considera a página carregada após configurar tudo
-            setLoading(false);
         };
-
-        buscaDados();
-
+        buscaDadosIniciais();
         return () => {
             if (pararDeEscutar) {
                 pararDeEscutar();
             }
         };
-    }, []);
+    }, [temporadaAtiva]);
 
-    const getImagemPersonagem = (nome) => {
-        if (!nome) return logo;
-        try {
-            return require(`../../assets/personagens/${nome.toLowerCase()}.png`);
-        } catch (err) {
-            return logo;
+    // FUNÇÃO DE IMAGEM ATUALIZADA
+    const getImagemPersonagem = (ficha) => {
+        if (!ficha) return logoPath;
+        
+        if (ficha.imagem) {
+            return `${process.env.PUBLIC_URL}/assets/personagens/${ficha.imagem}`;
         }
+        
+        if (ficha.nome) {
+            const nomeArquivo = ficha.nome.toLowerCase().replace(/ /g, '_') + '.png';
+            return `${process.env.PUBLIC_URL}/assets/personagens/${nomeArquivo}`;
+        }
+        
+        return logoPath;
+    };
+    
+    const handleImageError = (e) => {
+        e.target.src = logoPath;
+    };
+
+    const getCharacterImageClasses = (status) => {
+        let classes = 'jogador-img';
+        if (!status) return classes;
+
+        if (status.vida <= 0) classes += ' sem-vida';
+        if (status.sanidade <= 0) classes += ' sem-sanidade';
+        if (status.esforco <= 0) classes += ' sem-esforco';
+        
+        return classes;
     };
 
     if (loading) {
@@ -1888,8 +4593,8 @@ function TelaGrupo() {
     }
 
     return (
-        <div className="mestrar-container">
-            <div className="mestrar-header">
+        <div className="grupo-container">
+            <div className="grupo-header">
                 <h1>Painel do Grupo</h1>
                 <button onClick={() => navigate('/')}>Voltar ao Menu</button>
             </div>
@@ -1898,28 +4603,35 @@ function TelaGrupo() {
                     <p>Nenhuma ficha encontrada para a temporada "{temporadaAtiva}".</p>
                 ) : (
                     Object.entries(fichas).map(([id, ficha]) => {
-                        const status = statusAoVivo[id] || { 
-                            vida: ficha.vida, 
+                        const statusAtual = statusAoVivo[id];
+                        const statusParaExibir = {
+                            vida: statusAtual?.vida,
                             vidaMax: ficha.vidaMax,
-                            sanidade: ficha.sanidade,
+                            sanidade: statusAtual?.sanidade,
                             sanidadeMax: ficha.sanidadeMax,
-                            esforco: ficha.esforco,
+                            esforco: statusAtual?.esforco,
                             esforcoMax: ficha.esforcoMax
                         };
-                        
+
                         return (
+                            
                             <div key={id} className="jogador-card">
                                 <h2>{ficha.nome}</h2>
                                 <div className="imagem-container">
-                                    <img src={getImagemPersonagem(ficha.nome)} alt={ficha.nome} className="jogador-img" />
-                                    <div className="stat-overlay stat-vida" title={`Vida: ${status.vida} / ${status.vidaMax}`}>
-                                        {`${status.vida ?? '?'}/${status.vidaMax || '?'}`}
+                                    <img 
+                                        src={getImagemPersonagem(ficha)} // Passa a ficha inteira
+                                        alt={ficha.nome} 
+                                        className={getCharacterImageClasses(statusParaExibir)} 
+                                        onError={handleImageError}
+                                    />
+                                    <div className="stat-overlay stat-vida" title={`Vida: ${statusParaExibir.vida} / ${statusParaExibir.vidaMax}`}>
+                                        {`${statusParaExibir.vida ?? '?'}/${statusParaExibir.vidaMax || '?'}`}
                                     </div>
-                                    <div className="stat-overlay stat-sanidade" title={`Sanidade: ${status.sanidade} / ${status.sanidadeMax}`}>
-                                        {`${status.sanidade ?? '?'}/${status.sanidadeMax || '?'}`}
+                                    <div className="stat-overlay stat-sanidade" title={`Sanidade: ${statusParaExibir.sanidade} / ${statusParaExibir.sanidadeMax}`}>
+                                        {`${statusParaExibir.sanidade ?? '?'}/${statusParaExibir.sanidadeMax || '?'}`}
                                     </div>
-                                    <div className="stat-overlay stat-esforco" title={`Esforço: ${status.esforco} / ${status.esforcoMax}`}>
-                                        {`${status.esforco ?? '?'}/${status.esforcoMax || '?'}`}
+                                    <div className="stat-overlay stat-esforco" title={`Esforço: ${statusParaExibir.esforco} / ${statusParaExibir.esforcoMax}`}>
+                                        {`${statusParaExibir.esforco ?? '?'}/${statusParaExibir.esforcoMax || '?'}`}
                                     </div>
                                 </div>
                             </div>
@@ -1933,15 +4645,26 @@ function TelaGrupo() {
 
 export default TelaGrupo;
 
+
 // --- src\telas\mestre\TelaMestrar.css ---
 
+/* --- ESTILOS GERAIS DA TELA DO MESTRE --- */
 .mestrar-header {
-    /* ... */
-    gap: 20px; /* Adiciona espaçamento */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--cor-borda-painel);
+    gap: 20px;
 }
 
 .mestrar-header h1 {
-    margin-right: auto; /* Empurra os outros itens para a direita */
+    margin-right: auto;
+    font-family: var(--fonte-ficha);
+    color: var(--cor-titulo-painel);
+    font-size: 2.5em;
+    margin: 0;
 }
 
 .temporada-seletor {
@@ -1965,10 +4688,141 @@ export default TelaGrupo;
     font-size: 1em;
 }
 
-/* Estilo para o novo botão de editar */
-.jogador-card .edit-btn {
+/* --- ESTILOS ESPECÍFICOS PARA OS CARDS NO PAINEL DO MESTRE --- */
+.mestrar-container .grid-jogadores {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.mestrar-container .jogador-card {
+    background: var(--cor-fundo-painel); /* FUNDO NORMAL DO TEMA */
+    color: var(--cor-texto-painel);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 20px;
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
+    backdrop-filter: blur(5px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 280px;
+}
+
+.mestrar-container .jogador-img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--cor-borda-painel);
+}
+
+.mestrar-container .jogador-card h2 {
+    font-family: var(--fonte-ficha);
+    color: var(--cor-titulo-painel);
+    font-size: 1.5em;
+    margin: 0;
+    text-align: center;
+}
+
+.mestrar-container .status-block {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     width: 100%;
-    margin-top: auto; /* Empurra para a base do card */
+    margin: 5px 0;
+}
+
+.mestrar-container .bar-info {
+    font-weight: bold;
+    color: var(--cor-texto-painel);
+    width: 80px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.mestrar-container .status-bar {
+    position: relative;
+    flex-grow: 1;
+    height: 28px;
+    background: var(--cor-barra-fundo);
+    border: 1px solid var(--cor-borda-painel);
+    overflow: hidden;
+}
+
+.mestrar-container .bar-label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px 1px #000;
+    z-index: 2;
+    gap: 4px;
+}
+
+.mestrar-container .status-input {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: var(--fonte-ficha);
+    font-weight: bold;
+    font-size: 14px;
+    width: 45px;
+    text-align: right;
+    padding: 0 2px;
+}
+
+/* --- CORREÇÃO DAS SETAS GIGANTES --- */
+.mestrar-container .bar-controls {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    display: flex;
+    gap: 3px;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+.mestrar-container .status-bar:hover .bar-controls {
+    opacity: 1;
+}
+
+.mestrar-container .left-controls { left: 5px; }
+.mestrar-container .right-controls { right: 5px; }
+
+.mestrar-container .bar-controls button {
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    color: #fff;
+    padding: 0 6px; /* Padding reduzido */
+    margin: 0;
+    height: 22px; /* Altura fixa */
+    font-size: 14px; /* Tamanho da fonte reduzido */
+    line-height: 20px; /* Alinhamento vertical */
+    border-radius: 0;
+    cursor: pointer;
+    min-width: 28px;
+}
+.mestrar-container .bar-controls button:hover {
+    background: #000;
+}
+
+
+.mestrar-container .hp-bar { background: linear-gradient(to right, #6D0000, #D30000); height: 100%; }
+.mestrar-container .sanidade-bar { background: linear-gradient(to right, #005C9E, #00A6FF); height: 100%; }
+.mestrar-container .esforco-bar { background: linear-gradient(to right, #5D00A5, #A300FF); height: 100%; }
+
+.mestrar-container .edit-btn {
+    width: 100%;
+    margin-top: auto;
     padding: 10px;
     font-family: var(--fonte-ficha);
     text-transform: uppercase;
@@ -1978,21 +4832,21 @@ export default TelaGrupo;
     cursor: pointer;
     transition: all 0.2s;
 }
-
-.jogador-card .edit-btn:hover {
+.mestrar-container .edit-btn:hover {
     background: var(--cor-titulo-painel);
     color: var(--cor-fundo-painel);
     border-color: var(--cor-titulo-painel);
 }
+
 
 // --- src\telas\mestre\TelaMestrar.js ---
 
 // src/telas/mestre/TelaMestrar.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { carregarNomesDasTemporadas, carregarFichasPorTemporada, atualizarStatusAoVivo, escutarTodosStatusDaTemporada } from '../../firebase/dataService';
+import { carregarNomesDasTemporadas, carregarFichasPorTemporada, escutarTodosStatusDaTemporada, atualizarStatusAoVivo } from '../../firebase/dataService';
 import FichaModal from '../../componentes/FichaModal';
-import logo from '../../assets/logo.png';
+// A importação do logo foi removida daqui
 import './TelaMestrar.css';
 
 function TelaMestrar() {
@@ -2003,29 +4857,35 @@ function TelaMestrar() {
     const [statusAoVivo, setStatusAoVivo] = useState({});
     const [fichaParaEditar, setFichaParaEditar] = useState(null);
     const [idFichaEditando, setIdFichaEditando] = useState(null);
-    const [modalVisivel, setModalVisivel] = useState(false);
+    const [modalFichaVisivel, setModalFichaVisivel] = useState(false);
+    const logoPath = `${process.env.PUBLIC_URL}/assets/logo.png`; // Caminho correto para o logo
 
     useEffect(() => {
-        const buscaTemporadas = async () => {
-            const nomes = await carregarNomesDasTemporadas();
+        carregarNomesDasTemporadas().then(nomes => {
             setTemporadas(nomes);
             if (nomes.length > 0) {
-                setTemporadaSelecionada(nomes[0]);
+                const ultimaTemporada = localStorage.getItem('ultimaTemporadaMestre');
+                if (ultimaTemporada && nomes.includes(ultimaTemporada)) {
+                    setTemporadaSelecionada(ultimaTemporada);
+                } else {
+                    setTemporadaSelecionada(nomes[0]);
+                }
+            } else {
+                setFichas({});
+                setStatusAoVivo({});
             }
-        };
-        buscaTemporadas();
+        });
     }, []);
 
     useEffect(() => {
-        if (!temporadaSelecionada) return;
-        const buscaDadosDaTemporada = async () => {
-            const dadosFichas = await carregarFichasPorTemporada(temporadaSelecionada);
-            setFichas(dadosFichas);
-        };
-        buscaDadosDaTemporada();
-        const pararDeEscutar = escutarTodosStatusDaTemporada(temporadaSelecionada, (dados) => {
-            setStatusAoVivo(dados);
-        });
+        if (!temporadaSelecionada) {
+            setFichas({});
+            setStatusAoVivo({});
+            return;
+        }
+        localStorage.setItem('ultimaTemporadaMestre', temporadaSelecionada);
+        carregarFichasPorTemporada(temporadaSelecionada).then(setFichas);
+        const pararDeEscutar = escutarTodosStatusDaTemporada(temporadaSelecionada, setStatusAoVivo);
         return () => pararDeEscutar();
     }, [temporadaSelecionada]);
     
@@ -2039,33 +4899,54 @@ function TelaMestrar() {
         atualizarStatusAoVivo(temporadaSelecionada, fichaId, { ...status, [stat]: novoValor });
     };
 
+    const handleInputStatusChange = (fichaId, stat, novoValor) => {
+        const ficha = fichas[fichaId];
+        const status = statusAoVivo[fichaId];
+        if (!ficha || !status) return;
+        const maxStat = ficha[`${stat}Max`];
+        const valorNumerico = parseInt(novoValor, 10);
+        
+        if (isNaN(valorNumerico)) return;
+
+        const valorFinal = Math.max(0, Math.min(maxStat, valorNumerico));
+        atualizarStatusAoVivo(temporadaSelecionada, fichaId, { ...status, [stat]: valorFinal });
+    };
+
     const abrirModalParaEditar = (id, ficha) => {
         setIdFichaEditando(id);
         setFichaParaEditar(ficha);
-        setModalVisivel(true);
+        setModalFichaVisivel(true);
     };
-
-    const fecharModal = () => {
-        setModalVisivel(false);
-        setFichaParaEditar(null);
-        setIdFichaEditando(null);
+    
+    const fecharModalFicha = () => {
+        setModalFichaVisivel(false);
     };
 
     const handleFichaUpdate = () => {
-        fecharModal();
+        fecharModalFicha();
         carregarFichasPorTemporada(temporadaSelecionada).then(setFichas);
         alert("Ficha atualizada com sucesso!");
     };
     
-    const getImagemPersonagem = (nome) => {
-        if (!nome) return logo;
-        try {
-            return require(`../../assets/personagens/${nome.toLowerCase()}.png`);
-        } catch (err) {
-            return logo;
+    // FUNÇÃO DE IMAGEM ATUALIZADA
+    const getImagemPersonagem = (ficha) => {
+        if (!ficha) return logoPath;
+        
+        if (ficha.imagem) {
+            return `${process.env.PUBLIC_URL}/assets/personagens/${ficha.imagem}`;
         }
+        
+        if (ficha.nome) {
+            const nomeArquivo = ficha.nome.toLowerCase().replace(/ /g, '_') + '.png';
+            return `${process.env.PUBLIC_URL}/assets/personagens/${nomeArquivo}`;
+        }
+        
+        return logoPath;
     };
-    const calcularLarguraBarra = (valor, max) => !valor || !max ? '0%' : `${(valor / max) * 100}%`;
+    
+    const handleImageError = (e) => {
+        e.target.src = logoPath;
+    };
 
     return (
         <>
@@ -2086,33 +4967,107 @@ function TelaMestrar() {
                         const status = statusAoVivo[id] || { vida: ficha.vida, sanidade: ficha.sanidade, esforco: ficha.esforco };
                         return (
                             <div key={id} className="jogador-card">
-                                <img src={getImagemPersonagem(ficha.nome)} alt={ficha.nome} className="jogador-img" />
+                                <img 
+                                    src={getImagemPersonagem(ficha)} // Passa a ficha inteira
+                                    alt={ficha.nome} 
+                                    className="jogador-img"
+                                    onError={handleImageError}
+                                />
                                 <h2>{ficha.nome}</h2>
                                 
+                                {/* Bloco de Vida */}
                                 <div className="status-block">
                                     <span className="bar-info">Vida</span>
                                     <div className="status-bar">
-                                        <div className="hp-bar" style={{ width: calcularLarguraBarra(status.vida, ficha.vidaMax) }}></div>
-                                        <span className="bar-label">{status.vida ?? 0}/{ficha.vidaMax || 0}</span>
-                                        <div className="bar-controls left-controls"><button onClick={() => handleAlterarStatus(id, 'vida', -5)}>&lt;&lt;</button><button onClick={() => handleAlterarStatus(id, 'vida', -1)}>&lt;</button></div>
-                                        <div className="bar-controls right-controls"><button onClick={() => handleAlterarStatus(id, 'vida', 1)}>&gt;</button><button onClick={() => handleAlterarStatus(id, 'vida', 5)}>&gt;&gt;</button></div>
+                                        <div className="hp-bar" style={{ width: `${(status.vida / ficha.vidaMax) * 100}%` }}></div>
+                                        <div className="bar-label">
+                                            <input 
+                                                type="number" 
+                                                className="status-input"
+                                                value={status.vida ?? 0}
+                                                onChange={(e) => handleInputStatusChange(id, 'vida', e.target.value)}
+                                            />
+                                            / {ficha.vidaMax || '?'}
+                                        </div>
+                                        <div className="bar-controls left-controls">
+                                            <button onClick={() => handleAlterarStatus(id, 'vida', -10)}>&lt;&lt;</button>
+                                            <button onClick={() => handleAlterarStatus(id, 'vida', -1)}>&lt;</button>
+                                        </div>
+                                        <div className="bar-controls right-controls">
+                                            <button onClick={() => handleAlterarStatus(id, 'vida', 1)}>&gt;</button>
+                                            <button onClick={() => handleAlterarStatus(id, 'vida', 10)}>&gt;&gt;</button>
+                                        </div>
                                     </div>
                                 </div>
-                                {/* Repetir .status-block para Sanidade e Esforço */}
-                                
+
+                                {/* Bloco de Sanidade */}
+                                <div className="status-block">
+                                    <span className="bar-info">Sanidade</span>
+                                    <div className="status-bar">
+                                        <div className="sanidade-bar" style={{ width: `${(status.sanidade / ficha.sanidadeMax) * 100}%` }}></div>
+                                        <div className="bar-label">
+                                            <input 
+                                                type="number" 
+                                                className="status-input"
+                                                value={status.sanidade ?? 0}
+                                                onChange={(e) => handleInputStatusChange(id, 'sanidade', e.target.value)}
+                                            />
+                                            / {ficha.sanidadeMax || '?'}
+                                        </div>
+                                        <div className="bar-controls left-controls">
+                                            <button onClick={() => handleAlterarStatus(id, 'sanidade', -10)}>&lt;&lt;</button>
+                                            <button onClick={() => handleAlterarStatus(id, 'sanidade', -1)}>&lt;</button>
+                                        </div>
+                                        <div className="bar-controls right-controls">
+                                            <button onClick={() => handleAlterarStatus(id, 'sanidade', 1)}>&gt;</button>
+                                            <button onClick={() => handleAlterarStatus(id, 'sanidade', 10)}>&gt;&gt;</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Bloco de Esforço */}
+                                <div className="status-block">
+                                    <span className="bar-info">Esforço</span>
+                                    <div className="status-bar">
+                                        <div className="esforco-bar" style={{ width: `${(status.esforco / ficha.esforcoMax) * 100}%` }}></div>
+                                        <div className="bar-label">
+                                            <input 
+                                                type="number" 
+                                                className="status-input"
+                                                value={status.esforco ?? 0}
+                                                onChange={(e) => handleInputStatusChange(id, 'esforco', e.target.value)}
+                                            />
+                                            / {ficha.esforcoMax || '?'}
+                                        </div>
+                                        <div className="bar-controls left-controls">
+                                            <button onClick={() => handleAlterarStatus(id, 'esforco', -10)}>&lt;&lt;</button>
+                                            <button onClick={() => handleAlterarStatus(id, 'esforco', -1)}>&lt;</button>
+
+                                        </div>
+                                        <div className="bar-controls right-controls">
+                                            <button onClick={() => handleAlterarStatus(id, 'esforco', 1)}>&gt;</button>
+                                            <button onClick={() => handleAlterarStatus(id, 'esforco', 10)}>&gt;&gt;</button>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <button className="edit-btn" onClick={() => abrirModalParaEditar(id, ficha)}>Editar Ficha</button>
+                                <button className="edit-btn" style={{marginTop: '10px'}} onClick={() => navigate(`/editar-agente/${id}`)}>
+                                    Editar Inventário
+                                </button>
                             </div>
                         );
                     })}
                 </div>
             </div>
 
-            {modalVisivel && <FichaModal ficha={fichaParaEditar} fichaId={idFichaEditando} temporada={temporadaSelecionada} onClose={fecharModal} onUpdate={handleFichaUpdate} />}
+            {modalFichaVisivel && <FichaModal ficha={fichaParaEditar} fichaId={idFichaEditando} temporada={temporadaSelecionada} onClose={fecharModalFicha} onUpdate={handleFichaUpdate} />}
         </>
     );
 }
 
 export default TelaMestrar;
+
 
 // --- src\telas\TelaCriarFicha.css ---
 
@@ -2255,12 +5210,14 @@ export default TelaMestrar;
     color: var(--cor-texto-painel);
 }
 
+
 // --- src\telas\TelaCriarFicha.js ---
 
 // src/telas/TelaCriarFicha.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { salvarFichaCompleta } from '../firebase/dataService';
+import { useAuth } from '../context/AuthContext'; // Importa o hook de autenticação
 import './TelaCriarFicha.css';
 
 const periciasPadrao = {
@@ -2297,6 +5254,7 @@ const periciasPadrao = {
 
 function TelaCriarFicha() {
     const navigate = useNavigate();
+    const { currentUser } = useAuth(); // Obtém os dados do utilizador ligado
     const [ficha, setFicha] = useState({
         nome: '',
         jogador: '',
@@ -2308,7 +5266,7 @@ function TelaCriarFicha() {
         sanidade: 10, sanidadeMax: 10,
         esforco: 10, esforcoMax: 10,
         esquiva: 10,
-        imagem: '',
+        imagem: '', // CAMPO 'imagem' INICIALIZADO
         atributos: { forca: 1, agilidade: 1, inteligencia: 1, vigor: 1, presenca: 1 },
         pericias: periciasPadrao
     });
@@ -2345,7 +5303,19 @@ function TelaCriarFicha() {
             alert('O nome do personagem é obrigatório!');
             return;
         }
-        const novoId = await salvarFichaCompleta(ficha);
+        if (!currentUser) {
+            alert('Você precisa de estar ligado para criar uma ficha!');
+            return;
+        }
+
+        // Adiciona o ID e o e-mail do dono à ficha antes de a salvar
+        const fichaParaSalvar = {
+            ...ficha,
+            ownerId: currentUser.uid,
+            ownerEmail: currentUser.email
+        };
+
+        const novoId = await salvarFichaCompleta(fichaParaSalvar);
         if (novoId) {
             alert('Ficha criada com sucesso!');
             navigate('/jogar');
@@ -2356,11 +5326,12 @@ function TelaCriarFicha() {
         <div className="form-container">
             <h2>Criar Nova Ficha</h2>
             <form onSubmit={handleSubmit}>
-                {/* ... (o resto do formulário antes das perícias continua o mesmo) ... */}
                 <label>Nome do Personagem:</label>
                 <input type="text" name="nome" value={ficha.nome} onChange={handleChange} required />
-                <label>Nome do Jogador:</label>
+                
+                <label>Nome do Jogador (Opcional):</label>
                 <input type="text" name="jogador" value={ficha.jogador} onChange={handleChange} />
+
                 <label>Profissão:</label>
                 <select name="profissao" value={ficha.profissao} onChange={handleChange}>
                     <option value="investigador">Investigador</option>
@@ -2370,6 +5341,7 @@ function TelaCriarFicha() {
                     <option value="personalizado">Outra (Personalizada)</option>
                 </select>
                 {ficha.profissao === 'personalizado' && ( <div className="campo-personalizado"><input type="text" name="profissaoPersonalizada" placeholder="Digite a profissão personalizada" value={ficha.profissaoPersonalizada} onChange={handleChange}/></div>)}
+                
                 <label>Caminho:</label>
                 <select name="caminho" value={ficha.caminho} onChange={handleChange}>
                     <option value="combatente">Combatente</option>
@@ -2378,6 +5350,7 @@ function TelaCriarFicha() {
                     <option value="personalizado">Outro (Personalizado)</option>
                 </select>
                 {ficha.caminho === 'personalizado' && (<div className="campo-personalizado"><input type="text" name="caminhoPersonalizado" placeholder="Digite o caminho personalizado" value={ficha.caminhoPersonalizado} onChange={handleChange}/></div>)}
+                
                 <h3>Atributos</h3>
                 <div className="stats-grid">
                     <label>Força:</label><input type="number" name="forca" value={ficha.atributos.forca} onChange={handleAttributeChange} max="19" />
@@ -2394,7 +5367,6 @@ function TelaCriarFicha() {
                         <div key={nomePericia} className="pericia-item">
                             <label>{nomePericia.charAt(0).toUpperCase() + nomePericia.slice(1)}</label>
                             
-                            {/* NOVO: Wrapper para os controles */}
                             <div className="pericia-controls">
                                 <input
                                     type="number"
@@ -2424,6 +5396,7 @@ function TelaCriarFicha() {
 }
 
 export default TelaCriarFicha;
+
 
 // --- src\telas\TelaOpcoes.css ---
 

@@ -1,4 +1,4 @@
-/* src/telas/TelaJogar.css */
+/* src/telas/jogador/TelaJogar.css */
 
 .menu-container {
     background: var(--cor-fundo-painel);
@@ -20,6 +20,7 @@
     border-radius: 50%;
     border: 3px solid var(--cor-borda-painel);
     background: #eee;
+    transition: filter 0.5s ease-in-out;
 }
 
 .menu-container h2 {
@@ -30,7 +31,18 @@
     margin-top: 0; margin-bottom: 20px;
 }
 
-.status-block { display: flex; align-items: center; gap: 10px; margin: 12px 0; }
+.selecao-agente-view, .personagem-view {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.selecao-agente-view select {
+    margin-bottom: 20px;
+}
+
+.status-block { display: flex; align-items: center; gap: 10px; margin: 12px 0; width: 100%;}
 .bar-info { font-weight: bold; color: var(--cor-texto-painel); width: 80px; text-align: right; flex-shrink: 0; }
 
 .bar-label {
@@ -41,6 +53,29 @@
     color: #fff;
     text-shadow: 1px 1px 1px #000;
     z-index: 2;
+    gap: 4px;
+}
+
+.status-input {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: var(--fonte-ficha);
+    font-weight: bold;
+    font-size: 14px;
+    width: auto; 
+    max-width: 50px;
+    text-align: right; /* ALINHAMENTO CORRIGIDO */
+    padding: 0 2px;
+    -moz-appearance: textfield; 
+}
+.status-input:focus {
+    outline: 1px solid rgba(255, 255, 255, 0.5);
+}
+.status-input::-webkit-outer-spin-button,
+.status-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .status-bar {
@@ -64,6 +99,7 @@
     height: 22px; font-size: 14px;
     line-height: 20px; border-radius: 0;
     cursor: pointer;
+    min-width: 28px;
 }
 .bar-controls button:hover { background: #000; }
 
@@ -72,13 +108,12 @@
 .sanidade-bar { background: linear-gradient(to right, #005C9E, #00A6FF); }
 .esforco-bar { background: linear-gradient(to right, #5D00A5, #A300FF); }
 
-.actions-container, .dice-roller { margin-top: 25px; border-top: 2px solid var(--cor-borda-painel); padding-top: 20px; }
+.actions-container, .dice-roller, .footer-actions { margin-top: 25px; border-top: 2px solid var(--cor-borda-painel); padding-top: 20px; width: 100%; }
 
-/* CORREÇÃO APLICADA AQUI */
 button, select {
-    background: var(--cor-titulo-painel); /* Fundo vermelho-sangue */
-    color: var(--cor-texto-inverso); /* Texto claro */
-    border: 2px solid var(--cor-titulo-painel); /* Borda da mesma cor */
+    background: var(--cor-titulo-painel);
+    color: var(--cor-texto-inverso);
+    border: 2px solid var(--cor-titulo-painel);
     padding: 10px 15px; margin: 5px;
     border-radius: 0; cursor: pointer;
     font-family: var(--fonte-ficha); font-weight: bold;
@@ -86,8 +121,7 @@ button, select {
 }
 
 button:hover, select:hover {
-    filter: brightness(1.2); /* Deixa o botão 20% mais claro */
-    /* Remove as regras antigas de background e color para o hover */
+    filter: brightness(1.2);
 }
 button:disabled {
     background: #ccc;
@@ -123,4 +157,41 @@ select { width: calc(100% - 10px); }
 select option {
     background: var(--cor-fundo-painel);
     color: var(--cor-texto-painel);
+}
+
+/* --- ANIMAÇÕES E CLASSES DE STATUS --- */
+@keyframes tremer {
+  0% { transform: translate(1px, 1px) rotate(0deg); }
+  10% { transform: translate(-1px, -2px) rotate(-1deg); }
+  20% { transform: translate(-3px, 0px) rotate(1deg); }
+  30% { transform: translate(3px, 2px) rotate(0deg); }
+  40% { transform: translate(1px, -1px) rotate(1deg); }
+  50% { transform: translate(-1px, 2px) rotate(-1deg); }
+  60% { transform: translate(-3px, 1px) rotate(0deg); }
+  70% { transform: translate(3px, 1px) rotate(-1deg); }
+  80% { transform: translate(-1px, -1px) rotate(1deg); }
+  90% { transform: translate(1px, 2px) rotate(0deg); }
+  100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+@keyframes pulsar-esforco {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+.character-img.sem-vida {
+    filter: grayscale(100%);
+}
+
+.character-img.sem-sanidade {
+    animation: tremer 0.5s infinite;
+}
+
+.character-img.sem-esforco {
+    animation: pulsar-esforco 1.5s infinite ease-in-out;
+}
+
+.character-img.sem-sanidade.sem-esforco {
+    animation: tremer 0.5s infinite, pulsar-esforco 1.5s infinite ease-in-out;
 }

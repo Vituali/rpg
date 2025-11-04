@@ -51,7 +51,7 @@ html {
 body {
   color: var(--cor-texto-principal);
   font-family: var(--fonte-corpo);
-  background-image: url('./assets/fundo.png');
+  background-image: url('/public/assets/fundo.png');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -68,23 +68,4 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-/* TEMA 2: Pergaminho Antigo */
-body.theme-parchment {
-  --cor-fundo-painel: #f7f3e8; /* Cor de pergaminho */
-  --cor-texto-painel: #4a2d1a; /* Marrom escuro */
-  --cor-borda-painel: #8c6b4f; /* Borda marrom */
-  --cor-titulo-painel: #8c0000; /* Vermelho escuro */
-  --cor-barra-fundo: rgba(0, 0, 0, 0.1);
-  --cor-barra-progresso: #8c6b4f;
-}
-
-/* TEMA 3: Neon Retrô */
-body.theme-neon {
-  --cor-fundo-painel: rgba(18, 10, 24, 0.8);
-  --cor-texto-painel: #f0f0f0;
-  --cor-borda-painel: #6a0dad;
-  --cor-titulo-painel: #e0b0ff;
-  --cor-barra-fundo: rgba(0, 0, 0, 0.5);
-  --cor-barra-progresso: #9d00ff;
 }

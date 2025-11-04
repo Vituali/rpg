@@ -2,20 +2,25 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/firebase-config';
-import { GM_UIDS } from '../config/gmConfig'; // Importa a lista de mestres
+import { getUserData } from '../firebase/dataService'; // Importa a nova função
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
     const [currentUser, setCurrentUser] = useState(null);
-    const [isGM, setIsGM] = useState(false); // Novo state para o Mestre
+    const [isGM, setIsGM] = useState(false);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, user => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
             setCurrentUser(user);
-            // Verifica se o UID do usuário logado está na lista de Mestres
-            setIsGM(user ? GM_UIDS.includes(user.uid) : false);
+            if (user) {
+                // Se houver um usuário, busca seus dados no Firestore
+                const userData = await getUserData(user.uid);
+                setIsGM(userData?.isGM || false); // Define isGM com base no banco de dados
+            } else {
+                setIsGM(false); // Se não houver usuário, não é GM
+            }
             setLoading(false);
         });
         return unsubscribe;
@@ -23,7 +28,7 @@ export function AuthProvider({ children }) {
 
     const value = {
         currentUser,
-        isGM // Fornece a informação se é Mestre ou não
+        isGM
     };
 
     return (

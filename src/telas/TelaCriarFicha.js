@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { salvarFichaCompleta } from '../firebase/dataService';
-import './TelaCriarFicha.css';
+import { useAuth } from '../context/AuthContext';
+import styles from './TelaCriarFicha.module.css'; // Importa o CSS Module
 
 const periciasPadrao = {
     acrobacia: { valor: 0, atributo: 'agilidade' },
@@ -38,6 +39,7 @@ const periciasPadrao = {
 
 function TelaCriarFicha() {
     const navigate = useNavigate();
+    const { currentUser } = useAuth();
     const [ficha, setFicha] = useState({
         nome: '',
         jogador: '',
@@ -58,27 +60,57 @@ function TelaCriarFicha() {
         const { name, value, type } = e.target;
         setFicha(prev => ({ ...prev, [name]: type === 'number' ? parseInt(value) || 0 : value }));
     };
+
     const handleAttributeChange = (e) => {
         const { name, value } = e.target;
-        const valorNumerico = parseInt(value, 10) || 0;
-        const valorLimitado = Math.min(valorNumerico, 19);
+        let valorFinal = 0;
+        if (value !== '') {
+            const valorNumerico = parseInt(value, 10);
+            if (!isNaN(valorNumerico)) {
+                valorFinal = Math.max(0, Math.min(valorNumerico, 19)); // Limita entre 0 e 19
+            }
+        }
         setFicha(prev => ({
             ...prev,
-            atributos: { ...prev.atributos, [name]: valorLimitado }
+            atributos: { ...prev.atributos, [name]: valorFinal }
         }));
     };
+
     const handlePericiaChange = (nomePericia, campo, valor) => {
+         let valorFinal = valor; // Para o campo 'atributo', mantém a string
+
+        if (campo === 'valor') {
+            let valorProcessado = valor;
+            // Remove o '0' inicial se o usuário digitar outro número
+            if (valor.startsWith('0') && valor.length > 1 && valor !== '0') {
+                 valorProcessado = valor.substring(1);
+            }
+
+            if (valorProcessado === '') {
+                valorFinal = 0; // Trata input vazio como 0
+            } else {
+                 const valorNumerico = parseInt(valorProcessado, 10);
+                if (!isNaN(valorNumerico)) {
+                     // Adiciona um limite máximo se desejar, ex: 99
+                     valorFinal = Math.max(0, Math.min(valorNumerico, 99));
+                } else {
+                    valorFinal = 0; // Se não for número, volta para 0
+                }
+            }
+        }
+
         setFicha(prev => ({
             ...prev,
             pericias: {
                 ...prev.pericias,
                 [nomePericia]: {
                     ...prev.pericias[nomePericia],
-                    [campo]: campo === 'valor' ? parseInt(valor) || 0 : valor
+                    [campo]: valorFinal
                 }
             }
         }));
     };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -86,22 +118,50 @@ function TelaCriarFicha() {
             alert('O nome do personagem é obrigatório!');
             return;
         }
-        const novoId = await salvarFichaCompleta(ficha);
+        if (!currentUser) {
+            alert('Você precisa de estar ligado para criar uma ficha!');
+            return;
+        }
+
+        const fichaParaSalvar = {
+            ...ficha,
+            ownerId: currentUser.uid,
+            ownerEmail: currentUser.email,
+            // Garante que profissao/caminho personalizado seja salvo corretamente
+            profissao: ficha.profissao === 'personalizado' ? ficha.profissaoPersonalizada : ficha.profissao,
+            caminho: ficha.caminho === 'personalizado' ? ficha.caminhoPersonalizado : ficha.caminho,
+        };
+        // Remove os campos temporários se existirem
+        delete fichaParaSalvar.profissaoPersonalizada;
+        delete fichaParaSalvar.caminhoPersonalizado;
+
+
+        const novoId = await salvarFichaCompleta(fichaParaSalvar);
         if (novoId) {
             alert('Ficha criada com sucesso!');
             navigate('/jogar');
+        } else {
+             alert('Erro ao salvar a ficha.');
         }
     };
 
+    // Ajusta o valor a ser exibido no input (evita '0' quando vazio no JS)
+    const getPericiaInputValue = (nomePericia) => {
+        const valor = ficha.pericias[nomePericia]?.valor;
+         return valor !== undefined ? String(valor) : '0';
+    };
+
     return (
-        <div className="form-container">
+        // Aplica a classe principal do CSS Module
+        <div className={styles.formContainer}>
             <h2>Criar Nova Ficha</h2>
             <form onSubmit={handleSubmit}>
-                {/* ... (o resto do formulário antes das perícias continua o mesmo) ... */}
                 <label>Nome do Personagem:</label>
                 <input type="text" name="nome" value={ficha.nome} onChange={handleChange} required />
-                <label>Nome do Jogador:</label>
+
+                <label>Nome do Jogador (Opcional):</label>
                 <input type="text" name="jogador" value={ficha.jogador} onChange={handleChange} />
+
                 <label>Profissão:</label>
                 <select name="profissao" value={ficha.profissao} onChange={handleChange}>
                     <option value="investigador">Investigador</option>
@@ -110,7 +170,12 @@ function TelaCriarFicha() {
                     <option value="ocultista_teorico">Ocultista Teórico</option>
                     <option value="personalizado">Outra (Personalizada)</option>
                 </select>
-                {ficha.profissao === 'personalizado' && ( <div className="campo-personalizado"><input type="text" name="profissaoPersonalizada" placeholder="Digite a profissão personalizada" value={ficha.profissaoPersonalizada} onChange={handleChange}/></div>)}
+                {ficha.profissao === 'personalizado' && (
+                    <div className={styles.campoPersonalizado}> {/* Usa classe do CSS Module */}
+                        <input type="text" name="profissaoPersonalizada" placeholder="Digite a profissão personalizada" value={ficha.profissaoPersonalizada} onChange={handleChange}/>
+                    </div>
+                )}
+
                 <label>Caminho:</label>
                 <select name="caminho" value={ficha.caminho} onChange={handleChange}>
                     <option value="combatente">Combatente</option>
@@ -118,31 +183,34 @@ function TelaCriarFicha() {
                     <option value="ocultista">Ocultista</option>
                     <option value="personalizado">Outro (Personalizado)</option>
                 </select>
-                {ficha.caminho === 'personalizado' && (<div className="campo-personalizado"><input type="text" name="caminhoPersonalizado" placeholder="Digite o caminho personalizado" value={ficha.caminhoPersonalizado} onChange={handleChange}/></div>)}
+                 {ficha.caminho === 'personalizado' && (
+                    <div className={styles.campoPersonalizado}> {/* Usa classe do CSS Module */}
+                        <input type="text" name="caminhoPersonalizado" placeholder="Digite o caminho personalizado" value={ficha.caminhoPersonalizado} onChange={handleChange}/>
+                    </div>
+                )}
+
                 <h3>Atributos</h3>
-                <div className="stats-grid">
-                    <label>Força:</label><input type="number" name="forca" value={ficha.atributos.forca} onChange={handleAttributeChange} max="19" />
-                    <label>Agilidade:</label><input type="number" name="agilidade" value={ficha.atributos.agilidade} onChange={handleAttributeChange} max="19" />
-                    <label>Inteligência:</label><input type="number" name="inteligencia" value={ficha.atributos.inteligencia} onChange={handleAttributeChange} max="19" />
-                    <label>Vigor:</label><input type="number" name="vigor" value={ficha.atributos.vigor} onChange={handleAttributeChange} max="19" />
-                    <label>Presença:</label><input type="number" name="presenca" value={ficha.atributos.presenca} onChange={handleAttributeChange} max="19" />
+                 {/* Aplica classe do CSS Module */}
+                <div className={styles.statsGrid}>
+                    <label>Forca:</label><input type="text" pattern="[0-9]*" inputMode="numeric" maxLength="2" name="forca" value={ficha.atributos.forca === 0 && document.activeElement?.name === 'forca' ? '' : ficha.atributos.forca} onChange={handleAttributeChange} />
+                    <label>Agilidade:</label><input type="text" pattern="[0-9]*" inputMode="numeric" maxLength="2" name="agilidade" value={ficha.atributos.agilidade === 0 && document.activeElement?.name === 'agilidade' ? '' : ficha.atributos.agilidade} onChange={handleAttributeChange} />
+                    <label>Inteligencia:</label><input type="text" pattern="[0-9]*" inputMode="numeric" maxLength="2" name="inteligencia" value={ficha.atributos.inteligencia === 0 && document.activeElement?.name === 'inteligencia' ? '' : ficha.atributos.inteligencia} onChange={handleAttributeChange} />
+                    <label>Vigor:</label><input type="text" pattern="[0-9]*" inputMode="numeric" maxLength="2" name="vigor" value={ficha.atributos.vigor === 0 && document.activeElement?.name === 'vigor' ? '' : ficha.atributos.vigor} onChange={handleAttributeChange} />
+                    <label>Presenca:</label><input type="text" pattern="[0-9]*" inputMode="numeric" maxLength="2" name="presenca" value={ficha.atributos.presenca === 0 && document.activeElement?.name === 'presenca' ? '' : ficha.atributos.presenca} onChange={handleAttributeChange} />
                 </div>
 
 
                 <h3>Perícias</h3>
-                <div className="pericias-grid">
-                    {Object.keys(ficha.pericias).map((nomePericia) => (
-                        <div key={nomePericia} className="pericia-item">
+                {/* Aplica classe do CSS Module */}
+                <div className={styles.periciasGrid}>
+                     {/* Itera sobre as chaves originais (kebab-case) */}
+                    {Object.keys(periciasPadrao).map((nomePericia) => (
+                         // Aplica classes do CSS Module
+                        <div key={nomePericia} className={styles.periciaItem}>
                             <label>{nomePericia.charAt(0).toUpperCase() + nomePericia.slice(1)}</label>
-                            
-                            {/* NOVO: Wrapper para os controles */}
-                            <div className="pericia-controls">
-                                <input
-                                    type="number"
-                                    value={ficha.pericias[nomePericia].valor}
-                                    onChange={(e) => handlePericiaChange(nomePericia, 'valor', e.target.value)}
-                                />
-                                <select
+                            {/* Aplica classe do CSS Module */}
+                            <div className={styles.periciaControls}>
+                                 <select
                                     value={ficha.pericias[nomePericia].atributo}
                                     onChange={(e) => handlePericiaChange(nomePericia, 'atributo', e.target.value)}
                                 >
@@ -152,6 +220,14 @@ function TelaCriarFicha() {
                                     <option value="vigor">Vigor</option>
                                     <option value="presenca">Presença</option>
                                 </select>
+                                <input
+                                    type="text" // Alterado para text
+                                    pattern="[0-9]*" // Permite apenas números
+                                    inputMode="numeric" // Teclado numérico em mobile
+                                    maxLength="2" // Limita a 2 dígitos
+                                    value={getPericiaInputValue(nomePericia)} // Usa a função helper
+                                    onChange={(e) => handlePericiaChange(nomePericia, 'valor', e.target.value)}
+                                />
                             </div>
                         </div>
                     ))}
@@ -165,3 +241,4 @@ function TelaCriarFicha() {
 }
 
 export default TelaCriarFicha;
+

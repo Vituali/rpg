@@ -1,0 +1,94 @@
+/* src/componentes/CriarItemModal.css */
+.modal { 
+    position: fixed; top: 0; left: 0; 
+    width: 100%; height: 100%; 
+    background: rgba(0, 0, 0, 0.85); 
+    z-index: 1000; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 20px; 
+    box-sizing: border-box; 
+}
+
+.criar-item-content { 
+    background: var(--cor-fundo-painel); 
+    color: var(--cor-texto-painel); 
+    border: 2px solid var(--cor-borda-painel); 
+    width: 100%; 
+    max-width: 600px; 
+    padding: 20px; 
+    position: relative; 
+    max-height: 90vh; 
+    overflow-y: auto; 
+}
+
+.criar-item-content h2, .criar-item-content h3, .criar-item-content h4 { 
+    color: var(--cor-titulo-painel); 
+    text-transform: uppercase; 
+    border-bottom: 1px solid var(--cor-borda-painel); 
+    padding-bottom: 10px; 
+    margin-top: 20px;
+}
+.criar-item-content h2 { margin-top: 0; }
+
+.close-btn { 
+    position: absolute; 
+    top: 10px; 
+    right: 15px; 
+    font-size: 2em; 
+    cursor: pointer; 
+    color: var(--cor-texto-painel); 
+}
+
+.modal-actions { 
+    margin-top: 20px; 
+    text-align: right; 
+}
+
+.save-btn { 
+    background: var(--cor-fundo-inverso); 
+    color: var(--cor-texto-inverso); 
+    border: 1px solid var(--cor-borda-painel); 
+    padding: 10px 20px; 
+    font-family: var(--fonte-ficha); 
+    text-transform: uppercase; 
+    cursor: pointer; 
+}
+
+.editor-item-painel label { 
+    display: block; 
+    margin-top: 15px; 
+    margin-bottom: 5px; 
+    font-weight: bold; 
+}
+
+.editor-item-painel input, .editor-item-painel textarea, .editor-item-painel select { 
+    width: 100%; 
+    padding: 8px; 
+    background: var(--cor-fundo-input); 
+    color: var(--cor-texto-painel); 
+    border: 1px solid var(--cor-borda-painel); 
+    box-sizing: border-box; 
+}
+
+.editor-item-painel textarea { 
+    min-height: 80px; 
+}
+
+.modificador-item { 
+    display: flex; 
+    gap: 10px; 
+    align-items: center; 
+    margin-bottom: 10px; 
+}
+.modificador-item select { width: 120px; }
+.modificador-item input[type="text"] { flex-grow: 1; }
+.modificador-item input[type="number"] { width: 80px; }
+.modificador-item button { 
+    background: var(--cor-botao-perigo); 
+    color: white; 
+    border: none; 
+    cursor: pointer; 
+    padding: 5px 10px; 
+}

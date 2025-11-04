@@ -6,15 +6,60 @@
     background: var(--cor-fundo-painel);
     color: var(--cor-texto-painel);
     border: 1px solid var(--cor-borda-painel);
-    padding: 10px 15px;
     z-index: 2000;
+    font-family: var(--fonte-ficha);
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease-in-out; /* Adiciona transição suave */
+    overflow: hidden;
+}
+
+/* Estilo do painel quando minimizado (apenas o ícone) */
+.painel-usuario-container.collapsed {
+    padding: 0;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Estilo do painel quando expandido */
+.painel-usuario-container.expanded {
+    padding: 10px 15px;
     display: flex;
     align-items: center;
     gap: 15px;
-    font-family: var(--fonte-ficha);
-    backdrop-filter: blur(5px);
+    border-radius: 5px;
+    width: auto;
+    height: auto;
 }
 
+/* Botão de ícone para a visão minimizada */
+.user-icon-btn {
+    width: 120%;
+    height: 100%;
+    border-radius: 100%;
+    border: none;
+    background: transparent;
+    color: var(--cor-texto-painel);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1;
+}
+.user-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Ajuste para o ícone SVG */
+.user-icon-btn svg {
+    width: 22px; /* Ajuste o tamanho do ícone como desejar */
+    height: 22px;
+}
+
+/* Estilos existentes para o conteúdo do painel expandido */
 .user-email {
     font-size: 0.9em;
     text-transform: uppercase;
@@ -50,4 +95,18 @@
 .user-actions .logout-btn:hover {
     background: var(--cor-botao-perigo);
     color: var(--cor-texto-inverso);
+}
+
+/* Botão para fechar o painel expandido */
+.close-panel-btn {
+    background: none;
+    border: none;
+    color: var(--cor-texto-painel);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 5px;
+    margin-left: 10px;
+}
+.close-panel-btn:hover {
+    color: var(--cor-destaque-vermelho);
 }

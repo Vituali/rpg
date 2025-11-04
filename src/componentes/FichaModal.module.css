@@ -1,0 +1,256 @@
+/* src/componentes/FichaModal.module.css */
+
+/* Regras gerais para o modal */
+.modal {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; box-sizing: border-box;
+}
+
+.modalContent { /* op-style foi mesclado aqui */
+    background: var(--cor-fundo-painel);
+    color: var(--cor-texto-painel);
+    border: 2px solid var(--cor-borda-painel);
+    width: 100%;
+    max-width: 900px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    padding: 0;
+    max-height: 95vh;
+    overflow-y: auto;
+}
+.modalContent * { box-sizing: border-box; }
+
+/* Remove setas dos inputs numéricos */
+.modalContent input[type=number]::-webkit-inner-spin-button,
+.modalContent input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.modalContent input[type=number] {
+  -moz-appearance: textfield; /* Para Firefox */
+  appearance: textfield;
+}
+
+/* Sidebar */
+.sheetTitleBox {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    background: #111;
+    color: var(--cor-texto-painel);
+    padding: 20px 10px;
+    font-size: 1.3em;
+    letter-spacing: 4px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 2px solid var(--cor-borda-painel);
+    box-shadow: inset -5px 0 10px rgba(0,0,0,0.5);
+    white-space: nowrap;
+    text-shadow: 0 0 5px var(--cor-borda-painel);
+}
+
+.sheetContentWrapper {
+    padding: 20px 25px;
+    position: relative;
+    overflow-y: auto;
+    max-height: 95vh;
+}
+
+.sheetHeader {
+    border-bottom: 3px solid var(--cor-borda-painel);
+    padding-bottom: 5px; margin-bottom: 5px;
+    display: flex; justify-content: flex-end;
+}
+.gameTitleInput {
+    font-family: var(--fonte-ficha); font-size: 1.5em; letter-spacing: 1px;
+    text-align: right; border: none; background: transparent; width: 100%;
+    text-transform: uppercase; font-weight: bold; color: var(--cor-texto-painel);
+}
+.gameTitleInput:focus { outline: none; }
+
+.playerInfoBar {
+    display: flex; gap: 20px;
+    border-bottom: 1px solid var(--cor-borda-painel); padding-bottom: 5px;
+}
+.infoField { width: 100%; }
+.infoField input {
+    width: 100%; border: none; font-size: 1.4em; padding: 2px 0;
+    font-family: var(--fonte-ficha); text-transform: uppercase; font-weight: bold;
+    border-bottom: 2px solid var(--cor-borda-painel); background: transparent;
+    color: var(--cor-texto-painel);
+}
+.infoField input:focus { outline: none; }
+.infoField label { font-size: 0.7em; font-weight: bold; }
+
+.sheetBody { display: flex; gap: 20px; margin-top: 15px; }
+.sheetColumnLeft { flex: 0 0 320px; }
+.sheetColumnRight { flex: 1; min-width: 0; }
+
+/* Atributos Hexagonais */
+.attributesHexagonContainer { position: relative; width: 300px; height: 280px; margin: 20px auto 0 auto; }
+.hexagonBg { position: absolute; width: 100%; height: 100%; background: radial-gradient(ellipse at center, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0) 70%); }
+.attrHexBorder { position: absolute; width: 90px; height: 100px; background: var(--cor-borda-painel); clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); z-index: 1; }
+.attrHex { width: 100%; height: 100%; background-color: var(--cor-fundo-painel); clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: scale(0.96); }
+.attrHex span { font-size: 1.3em; font-weight: bold; }
+.attrHex input { width: 50px; font-size: 1.8em; border: none; text-align: center; padding: 2px; border-radius: 0; font-family: var(--fonte-ficha); margin-top: 2px; background: var(--cor-fundo-painel); color: var(--cor-texto-painel); }
+.hexForca { top: 70px; left: 15px; }
+.hexAgilidade { top: 70px; right: 15px; }
+.hexVigor { bottom: 0; left: 60px; }
+.hexPresenca { bottom: 0; right: 60px; }
+.hexInteligencia { top: 0; left: 50%; transform: translateX(-50%); }
+
+/* Stats (PV, SAN, etc.) */
+.statsGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.statBox { border: 2px solid var(--cor-borda-painel); padding: 5px; text-align: center; }
+.statBox label { font-size: 0.9em; font-weight: bold; }
+.statBox input { width: 100%; border: none; font-size: 2em; text-align: center; font-family: var(--fonte-ficha); background: transparent; color: var(--cor-texto-painel); }
+
+/* --- PERÍCIAS --- */
+.periciasSection { border: 2px solid var(--cor-borda-painel); }
+.periciasHeader { background: var(--cor-fundo-inverso); color: var(--cor-texto-inverso); padding: 5px 10px; text-align: center; }
+.periciasHeader h2 { margin: 0; font-size: 1.2em; font-weight: bold; }
+.periciasGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 15px; padding: 10px; max-height: 380px; overflow-y: auto; }
+
+/* Estilos específicos para perícias DENTRO do modal */
+.periciaItem { /* Nome da classe alterado para camelCase */
+    border: 1px solid var(--cor-borda-painel);
+    padding: 3px;
+    display: grid;
+    grid-template-columns: 1fr 30px; /* Mantém a coluna fixa para input */
+    align-items: center;
+    gap: 5px;
+}
+.periciaItem label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em;
+    margin-bottom: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.periciaItem label span {
+    color: #888;
+    margin-left: 5px;
+}
+/* Input específico do modal */
+.periciaItem input {
+    width: 100%; /* Ocupa a coluna fixa de 30px */
+    border: 1px solid #ccc;
+    padding: 0px;
+    text-align: center;
+    border-radius: 0;
+    font-size: 1.0em;
+    background: var(--cor-fundo-painel);
+    color: var(--cor-texto-painel);
+    box-sizing: border-box; /* Adicionado */
+    font-family: var(--fonte-corpo); /* Adicionado */
+    transition: all 0.2s; /* Adicionado */
+}
+.periciaItem input:focus { /* Adicionado */
+     outline: none;
+     border-color: var(--cor-titulo-painel);
+}
+/* --- FIM PERÍCIAS MODAL --- */
+
+/* Ações e Botões */
+.modalActions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 20px; border-top: 2px solid var(--cor-borda-painel); padding-top: 10px; }
+.saveBtn, .excluirFichaBtn { /* op-style removido dos nomes */
+    font-family: var(--fonte-ficha); font-size: 1em; text-transform: uppercase;
+    border: 2px solid var(--cor-borda-painel); border-radius: 0; padding: 8px 15px; cursor: pointer;
+}
+.saveBtn { background: var(--cor-fundo-inverso); color: var(--cor-texto-inverso); }
+.excluirFichaBtn { background: var(--cor-botao-perigo); color: var(--cor-texto-inverso); }
+.closeBtn { /* op-style removido */
+    position: absolute; top: 10px; right: 15px;
+    color: var(--cor-texto-painel); text-shadow: none; font-family: Arial, sans-serif;
+    background: none; /* Adicionado */
+    border: none; /* Adicionado */
+    font-size: 1.5em; /* Ajustado */
+    cursor: pointer; /* Adicionado */
+}
+
+/* Seção do Mestre */
+.gmActionsSection {
+    padding: 15px 25px;
+    border-top: 2px solid var(--cor-borda-painel);
+    margin-top: 15px;
+}
+
+.gmActionsSection h3 {
+    margin-top: 0;
+    color: var(--cor-titulo-painel);
+    font-size: 1.2em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--cor-borda-painel);
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+}
+
+.gmFieldGroup {
+    margin-bottom: 20px;
+}
+.gmFieldGroup label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+.gmFieldGroup input[type="text"] {
+    width: 100%;
+    background: var(--cor-fundo-input);
+    color: var(--cor-texto-painel);
+    border: 1px solid var(--cor-borda-painel);
+    padding: 8px;
+    font-family: var(--fonte-ficha);
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+.transferOwnerControls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.transferOwnerControls label {
+    font-weight: bold;
+    margin-bottom: 0;
+}
+
+.transferOwnerControls select {
+    flex-grow: 1;
+    background: var(--cor-fundo-input);
+    color: var(--cor-texto-painel);
+    border: 1px solid var(--cor-borda-painel);
+    padding: 8px;
+    font-family: var(--fonte-ficha);
+    font-size: 1em;
+}
+
+.transferOwnerControls button {
+    font-family: var(--fonte-ficha);
+    font-size: 1em;
+    text-transform: uppercase;
+    border: 2px solid var(--cor-borda-painel);
+    padding: 8px 15px;
+    cursor: pointer;
+    background: var(--cor-fundo-inverso);
+    color: var(--cor-texto-inverso);
+}
+.transferOwnerControls button:disabled {
+    background: #555;
+    color: #999;
+    border-color: #555;
+    cursor: not-allowed;
+}
+

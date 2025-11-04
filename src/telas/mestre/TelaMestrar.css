@@ -1,10 +1,20 @@
+/* --- ESTILOS GERAIS DA TELA DO MESTRE --- */
 .mestrar-header {
-    /* ... */
-    gap: 20px; /* Adiciona espaçamento */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--cor-borda-painel);
+    gap: 20px;
 }
 
 .mestrar-header h1 {
-    margin-right: auto; /* Empurra os outros itens para a direita */
+    margin-right: auto;
+    font-family: var(--fonte-ficha);
+    color: var(--cor-titulo-painel);
+    font-size: 2.5em;
+    margin: 0;
 }
 
 .temporada-seletor {
@@ -28,10 +38,141 @@
     font-size: 1em;
 }
 
-/* Estilo para o novo botão de editar */
-.jogador-card .edit-btn {
+/* --- ESTILOS ESPECÍFICOS PARA OS CARDS NO PAINEL DO MESTRE --- */
+.mestrar-container .grid-jogadores {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.mestrar-container .jogador-card {
+    background: var(--cor-fundo-painel); /* FUNDO NORMAL DO TEMA */
+    color: var(--cor-texto-painel);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 20px;
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
+    backdrop-filter: blur(5px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 280px;
+}
+
+.mestrar-container .jogador-img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--cor-borda-painel);
+}
+
+.mestrar-container .jogador-card h2 {
+    font-family: var(--fonte-ficha);
+    color: var(--cor-titulo-painel);
+    font-size: 1.5em;
+    margin: 0;
+    text-align: center;
+}
+
+.mestrar-container .status-block {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     width: 100%;
-    margin-top: auto; /* Empurra para a base do card */
+    margin: 5px 0;
+}
+
+.mestrar-container .bar-info {
+    font-weight: bold;
+    color: var(--cor-texto-painel);
+    width: 80px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.mestrar-container .status-bar {
+    position: relative;
+    flex-grow: 1;
+    height: 28px;
+    background: var(--cor-barra-fundo);
+    border: 1px solid var(--cor-borda-painel);
+    overflow: hidden;
+}
+
+.mestrar-container .bar-label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px 1px #000;
+    z-index: 2;
+    gap: 4px;
+}
+
+.mestrar-container .status-input {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: var(--fonte-ficha);
+    font-weight: bold;
+    font-size: 14px;
+    width: 45px;
+    text-align: right;
+    padding: 0 2px;
+}
+
+/* --- CORREÇÃO DAS SETAS GIGANTES --- */
+.mestrar-container .bar-controls {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    display: flex;
+    gap: 3px;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+.mestrar-container .status-bar:hover .bar-controls {
+    opacity: 1;
+}
+
+.mestrar-container .left-controls { left: 5px; }
+.mestrar-container .right-controls { right: 5px; }
+
+.mestrar-container .bar-controls button {
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    color: #fff;
+    padding: 0 6px; /* Padding reduzido */
+    margin: 0;
+    height: 22px; /* Altura fixa */
+    font-size: 14px; /* Tamanho da fonte reduzido */
+    line-height: 20px; /* Alinhamento vertical */
+    border-radius: 0;
+    cursor: pointer;
+    min-width: 28px;
+}
+.mestrar-container .bar-controls button:hover {
+    background: #000;
+}
+
+
+.mestrar-container .hp-bar { background: linear-gradient(to right, #6D0000, #D30000); height: 100%; }
+.mestrar-container .sanidade-bar { background: linear-gradient(to right, #005C9E, #00A6FF); height: 100%; }
+.mestrar-container .esforco-bar { background: linear-gradient(to right, #5D00A5, #A300FF); height: 100%; }
+
+.mestrar-container .edit-btn {
+    width: 100%;
+    margin-top: auto;
     padding: 10px;
     font-family: var(--fonte-ficha);
     text-transform: uppercase;
@@ -41,8 +182,7 @@
     cursor: pointer;
     transition: all 0.2s;
 }
-
-.jogador-card .edit-btn:hover {
+.mestrar-container .edit-btn:hover {
     background: var(--cor-titulo-painel);
     color: var(--cor-fundo-painel);
     border-color: var(--cor-titulo-painel);

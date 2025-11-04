@@ -25,6 +25,11 @@ import TelaRituais from './telas/jogador/TelaRituais';
 // Telas de Mestre
 import TelaGrupo from './telas/mestre/TelaGrupo';
 import TelaMestrar from './telas/mestre/TelaMestrar';
+import TelaCriarItens from './telas/mestre/TelaCriarItens';
+
+// Telas Comuns
+import TelaEditarAgente from './telas/comum/TelaEditarAgente';
+import TelaVerItens from './telas/comum/TelaVerItens'; // Importa a nova tela
 
 function App() {
   return (
@@ -44,13 +49,17 @@ function App() {
               <Route path="/criar-ficha" element={<RotaProtegida><TelaCriarFicha /></RotaProtegida>} />
               <Route path="/opcoes" element={<RotaProtegida><TelaOpcoes /></RotaProtegida>} />
               <Route path="/usuario" element={<RotaProtegida><TelaUsuario /></RotaProtegida>} />
-              
-              <Route path="/grupo" element={<RotaProtegida><TelaGrupo /></RotaProtegida>} />
-              <Route path="/mestrar" element={<RotaProtegida gmOnly={true}><TelaMestrar /></RotaProtegida>} />
+              <Route path="/ver-itens" element={<RotaProtegida><TelaVerItens /></RotaProtegida>} /> {/* Nova rota */}
               
               <Route path="/inventario/:fichaId" element={<RotaProtegida><TelaInventario /></RotaProtegida>} />
               <Route path="/habilidades/:fichaId" element={<RotaProtegida><TelaHabilidades /></RotaProtegida>} />
               <Route path="/rituais/:fichaId" element={<RotaProtegida><TelaRituais /></RotaProtegida>} />
+              <Route path="/editar-agente/:fichaId" element={<RotaProtegida><TelaEditarAgente /></RotaProtegida>} />
+
+              {/* Rotas Apenas para o Mestre */}
+              <Route path="/grupo" element={<RotaProtegida gmOnly={true}><TelaGrupo /></RotaProtegida>} />
+              <Route path="/mestrar" element={<RotaProtegida gmOnly={true}><TelaMestrar /></RotaProtegida>} />
+              <Route path="/criar-itens" element={<RotaProtegida gmOnly={true}><TelaCriarItens /></RotaProtegida>} />
             </Routes>
           </div>
         </Router>

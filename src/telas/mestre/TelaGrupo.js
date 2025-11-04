@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { carregarFichasPorTemporada, escutarTodosStatusDaTemporada } from '../../firebase/dataService.js';
-import logo from '../../assets/logo.png';
 import './TelaGrupo.css';
 
 function TelaGrupo() {
@@ -12,41 +11,56 @@ function TelaGrupo() {
     const [loading, setLoading] = useState(true);
     
     const temporadaAtiva = 'pacto';
+    const logoPath = `${process.env.PUBLIC_URL}/assets/logo.png`;
 
     useEffect(() => {
         let pararDeEscutar;
-
-        const buscaDados = async () => {
-            setLoading(true);
-            
+        setLoading(true);
+        const buscaDadosIniciais = async () => {
             const dadosFichas = await carregarFichasPorTemporada(temporadaAtiva);
             setFichas(dadosFichas);
-
-            // Ativa o "ouvinte" de tempo real para os status
-            pararDeEscutar = escutarTodosStatusDaTemporada(temporadaAtiva, (dados) => {
-                setStatusAoVivo(dados);
+            pararDeEscutar = escutarTodosStatusDaTemporada(temporadaAtiva, (dadosStatus) => {
+                setStatusAoVivo(dadosStatus);
+                setLoading(false);
             });
-            
-            // Considera a página carregada após configurar tudo
-            setLoading(false);
         };
-
-        buscaDados();
-
+        buscaDadosIniciais();
         return () => {
             if (pararDeEscutar) {
                 pararDeEscutar();
             }
         };
-    }, []);
+    }, [temporadaAtiva]);
 
-    const getImagemPersonagem = (nome) => {
-        if (!nome) return logo;
-        try {
-            return require(`../../assets/personagens/${nome.toLowerCase()}.png`);
-        } catch (err) {
-            return logo;
+    // FUNÇÃO DE IMAGEM ATUALIZADA
+    const getImagemPersonagem = (ficha) => {
+        if (!ficha) return logoPath;
+        
+        if (ficha.imagem) {
+            return `${process.env.PUBLIC_URL}/assets/personagens/${ficha.imagem}`;
         }
+        
+        if (ficha.nome) {
+            const nomeArquivo = ficha.nome.toLowerCase().replace(/ /g, '_') + '.png';
+            return `${process.env.PUBLIC_URL}/assets/personagens/${nomeArquivo}`;
+        }
+        
+        return logoPath;
+    };
+    
+    const handleImageError = (e) => {
+        e.target.src = logoPath;
+    };
+
+    const getCharacterImageClasses = (status) => {
+        let classes = 'jogador-img';
+        if (!status) return classes;
+
+        if (status.vida <= 0) classes += ' sem-vida';
+        if (status.sanidade <= 0) classes += ' sem-sanidade';
+        if (status.esforco <= 0) classes += ' sem-esforco';
+        
+        return classes;
     };
 
     if (loading) {
@@ -54,8 +68,8 @@ function TelaGrupo() {
     }
 
     return (
-        <div className="mestrar-container">
-            <div className="mestrar-header">
+        <div className="grupo-container">
+            <div className="grupo-header">
                 <h1>Painel do Grupo</h1>
                 <button onClick={() => navigate('/')}>Voltar ao Menu</button>
             </div>
@@ -64,28 +78,35 @@ function TelaGrupo() {
                     <p>Nenhuma ficha encontrada para a temporada "{temporadaAtiva}".</p>
                 ) : (
                     Object.entries(fichas).map(([id, ficha]) => {
-                        const status = statusAoVivo[id] || { 
-                            vida: ficha.vida, 
+                        const statusAtual = statusAoVivo[id];
+                        const statusParaExibir = {
+                            vida: statusAtual?.vida,
                             vidaMax: ficha.vidaMax,
-                            sanidade: ficha.sanidade,
+                            sanidade: statusAtual?.sanidade,
                             sanidadeMax: ficha.sanidadeMax,
-                            esforco: ficha.esforco,
+                            esforco: statusAtual?.esforco,
                             esforcoMax: ficha.esforcoMax
                         };
-                        
+
                         return (
+                            
                             <div key={id} className="jogador-card">
                                 <h2>{ficha.nome}</h2>
                                 <div className="imagem-container">
-                                    <img src={getImagemPersonagem(ficha.nome)} alt={ficha.nome} className="jogador-img" />
-                                    <div className="stat-overlay stat-vida" title={`Vida: ${status.vida} / ${status.vidaMax}`}>
-                                        {`${status.vida ?? '?'}/${status.vidaMax || '?'}`}
+                                    <img 
+                                        src={getImagemPersonagem(ficha)} // Passa a ficha inteira
+                                        alt={ficha.nome} 
+                                        className={getCharacterImageClasses(statusParaExibir)} 
+                                        onError={handleImageError}
+                                    />
+                                    <div className="stat-overlay stat-vida" title={`Vida: ${statusParaExibir.vida} / ${statusParaExibir.vidaMax}`}>
+                                        {`${statusParaExibir.vida ?? '?'}/${statusParaExibir.vidaMax || '?'}`}
                                     </div>
-                                    <div className="stat-overlay stat-sanidade" title={`Sanidade: ${status.sanidade} / ${status.sanidadeMax}`}>
-                                        {`${status.sanidade ?? '?'}/${status.sanidadeMax || '?'}`}
+                                    <div className="stat-overlay stat-sanidade" title={`Sanidade: ${statusParaExibir.sanidade} / ${statusParaExibir.sanidadeMax}`}>
+                                        {`${statusParaExibir.sanidade ?? '?'}/${statusParaExibir.sanidadeMax || '?'}`}
                                     </div>
-                                    <div className="stat-overlay stat-esforco" title={`Esforço: ${status.esforco} / ${status.esforcoMax}`}>
-                                        {`${status.esforco ?? '?'}/${status.esforcoMax || '?'}`}
+                                    <div className="stat-overlay stat-esforco" title={`Esforço: ${statusParaExibir.esforco} / ${statusParaExibir.esforcoMax}`}>
+                                        {`${statusParaExibir.esforco ?? '?'}/${statusParaExibir.esforcoMax || '?'}`}
                                     </div>
                                 </div>
                             </div>
