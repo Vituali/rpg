@@ -1,5 +1,5 @@
 // src/telas/jogador/TelaHabilidades.js
-import React, { useState, useEffect, useCallback } from 'react'; // MUDANÇA 1: Importar o useCallback
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
     carregarHabilidades, 
@@ -7,7 +7,8 @@ import {
     atualizarHabilidade, 
     removerHabilidade 
 } from '../../firebase/dataService';
-import '../mestre/TelaCriarItens.css'; // Reutilizando o CSS da tela de criar itens
+// Importa o CSS Module da tela de criar itens
+import styles from '../mestre/TelaCriarItens.module.css';
 
 const modeloVazio = {
     nome: '',
@@ -26,8 +27,6 @@ function TelaHabilidades() {
     const [editandoId, setEditandoId] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // MUDANÇA 2: A função volta para cá, mas envolvida com 'useCallback'
-    // Colocamos 'temporada' e 'fichaId' como dependências dela.
     const fetchHabilidades = useCallback(async () => {
         setLoading(true);
         const data = await carregarHabilidades(temporada, fichaId);
@@ -35,10 +34,9 @@ function TelaHabilidades() {
         setLoading(false);
     }, [temporada, fichaId]);
 
-    // MUDANÇA 3: O useEffect agora depende da função 'fetchHabilidades'
     useEffect(() => {
         fetchHabilidades();
-    }, [fetchHabilidades]); // Agora o ESLint fica feliz
+    }, [fetchHabilidades]);
 
     const handleSelecionar = (id, habilidade) => {
         setItemAtual(habilidade);
@@ -70,7 +68,7 @@ function TelaHabilidades() {
 
         if (sucesso) {
             alert("Habilidade salva com sucesso!");
-            fetchHabilidades(); // E as chamadas aqui voltam a funcionar!
+            fetchHabilidades();
             handleNovo();
         } else {
             alert("Falha ao salvar a habilidade.");
@@ -82,7 +80,7 @@ function TelaHabilidades() {
             const sucesso = await removerHabilidade(temporada, fichaId, id);
             if (sucesso) {
                 alert("Habilidade removida!");
-                fetchHabilidades(); // E aqui também!
+                fetchHabilidades();
                 handleNovo();
             } else {
                 alert("Falha ao remover a habilidade.");
@@ -91,21 +89,22 @@ function TelaHabilidades() {
     };
 
     if (loading) {
-        return <div className="pagina-container">Carregando habilidades...</div>;
+        return <div className={styles.paginaContainer}>Carregando habilidades...</div>;
     }
 
     return (
-        <div className="pagina-container">
-            <div className="gerenciador-itens-container">
-                <div className="lista-itens-painel">
+        // Aplica classes do CSS Module importado
+        <div className={styles.paginaContainer}>
+            <div className={styles.gerenciadorItensContainer}>
+                <div className={styles.listaItensPainel}>
                     <h2>Habilidades</h2>
                     <button onClick={handleNovo}>+ Nova Habilidade</button>
-                    <ul className="lista-de-itens">
+                    <ul className={styles.listaDeItens}>
                         {Object.entries(habilidades).map(([id, hab]) => (
                             <li 
                                 key={id} 
                                 onClick={() => handleSelecionar(id, hab)} 
-                                className={editandoId === id ? 'selecionado' : ''}
+                                className={editandoId === id ? styles.selecionado : ''}
                             >
                                 {hab.nome}
                             </li>
@@ -113,7 +112,7 @@ function TelaHabilidades() {
                     </ul>
                 </div>
 
-                <div className="editor-item-painel">
+                <div className={styles.editorItemPainel}>
                     <h3>{editandoId ? 'Editando Habilidade' : 'Nova Habilidade'}</h3>
                     
                     <label>Nome:</label>
@@ -128,10 +127,10 @@ function TelaHabilidades() {
                     <label>Dados Usados / Efeito:</label>
                     <textarea name="dados" value={itemAtual.dados} onChange={handleChange} placeholder="Ex: 2d6+FOR, +5 em testes de..." style={{minHeight: '100px'}}></textarea>
                     
-                    <div className="editor-actions">
-                        <button className="salvar-btn" onClick={handleSalvar}>Salvar</button>
+                    <div className={styles.editorActions}>
+                        <button className={styles.salvarBtn} onClick={handleSalvar}>Salvar</button>
                         {editandoId && (
-                            <button className="remover-btn" onClick={() => handleRemover(editandoId, itemAtual.nome)}>
+                            <button className={styles.removerBtn} onClick={() => handleRemover(editandoId, itemAtual.nome)}>
                                 Remover
                             </button>
                         )}

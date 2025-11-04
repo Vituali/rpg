@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { carregarFichasPorTemporada, escutarTodosStatusDaTemporada } from '../../firebase/dataService.js';
-import './TelaGrupo.css';
+// MUDANÇA 1: Importar styles do CSS Module
+import styles from './TelaGrupo.module.css';
 
 function TelaGrupo() {
     const navigate = useNavigate();
@@ -52,28 +53,31 @@ function TelaGrupo() {
         e.target.src = logoPath;
     };
 
+    // MUDANÇA 2: Função atualizada para usar classes do CSS Module
     const getCharacterImageClasses = (status) => {
-        let classes = 'jogador-img';
+        let classes = styles.jogadorImg; // Classe base
         if (!status) return classes;
 
-        if (status.vida <= 0) classes += ' sem-vida';
-        if (status.sanidade <= 0) classes += ' sem-sanidade';
-        if (status.esforco <= 0) classes += ' sem-esforco';
+        if (status.vida <= 0) classes += ` ${styles.semVida}`;
+        if (status.sanidade <= 0) classes += ` ${styles.semSanidade}`;
+        if (status.esforco <= 0) classes += ` ${styles.semEsforco}`;
         
         return classes;
     };
 
     if (loading) {
-        return <div className="loading-container">Carregando painel do grupo...</div>;
+        // Usa a classe global de `.pagina-container` se existir, ou um estilo simples
+        return <div className="pagina-container">Carregando painel do grupo...</div>;
     }
 
+    // MUDANÇA 3: Aplicar classes do CSS Module ao JSX
     return (
-        <div className="grupo-container">
-            <div className="grupo-header">
+        <div className={styles.grupoContainer}>
+            <div className={styles.grupoHeader}>
                 <h1>Painel do Grupo</h1>
                 <button onClick={() => navigate('/')}>Voltar ao Menu</button>
             </div>
-            <div className="grid-jogadores">
+            <div className={styles.gridJogadores}>
                 {Object.keys(fichas).length === 0 ? (
                     <p>Nenhuma ficha encontrada para a temporada "{temporadaAtiva}".</p>
                 ) : (
@@ -90,22 +94,22 @@ function TelaGrupo() {
 
                         return (
                             
-                            <div key={id} className="jogador-card">
+                            <div key={id} className={styles.jogadorCard}>
                                 <h2>{ficha.nome}</h2>
-                                <div className="imagem-container">
+                                <div className={styles.imagemContainer}>
                                     <img 
                                         src={getImagemPersonagem(ficha)} // Passa a ficha inteira
                                         alt={ficha.nome} 
                                         className={getCharacterImageClasses(statusParaExibir)} 
                                         onError={handleImageError}
                                     />
-                                    <div className="stat-overlay stat-vida" title={`Vida: ${statusParaExibir.vida} / ${statusParaExibir.vidaMax}`}>
+                                    <div className={`${styles.statOverlay} ${styles.statVida}`} title={`Vida: ${statusParaExibir.vida} / ${statusParaExibir.vidaMax}`}>
                                         {`${statusParaExibir.vida ?? '?'}/${statusParaExibir.vidaMax || '?'}`}
                                     </div>
-                                    <div className="stat-overlay stat-sanidade" title={`Sanidade: ${statusParaExibir.sanidade} / ${statusParaExibir.sanidadeMax}`}>
+                                    <div className={`${styles.statOverlay} ${styles.statSanidade}`} title={`Sanidade: ${statusParaExibir.sanidade} / ${statusParaExibir.sanidadeMax}`}>
                                         {`${statusParaExibir.sanidade ?? '?'}/${statusParaExibir.sanidadeMax || '?'}`}
                                     </div>
-                                    <div className="stat-overlay stat-esforco" title={`Esforço: ${statusParaExibir.esforco} / ${statusParaExibir.esforcoMax}`}>
+                                    <div className={`${styles.statOverlay} ${styles.statEsforco}`} title={`Esforço: ${statusParaExibir.esforco} / ${statusParaExibir.esforcoMax}`}>
                                         {`${statusParaExibir.esforco ?? '?'}/${statusParaExibir.esforcoMax || '?'}`}
                                     </div>
                                 </div>

@@ -1,0 +1,169 @@
+/* src/telas/mestre/TelaCriarItens.module.css */
+/* Este arquivo será importado por TelaCriarItens, TelaHabilidades e TelaRituais */
+
+.paginaContainer {
+    background: var(--cor-fundo-painel);
+    color: var(--cor-texto-painel);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 30px;
+    margin: 20px auto; /* Centraliza */
+    width: 100%;
+    max-width: 1200px; /* Aumenta a largura máxima */
+    box-sizing: border-box;
+    font-family: var(--fonte-ficha);
+    text-align: center;
+}
+
+.gerenciadorItensContainer {
+    display: flex;
+    gap: 30px;
+    width: 100%;
+    text-align: left; /* Alinha o texto interno à esquerda */
+}
+
+.listaItensPainel, .editorItemPainel {
+    background: var(--cor-fundo-painel);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 20px;
+    backdrop-filter: blur(5px);
+}
+
+.listaItensPainel {
+    flex: 1;
+}
+.editorItemPainel {
+    flex: 2;
+}
+
+.gerenciadorItensContainer h2, .gerenciadorItensContainer h3,
+.paginaContainer h2, .paginaContainer h3 { /* Adiciona h2 e h3 do container */
+    color: var(--cor-titulo-painel);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--cor-borda-painel);
+    padding-bottom: 10px;
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: left; /* Garante alinhamento */
+}
+
+.listaItensPainel button {
+    width: 100%;
+    margin-bottom: 15px;
+    /* Estilos de botão (copiado de TelaOpcoes para consistência) */
+    background: var(--cor-fundo-inverso);
+    color: var(--cor-texto-inverso);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 10px 15px;
+    border-radius: 0;
+    cursor: pointer;
+    font-family: var(--fonte-ficha);
+    font-weight: bold;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+.listaItensPainel button:hover {
+    background: var(--cor-destaque-vermelho);
+    border-color: var(--cor-destaque-vermelho);
+}
+
+
+.listaDeItens {
+    list-style: none;
+    padding: 0;
+    max-height: 450px;
+    overflow-y: auto;
+}
+
+.listaDeItens li {
+    padding: 10px;
+    border: 1px solid var(--cor-borda-painel);
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.listaDeItens li:hover {
+    background: var(--cor-fundo-inverso);
+    color: var(--cor-texto-inverso);
+}
+
+.listaDeItens li.selecionado {
+    background: var(--cor-destaque-vermelho);
+    color: var(--cor-texto-inverso);
+    border-color: var(--cor-destaque-vermelho);
+}
+
+.editorItemPainel label {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+.editorItemPainel input, .editorItemPainel textarea, .editorItemPainel select {
+    width: 100%;
+    padding: 8px;
+    background: var(--cor-fundo-input);
+    color: var(--cor-texto-painel);
+    border: 1px solid var(--cor-borda-painel);
+    box-sizing: border-box;
+    font-family: var(--fonte-corpo); /* Garante fonte legível */
+    font-size: 1em; /* Garante tamanho legível */
+}
+.editorItemPainel textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.modificadorItem {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.modificadorItem select { width: 120px; }
+.modificadorItem input[type="text"] { flex-grow: 1; }
+.modificadorItem input[type="number"] { width: 80px; }
+.modificadorItem .removerModBtn { /* Nome de classe JS-friendly */
+    background: var(--cor-botao-perigo);
+    color: white;
+    border: none;
+    cursor: pointer;
+    padding: 5px 10px;
+    font-family: var(--fonte-ficha);
+    text-transform: uppercase;
+}
+
+.editorActions {
+    margin-top: 25px;
+    border-top: 1px solid var(--cor-borda-painel);
+    padding-top: 15px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+}
+
+/* Botões genéricos de salvar/remover no editor */
+.editorActions button {
+    background: var(--cor-fundo-inverso);
+    color: var(--cor-texto-inverso);
+    border: 2px solid var(--cor-borda-painel);
+    padding: 10px 15px;
+    border-radius: 0;
+    cursor: pointer;
+    font-family: var(--fonte-ficha);
+    font-weight: bold;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+.editorActions button:hover {
+    background: var(--cor-destaque-vermelho);
+    border-color: var(--cor-destaque-vermelho);
+}
+.editorActions .removerBtn { /* Estilo específico para remover */
+    background: var(--cor-botao-perigo);
+    border-color: var(--cor-botao-perigo);
+    color: var(--cor-texto-inverso);
+}
+.editorActions .removerBtn:hover {
+    filter: brightness(1.2);
+}

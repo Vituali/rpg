@@ -1,8 +1,5 @@
 .App {
   width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 .App-logo {
   height: 40vmin;
@@ -38,3 +35,4 @@
     transform: rotate(360deg);
   }
 }
+

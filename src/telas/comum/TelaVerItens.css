@@ -15,6 +15,8 @@
     text-align: left;
     font-family: 'PressStart2P', sans-serif;
     image-rendering: pixelated;
+    /* CORREÇÃO: Adicionado margin: auto para recentralizar esta tela */
+    margin: 20px auto;
 }
 
 .lista-itens-painel-visualizacao, .detalhes-item-painel {
@@ -25,11 +27,11 @@
 }
 
 .lista-itens-painel-visualizacao {
-    flex: 1;
+    flex: 1 1; /* Alterado de flex: 1 */
 }
 
 .detalhes-item-painel {
-    flex: 2;
+    flex: 2 1; /* Alterado de flex: 2 */
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -173,3 +175,4 @@
     max-width: 150px;
     margin-bottom: 20px;
 }
+

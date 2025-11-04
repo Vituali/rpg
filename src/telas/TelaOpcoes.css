@@ -9,6 +9,7 @@
     max-width: 90%;
     font-family: var(--fonte-ficha);
     text-transform: uppercase;
+    margin: 50px auto;
 }
 
 .opcoes-container h2 {
@@ -52,6 +53,7 @@
     border: none;
     padding: 10px 20px;
 }
+
 button, select {
     background: var(--cor-fundo-inverso);
     color: var(--cor-texto-inverso);
@@ -63,7 +65,8 @@ button, select {
 }
 
 button:hover, select:hover {
-    background: var(--cor-destaque-vermelho); /* Vermelho no hover */
+    background: var(--cor-destaque-vermelho);
     color: var(--cor-texto-inverso);
     border-color: var(--cor-destaque-vermelho);
 }
+

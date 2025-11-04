@@ -18,7 +18,7 @@ import TelaUsuario from './telas/auth/TelaUsuario';
 
 // Telas de Jogo
 import TelaJogar from './telas/jogador/TelaJogar';
-import TelaInventario from './telas/jogador/TelaInventario';
+// TelaInventario não é mais importada aqui como uma rota
 import TelaHabilidades from './telas/jogador/TelaHabilidades';
 import TelaRituais from './telas/jogador/TelaRituais';
 
@@ -29,7 +29,7 @@ import TelaCriarItens from './telas/mestre/TelaCriarItens';
 
 // Telas Comuns
 import TelaEditarAgente from './telas/comum/TelaEditarAgente';
-import TelaVerItens from './telas/comum/TelaVerItens'; // Importa a nova tela
+import TelaVerItens from './telas/comum/TelaVerItens';
 
 function App() {
   return (
@@ -49,9 +49,9 @@ function App() {
               <Route path="/criar-ficha" element={<RotaProtegida><TelaCriarFicha /></RotaProtegida>} />
               <Route path="/opcoes" element={<RotaProtegida><TelaOpcoes /></RotaProtegida>} />
               <Route path="/usuario" element={<RotaProtegida><TelaUsuario /></RotaProtegida>} />
-              <Route path="/ver-itens" element={<RotaProtegida><TelaVerItens /></RotaProtegida>} /> {/* Nova rota */}
+              <Route path="/ver-itens" element={<RotaProtegida><TelaVerItens /></RotaProtegida>} />
               
-              <Route path="/inventario/:fichaId" element={<RotaProtegida><TelaInventario /></RotaProtegida>} />
+              {/* Rota do Inventário foi REMOVIDA daqui */}
               <Route path="/habilidades/:fichaId" element={<RotaProtegida><TelaHabilidades /></RotaProtegida>} />
               <Route path="/rituais/:fichaId" element={<RotaProtegida><TelaRituais /></RotaProtegida>} />
               <Route path="/editar-agente/:fichaId" element={<RotaProtegida><TelaEditarAgente /></RotaProtegida>} />

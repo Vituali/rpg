@@ -2,6 +2,8 @@
 
 .editor-agente-container {
     max-width: 1200px;
+    /* CORREÇÃO: Adicionado margin: auto para recentralizar esta tela */
+    margin: 20px auto;
 }
 
 .editor-layout-superior {
@@ -148,7 +150,7 @@
 }
 
 .painel-gerenciamento-inferior > div {
-    flex: 1;
+    flex: 1 1; /* Alterado de flex: 1 */
 }
 
 .painel-gerenciamento-inferior h3 {
@@ -182,3 +184,4 @@
 .painel-edicao-stats button {
     width: 100%;
 }
+

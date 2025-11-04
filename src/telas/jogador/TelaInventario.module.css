@@ -1,14 +1,22 @@
-/* src/telas/jogador/TelaInventario.css */
+/* src/telas/jogador/TelaInventario.module.css */
 
-.inventario-screen-container {
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* O container principal agora é um modal overlay */
+.modal {
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0, 0, 0, 0.85); 
+    z-index: 1000; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 20px; 
+    box-sizing: border-box; 
 }
 
-.inventario-janela {
+.inventarioJanela {
     width: 350px; 
     background: #1a1a1a;
     border: 3px solid #444;
@@ -18,7 +26,7 @@
     color: #ccc;
 }
 
-.inventario-cabecalho {
+.inventarioCabecalho {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -27,14 +35,14 @@
     padding-bottom: 5px;
     border-bottom: 1px solid #444;
 }
-.inventario-cabecalho h3 { margin: 0; }
+.inventarioCabecalho h3 { margin: 0; }
 
-.cabecalho-botoes {
+.cabecalhoBotoes {
     display: flex;
     gap: 8px;
 }
 
-.fechar-btn, .gerenciar-btn {
+.fecharBtn, .gerenciarBtn {
     color: #fff;
     border: 1px solid #400;
     cursor: pointer;
@@ -42,16 +50,16 @@
     padding: 2px 8px;
     font-size: 0.9em;
 }
-.fechar-btn { background: #800; }
-.gerenciar-btn { background: #444; border-color: #666; }
-.gerenciar-btn:hover { background: #666; }
+.fecharBtn { background: #800; }
+.gerenciarBtn { background: #444; border-color: #666; }
+.gerenciarBtn:hover { background: #666; }
 
 
 /* LAYOUT DE EQUIPAMENTO ATUALIZADO PARA 3 COLUNAS */
-.equipamento-painel-visual {
+.equipamentoPainelVisual {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* Alterado para 3 colunas */
-    grid-template-rows: repeat(10, 32px); /* 6 linhas para um layout mais vertical */
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(10, 32px);
     gap: 2px;
     margin-bottom: 10px;
     grid-template-areas:
@@ -68,17 +76,17 @@
 }
 
 /* Posicionando cada slot em sua área designada */
-.slot-capacete  { grid-area: capacete; }
-.slot-capa      { grid-area: capa; }
-.slot-armadura  { grid-area: armadura; }
-.slot-arma      { grid-area: arma; }
-.slot-municao   { grid-area: municao; }
-.slot-botas     { grid-area: botas; }
-.slot-acessorio1 { grid-area: acessorio1; }
-.slot-acessorio2 { grid-area: acessorio2; }
-.slot-acessorio3 { grid-area: acessorio3; }
-.slot-acessorio4 { grid-area: acessorio4; }
-.slot-cinto     { grid-area: cinto; }
+.slotCapacete  { grid-area: capacete; }
+.slotCapa      { grid-area: capa; }
+.slotArmadura  { grid-area: armadura; }
+.slotArma      { grid-area: arma; }
+.slotMunicao   { grid-area: municao; }
+.slotBotas     { grid-area: botas; }
+.slotAcessorio1 { grid-area: acessorio1; }
+.slotAcessorio2 { grid-area: acessorio2; }
+.slotAcessorio3 { grid-area: acessorio3; }
+.slotAcessorio4 { grid-area: acessorio4; }
+.slotCinto     { grid-area: cinto; }
 
 .slot {
     background: rgba(0,0,0,0.5);
@@ -92,24 +100,24 @@
     font-size: 0.8em;
 }
 
-.slot.drag-over {
+.slot.dragOver {
     border-color: var(--cor-destaque-vermelho);
     background: rgba(211, 0, 0, 0.2);
 }
-.slot-nome { color: #666; font-size: 0.9em; }
+.slotNome { color: #666; font-size: 0.9em; }
 
-.mochila-painel-grid {
+.mochilaPainelGrid {
     display: grid;
     grid-template-columns: repeat(6, 1fr); 
     gap: 3px;
     border-top: 1px solid #444;
     padding-top: 10px;
 }
-.mochila-painel-grid .slot {
+.mochilaPainelGrid .slot {
     height: 45px;
 }
 
-.item-inventario {
+.itemInventario {
     width: 100%;
     height: 100%;
     display: flex;
@@ -119,9 +127,9 @@
     overflow: hidden;
     transition: all 0.2s;
 }
-.item-nome { font-size: 0.9em; padding: 2px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+.itemNome { font-size: 0.9em; padding: 2px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
 
-.item-sprite {
+.itemSprite {
     width: 100%;
     height: 100%;
     max-width: 100%;
@@ -130,23 +138,23 @@
 }
 
 /* --- ESTILOS DE RARIDADE --- */
-.item-inventario.raridade-comum {
+.itemInventario.raridadeComum {
     background-color: #2e2e38;
     border: 1px solid #5a5a6e;
 }
-.item-inventario.raridade-incomum {
+.itemInventario.raridadeIncomum {
     background-color: #1e6a4c;
     border: 1px solid #2ecc71;
 }
-.item-inventario.raridade-raro {
+.itemInventario.raridadeRaro {
     background-color: #2c3e50;
     border: 1px solid #3498db;
 }
-.item-inventario.raridade-epico {
+.itemInventario.raridadeEpico {
     background-color: #4a148c;
     border: 1px solid #9b59b6;
 }
-.item-inventario.raridade-lendario {
+.itemInventario.raridadeLendario {
     background-color: #a84300;
     border: 1px solid #f39c12;
 }
@@ -157,7 +165,7 @@
     100% { border-color: #ff0000; box-shadow: 0 0 5px #ff0000; }
 }
 
-.item-inventario.raridade-satanico {
+.itemInventario.raridadeSatanico {
     background-color: #3d0000;
     border: 1px solid #ff0000;
     animation: brilho-satanico 2s infinite ease-in-out;
@@ -165,7 +173,7 @@
 
 
 /* --- ESTILOS DO RODAPÉ --- */
-.inventario-rodape {
+.inventarioRodape {
     margin-top: 10px;
     padding-top: 5px;
     border-top: 1px solid #444;
@@ -173,7 +181,7 @@
     justify-content: space-between;
     align-items: center;
 }
-.rodape-stat {
+.rodapeStat {
     background: #000;
     padding: 5px 8px;
     border: 1px solid #444;
@@ -182,22 +190,22 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    transition: color 0.3s, background-color 0.3s; /* Adiciona transição suave */
+    transition: color 0.3s, background-color 0.3s;
 }
-.rodape-icon {
+.rodapeIcon {
     width: 16px;
     height: 16px;
 }
-.dinheiro-display { color: #fdd835; }
-.prestigio-display { color: #e0b0ff; }
-.peso-display { color: #b0b0b0; }
+.dinheiroDisplay { color: #fdd835; }
+.prestigioDisplay { color: #e0b0ff; }
+.pesoDisplay { color: #b0b0b0; }
 
 /* --- NOVOS ESTILOS DE ALERTA DE PESO --- */
-.peso-display.atencao {
-    color: #fdd835; /* Amarelo (mesma cor do dinheiro) */
+.pesoDisplay.atencao {
+    color: #fdd835;
 }
-.peso-display.pesado {
-    color: #e74c3c; /* Vermelho */
+.pesoDisplay.pesado {
+    color: #e74c3c;
 }
 
 @keyframes piscar-vermelho {
@@ -206,6 +214,6 @@
     100% { background-color: #e74c3c; color: #fff; }
 }
 
-.peso-display.sobrecarregado {
+.pesoDisplay.sobrecarregado {
     animation: piscar-vermelho 1.5s infinite;
 }

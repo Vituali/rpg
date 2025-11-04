@@ -67,12 +67,14 @@
 .sheetHeader {
     border-bottom: 3px solid var(--cor-borda-painel);
     padding-bottom: 5px; margin-bottom: 5px;
-    display: flex; justify-content: flex-end;
+    display: flex; justify-content: center; /* Alterado de flex-end para center */
 }
 .gameTitleInput {
     font-family: var(--fonte-ficha); font-size: 1.5em; letter-spacing: 1px;
-    text-align: right; border: none; background: transparent; width: 100%;
+    text-align: center; border: none; background: transparent; width: 100%; /* Alterado de right para center */
     text-transform: uppercase; font-weight: bold; color: var(--cor-texto-painel);
+    padding: 0; /* Adicionado para remover padding de input */
+    line-height: 1.2; /* Ajuste de altura de linha para div */
 }
 .gameTitleInput:focus { outline: none; }
 
@@ -101,11 +103,11 @@
 .attrHex { width: 100%; height: 100%; background-color: var(--cor-fundo-painel); clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: scale(0.96); }
 .attrHex span { font-size: 1.3em; font-weight: bold; }
 .attrHex input { width: 50px; font-size: 1.8em; border: none; text-align: center; padding: 2px; border-radius: 0; font-family: var(--fonte-ficha); margin-top: 2px; background: var(--cor-fundo-painel); color: var(--cor-texto-painel); }
-.hexForca { top: 70px; left: 15px; }
-.hexAgilidade { top: 70px; right: 15px; }
-.hexVigor { bottom: 0; left: 60px; }
-.hexPresenca { bottom: 0; right: 60px; }
-.hexInteligencia { top: 0; left: 50%; transform: translateX(-50%); }
+.hexForca { top: 75px; left: 20px; }
+.hexAgilidade { top: 75px; right: 20px; }
+.hexVigor { bottom: 10px; left: 55px; }
+.hexPresenca { bottom: 10px; right: 55px; }
+.hexInteligencia { top: 10px; left: 50%; transform: translateX(-50%); }
 
 /* Stats (PV, SAN, etc.) */
 .statsGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
@@ -117,7 +119,7 @@
 .periciasSection { border: 2px solid var(--cor-borda-painel); }
 .periciasHeader { background: var(--cor-fundo-inverso); color: var(--cor-texto-inverso); padding: 5px 10px; text-align: center; }
 .periciasHeader h2 { margin: 0; font-size: 1.2em; font-weight: bold; }
-.periciasGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 15px; padding: 10px; max-height: 380px; overflow-y: auto; }
+.periciasGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0px 0px; padding: 10px; max-height: 430px; overflow-y: auto; }
 
 /* Estilos específicos para perícias DENTRO do modal */
 .periciaItem { /* Nome da classe alterado para camelCase */
@@ -144,7 +146,7 @@
 /* Input específico do modal */
 .periciaItem input {
     width: 100%; /* Ocupa a coluna fixa de 30px */
-    border: 1px solid #ccc;
+    border: 0px solid #ccc;
     padding: 0px;
     text-align: center;
     border-radius: 0;
@@ -253,4 +255,3 @@
     border-color: #555;
     cursor: not-allowed;
 }
-

@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { carregarModelosDeItens, salvarItemModelo, removerItemModelo } from '../../firebase/dataService';
-import './TelaCriarItens.css';
+// Importa o CSS Module
+import styles from './TelaCriarItens.module.css';
 
 const modeloItemVazio = {
     nome: '',
@@ -94,20 +95,25 @@ function TelaCriarItens() {
     };
 
     return (
-        <div className="pagina-container">
-            <div className="gerenciador-itens-container">
-                <div className="lista-itens-painel">
+        // Aplica classes do CSS Module
+        <div className={styles.paginaContainer}>
+            <div className={styles.gerenciadorItensContainer}>
+                <div className={styles.listaItensPainel}>
                     <h2>Itens Globais</h2>
                     <button onClick={handleNovoItem}>+ Criar Novo Item</button>
-                    <ul className="lista-de-itens">
+                    <ul className={styles.listaDeItens}>
                         {Object.entries(itens).map(([id, item]) => (
-                            <li key={id} onClick={() => handleSelecionarItem(id)} className={editandoId === id ? 'selecionado' : ''}>
+                            <li 
+                                key={id} 
+                                onClick={() => handleSelecionarItem(id)} 
+                                className={editandoId === id ? styles.selecionado : ''}
+                            >
                                 {item.nome}
                             </li>
                         ))}
                     </ul>
                 </div>
-                <div className="editor-item-painel">
+                <div className={styles.editorItemPainel}>
                     <h3>{editandoId ? 'Editando Item' : 'Novo Item'}</h3>
                     <label>Nome do Item:</label>
                     <input type="text" name="nome" value={itemAtual.nome} onChange={handleChange} />
@@ -151,21 +157,21 @@ function TelaCriarItens() {
 
                     <h3>Modificadores</h3>
                     {itemAtual.modificadores && itemAtual.modificadores.map((mod, index) => (
-                        <div key={index} className="modificador-item">
+                        <div key={index} className={styles.modificadorItem}>
                             <select name="tipo" value={mod.tipo} onChange={(e) => handleModificadorChange(index, e)}>
                                 <option value="pericia">Perícia</option>
                                 <option value="atributo">Atributo</option>
                             </select>
                             <input type="text" placeholder="Alvo (ex: adestramento)" name="alvo" value={mod.alvo} onChange={(e) => handleModificadorChange(index, e)} />
                             <input type="number" placeholder="Valor" name="valor" value={mod.valor} onChange={(e) => handleModificadorChange(index, e)} />
-                            <button className="remover-mod-btn" onClick={() => handleRemoverModificador(index)}>X</button>
+                            <button className={styles.removerModBtn} onClick={() => handleRemoverModificador(index)}>X</button>
                         </div>
                     ))}
                     <button onClick={handleAdicionarModificador}>+ Adicionar Modificador</button>
                     
-                    <div className="editor-actions">
-                        <button className="salvar-btn" onClick={handleSalvar}>Salvar</button>
-                        {editandoId && <button className="remover-btn" onClick={handleRemover}>Remover Item</button>}
+                    <div className={styles.editorActions}>
+                        <button className={styles.salvarBtn} onClick={handleSalvar}>Salvar</button>
+                        {editandoId && <button className={styles.removerBtn} onClick={handleRemover}>Remover Item</button>}
                     </div>
                 </div>
             </div>

@@ -4,7 +4,7 @@
     color: var(--cor-texto-painel);
     border: 2px solid var(--cor-borda-painel);
     padding: 30px;
-    margin: 20px;
+    margin: 20px auto;
     width: 100%;
     max-width: 800px;
     box-sizing: border-box;
@@ -42,3 +42,4 @@
     background: var(--cor-titulo-painel);
     color: var(--cor-fundo-painel);
 }
+

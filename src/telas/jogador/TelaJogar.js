@@ -5,6 +5,7 @@ import './TelaJogar.css';
 import { useAuth } from '../../context/AuthContext'; // Importa o hook de autenticação
 import { carregarFichasDoUsuario, atualizarStatusAoVivo, escutarStatusDeUmPersonagem, excluirFicha } from '../../firebase/dataService.js';
 import FichaModal from '../../componentes/FichaModal.js';
+import TelaInventario from './TelaInventario.js'; // 1. Importa o componente de inventário
 
 function TelaJogar() {
     const navigate = useNavigate();
@@ -13,7 +14,11 @@ function TelaJogar() {
     const [loading, setLoading] = useState(true);
     const [fichaIdAtual, setFichaIdAtual] = useState(localStorage.getItem('ultimaFichaJogar') || '');
     const [statusAoVivo, setStatusAoVivo] = useState(null);
-    const [modalVisivel, setModalVisivel] = useState(false);
+    
+    // 2. Estados para controlar os modais
+    const [fichaModalVisivel, setFichaModalVisivel] = useState(false);
+    const [inventarioModalVisivel, setInventarioModalVisivel] = useState(false);
+
     const [numDados, setNumDados] = useState(1);
     const [ladosDado, setLadosDado] = useState(20);
     const [resultadoDado, setResultadoDado] = useState(null);
@@ -71,7 +76,7 @@ function TelaJogar() {
         if (!currentUser) return;
         const dados = await carregarFichasDoUsuario(temporadaAtiva, currentUser.uid);
         setFichas(dados);
-        fecharModal();
+        setFichaModalVisivel(false); // Fecha o modal da ficha
         alert("Ficha atualizada com sucesso!");
     };
 
@@ -81,7 +86,7 @@ function TelaJogar() {
             const sucesso = await excluirFicha(temporadaAtiva, fichaIdAtual);
             if (sucesso) {
                 alert("Ficha excluída com sucesso!");
-                fecharModal();
+                setFichaModalVisivel(false); // Fecha o modal
                 setFichaIdAtual('');
                 localStorage.removeItem('ultimaFichaJogar');
                 const dados = await carregarFichasDoUsuario(temporadaAtiva, currentUser.uid);
@@ -92,8 +97,6 @@ function TelaJogar() {
     
     const handleSelecaoFicha = (event) => { setFichaIdAtual(event.target.value); };
     const fichaSelecionada = fichas[fichaIdAtual] || null;
-    const abrirModal = () => setModalVisivel(true);
-    const fecharModal = () => setModalVisivel(false);
     
     const handleAlterarStatus = (stat, valor) => {
         if (!fichaSelecionada || !statusAoVivo) return;
@@ -127,35 +130,26 @@ function TelaJogar() {
         setResultadoDado(`Rolagens (${numDados}d${ladosDado}): [${rolagens.join(', ')}] = ${soma}`);
     };
     
-    // FUNÇÃO DE IMAGEM ATUALIZADA
     const getImagemPersonagem = (ficha) => {
         if (!ficha) return logoPath;
-        
-        // 1. Verifica se existe um nome de arquivo customizado no campo 'imagem'
         if (ficha.imagem) {
             return `${process.env.PUBLIC_URL}/assets/personagens/${ficha.imagem}`;
         }
-        
-        // 2. Se não, usa o nome do personagem como fallback
         if (ficha.nome) {
             const nomeArquivo = ficha.nome.toLowerCase().replace(/ /g, '_') + '.png';
             return `${process.env.PUBLIC_URL}/assets/personagens/${nomeArquivo}`;
         }
-        
-        // 3. Se não tiver nenhum, usa o logo padrão
         return logoPath;
     };
     
-    const imagemExibida = getImagemPersonagem(fichaSelecionada); // Passa a ficha inteira
+    const imagemExibida = getImagemPersonagem(fichaSelecionada);
     
     const getCharacterImageClasses = () => {
         let classes = 'character-img';
         if (!statusAoVivo) return classes;
-
         if (statusAoVivo.vida <= 0) classes += ' sem-vida';
         if (statusAoVivo.sanidade <= 0) classes += ' sem-sanidade';
         if (statusAoVivo.esforco <= 0) classes += ' sem-esforco';
-        
         return classes;
     };
 
@@ -163,12 +157,10 @@ function TelaJogar() {
         e.target.src = logoPath;
     };
 
-    // Ecrã de carregamento
     if (loading) {
         return <div className="pagina-container">A carregar os seus agentes...</div>
     }
 
-    // Ecrã para novos utilizadores sem fichas
     if (Object.keys(fichas).length === 0) {
         return (
             <div className="menu-container">
@@ -247,8 +239,10 @@ function TelaJogar() {
                         </div>
                         
                         <div className="actions-container">
-                            <button onClick={abrirModal}>Ficha</button>
-                            <button onClick={() => navigate(`/inventario/${fichaIdAtual}`)}>Inventário</button>
+                            {/* 3. Botão "Ficha" agora abre o modal */}
+                            <button onClick={() => setFichaModalVisivel(true)}>Ficha</button>
+                            {/* 4. Botão "Inventário" agora abre o modal */}
+                            <button onClick={() => setInventarioModalVisivel(true)}>Inventário</button>
                             <button onClick={() => navigate(`/habilidades/${fichaIdAtual}`)}>Habilidades</button>
                             <button onClick={() => navigate(`/rituais/${fichaIdAtual}`)}>Rituais</button>
                         </div>
@@ -269,7 +263,26 @@ function TelaJogar() {
                     </div>
                 )}
             </div>
-            {modalVisivel && <FichaModal ficha={fichaSelecionada} fichaId={fichaIdAtual} temporada={temporadaAtiva} onClose={fecharModal} onExcluir={handleExcluirFicha} onUpdate={handleFichaUpdate} />}
+            
+            {/* 5. Renderização condicional dos dois modais */}
+            {fichaModalVisivel && (
+                <FichaModal 
+                    ficha={fichaSelecionada} 
+                    fichaId={fichaIdAtual} 
+                    temporada={temporadaAtiva} 
+                    onClose={() => setFichaModalVisivel(false)} 
+                    onExcluir={handleExcluirFicha} 
+                    onUpdate={handleFichaUpdate} 
+                />
+            )}
+            
+            {inventarioModalVisivel && (
+                <TelaInventario
+                    fichaId={fichaIdAtual}
+                    temporada={temporadaAtiva}
+                    onClose={() => setInventarioModalVisivel(false)}
+                />
+            )}
         </>
     );
 }

@@ -1,14 +1,18 @@
-/* src/telas/mestre/TelaGrupo.css */
+/* src/telas/mestre/TelaGrupo.module.css */
 
 /* Estilos gerais para o container da página de grupo */
-.grupo-container {
+.grupoContainer {
     width: 100%;
+    /* --- CORREÇÃO ADICIONADA AQUI --- */
+    max-width: 1400px; /* Define uma largura máxima, igual ao Painel do Mestre */
+    margin: 0 auto;    /* Centraliza o container na página */
+    /* --- FIM DA CORREÇÃO --- */
     min-height: 100vh;
     padding: 20px;
     box-sizing: border-box;
 }
 
-.grupo-header {
+.grupoHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -17,14 +21,14 @@
     border-bottom: 2px solid var(--cor-borda-painel);
 }
 
-.grupo-header h1 {
+.grupoHeader h1 {
     font-family: var(--fonte-ficha);
     color: var(--cor-titulo-painel);
     font-size: 2.5em;
     margin: 0;
 }
 
-.grupo-header button {
+.grupoHeader button {
     background: var(--cor-fundo-inverso);
     color: var(--cor-texto-inverso);
     border: 2px solid var(--cor-borda-painel);
@@ -33,20 +37,21 @@
     font-family: var(--fonte-ficha);
     text-transform: uppercase;
 }
-.grupo-header button:hover {
+.grupoHeader button:hover {
     background: var(--cor-titulo-painel);
     color: var(--cor-fundo-painel);
 }
 
-.grid-jogadores {
+.gridJogadores {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 30px;
-    justify-items: center; /* Centraliza os cards na grade */
+    justify-items: center;
+    align-items: start;
 }
 
 /* --- ESTILOS ESPECÍFICOS PARA OS CARDS NO "VER GRUPO" --- */
-.grupo-container .jogador-card {
+.jogadorCard {
     background: #008000; /* FUNDO VERDE PARA GRAVAÇÃO */
     border: 2px solid var(--cor-borda-painel);
     padding: 20px;
@@ -56,87 +61,108 @@
     flex-direction: column;
     align-items: center;
     gap: 15px;
-    width: 200px;
+    width: 100%;
 }
 
-.grupo-container .jogador-card h2 {
+.jogadorCard h2 {
     font-family: var(--fonte-ficha);
     color: var(--cor-titulo-painel);
     font-size: 1.5em;
     margin: 0;
     text-align: center;
+    word-break: break-word;
+    min-height: 3em; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.grupo-container .imagem-container {
+.imagemContainer {
     position: relative;
-    width: 150px;
-    height: 150px;
+    width: 100%;
+    padding-top: 100%; 
+    height: 0;
     flex-shrink: 0;
 }
 
-.grupo-container .jogador-img {
+.jogadorImg {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid var(--cor-borda-painel);
-    transition: filter 0.5s ease-in-out; /* Adiciona transição suave */
+    transition: filter 0.5s ease-in-out;
 }
 
-.grupo-container .stat-overlay {
+.statOverlay {
     position: absolute;
-    width: 40px;
-    height: 40px;
+    width: 60px;
+    height: 60px;
     background-color: rgba(0, 0, 0, 0.8);
     color: #fff;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2em;
+    font-size: 1em; 
     font-weight: bold;
-    border: 2px solid var(--cor-titulo-painel);
+    border: 1px solid var(--cor-titulo-painel);
     box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    user-select: none;
 }
 
-.grupo-container .stat-vida { bottom: 0; left: -10px; }
-.grupo-container .stat-sanidade { bottom: -15px; left: 50%; transform: translateX(-50%); }
-.grupo-container .stat-esforco { bottom: 0; right: -10px; }
+.statVida {
+    top: calc(100% - 45px); 
+    left: -5px;
+}
+.statSanidade {
+    top: calc(100% - 30px); 
+    left: 50%;
+    transform: translateX(-50%);
+}
+.statEsforco {
+    top: calc(100% - 45px); 
+    right: -5px;
+}
 
 
 /* --- NOVAS ANIMAÇÕES E CLASSES DE STATUS --- */
 @keyframes tremer {
-  0% { transform: translate(1px, 1px) rotate(0deg); }
-  10% { transform: translate(-1px, -2px) rotate(-1deg); }
-  20% { transform: translate(-3px, 0px) rotate(1deg); }
-  30% { transform: translate(3px, 2px) rotate(0deg); }
-  40% { transform: translate(1px, -1px) rotate(1deg); }
-  50% { transform: translate(-1px, 2px) rotate(-1deg); }
-  60% { transform: translate(-3px, 1px) rotate(0deg); }
-  70% { transform: translate(3px, 1px) rotate(-1deg); }
-  80% { transform: translate(-1px, -1px) rotate(1deg); }
-  90% { transform: translate(1px, 2px) rotate(0deg); }
-  100% { transform: translate(1px, -2px) rotate(-1deg); }
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    20% { transform: translate(-3px, 0px) rotate(1deg); }
+    30% { transform: translate(3px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(1deg); }
+    50% { transform: translate(-1px, 2px) rotate(-1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(3px, 1px) rotate(-1deg); }
+    80% { transform: translate(-1px, -1px) rotate(1deg); }
+    90% { transform: translate(1px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-1deg); }
 }
 
 @keyframes pulsar-esforco {
-  0% { opacity: 1; }
-  50% { opacity: 0.6; }
-  100% { opacity: 1; }
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
 }
 
-.grupo-container .jogador-img.sem-vida {
+.semVida {
     filter: grayscale(100%);
 }
 
-.grupo-container .jogador-img.sem-sanidade {
+.semSanidade {
     animation: tremer 0.5s infinite;
 }
 
-.grupo-container .jogador-img.sem-esforco {
+.semEsforco {
     animation: pulsar-esforco 1.5s infinite ease-in-out;
 }
 
-.grupo-container .jogador-img.sem-sanidade.sem-esforco {
+.semSanidade.semEsforco {
     animation: tremer 0.5s infinite, pulsar-esforco 1.5s infinite ease-in-out;
 }
+

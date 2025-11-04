@@ -1,13 +1,12 @@
 // src/telas/jogador/TelaInventario.js
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { carregarFicha, carregarModelosDeItens, carregarInventarioDoPersonagem, atualizarEquipamento, atualizarItemNoInventario } from '../../firebase/dataService';
-import './TelaInventario.css';
+import styles from './TelaInventario.module.css'; // Importa o CSS Module
 
-function TelaInventario() {
-    const { fichaId } = useParams();
+// Recebe props (onClose, fichaId, temporada) em vez de usar useParams
+function TelaInventario({ fichaId, temporada, onClose }) {
     const navigate = useNavigate();
-    const temporada = 'pacto';
 
     const [ficha, setFicha] = useState(null);
     const [modelosDeItens, setModelosDeItens] = useState({});
@@ -31,8 +30,11 @@ function TelaInventario() {
             setInventario(inventarioData);
             setLoading(false);
         };
-        buscarDados();
-    }, [fichaId]);
+        // Depende de fichaId e temporada passados como props
+        if (fichaId && temporada) {
+            buscarDados();
+        }
+    }, [fichaId, temporada]);
 
     const pesoAtual = useMemo(() => {
         return Object.values(inventario).reduce((acc, item) => {
@@ -42,14 +44,13 @@ function TelaInventario() {
         }, 0);
     }, [inventario, modelosDeItens]);
 
-    // NOVA FUNÇÃO: Determina a classe CSS com base no peso
     const getPesoClasse = () => {
         if (!ficha || !ficha.pesoMax || ficha.pesoMax === 0) return '';
         const percentual = (pesoAtual / ficha.pesoMax) * 100;
 
-        if (percentual >= 100) return 'sobrecarregado';
-        if (percentual >= 90) return 'pesado';
-        if (percentual >= 70) return 'atencao';
+        if (percentual >= 100) return styles.sobrecarregado;
+        if (percentual >= 90) return styles.pesado;
+        if (percentual >= 70) return styles.atencao;
         return '';
     };
 
@@ -59,16 +60,16 @@ function TelaInventario() {
 
     const handleDragOver = (e) => {
         e.preventDefault();
-        e.currentTarget.classList.add('drag-over');
+        e.currentTarget.classList.add(styles.dragOver);
     };
     
     const handleDragLeave = (e) => {
-        e.currentTarget.classList.remove('drag-over');
+        e.currentTarget.classList.remove(styles.dragOver);
     };
 
     const handleDropOnSlot = async (e, slotAlvo) => {
         e.preventDefault();
-        e.currentTarget.classList.remove('drag-over');
+        e.currentTarget.classList.remove(styles.dragOver);
         const dragInfo = JSON.parse(e.dataTransfer.getData("dragInfo"));
 
         if (dragInfo.origem === 'slot') return; 
@@ -101,7 +102,7 @@ function TelaInventario() {
 
     const handleDropOnMochila = async (e) => {
         e.preventDefault();
-        e.currentTarget.classList.remove('drag-over');
+        e.currentTarget.classList.remove(styles.dragOver);
         const dragInfo = JSON.parse(e.dataTransfer.getData("dragInfo"));
 
         if (dragInfo.origem !== 'slot') return;
@@ -121,7 +122,14 @@ function TelaInventario() {
     };
     
     if (loading) {
-        return <div className="pagina-container">A carregar inventário...</div>;
+        // Mostra um loader simples dentro do modal
+        return (
+            <div className={styles.modal}>
+                <div className={styles.inventarioJanela}>
+                    <p>A carregar inventário...</p>
+                </div>
+            </div>
+        );
     }
 
     const handleItemImageError = (e) => {
@@ -136,45 +144,53 @@ function TelaInventario() {
         } else if (itemData.customData) {
             dadosDoItem = itemData.customData;
         }
-        if (!dadosDoItem) return <span className="slot-nome">Inválido</span>;
+        if (!dadosDoItem) return <span className={styles.slotNome}>Inválido</span>;
 
-        const raridadeClass = `raridade-${dadosDoItem.raridade || 'comum'}`;
+        const raridadeClass = styles[`raridade${dadosDoItem.raridade.charAt(0).toUpperCase() + dadosDoItem.raridade.slice(1)}`] || styles.raridadeComum;
 
         return (
-            <div className={`item-inventario ${raridadeClass}`} title={dadosDoItem.descricao}>
+            <div className={`${styles.itemInventario} ${raridadeClass}`} title={dadosDoItem.descricao}>
                 {dadosDoItem.imagem ? (
                     <img 
                         src={`${process.env.PUBLIC_URL}/assets/itens/${dadosDoItem.imagem}`} 
                         alt={dadosDoItem.nome}
-                        className="item-sprite"
+                        className={styles.itemSprite}
                         onError={handleItemImageError}
                     />
                 ) : (
-                    <div className="item-nome">{dadosDoItem.nome}</div>
+                    <div className={styles.itemNome}>{dadosDoItem.nome}</div>
                 )}
             </div>
         );
     };
 
     const slotsEquipamento = [
-        { nome: 'capacete' }, { nome: 'armadura' },
-        { nome: 'arma' }, { nome: 'municao' }, { nome: 'botas' },
-        { nome: 'acessorio1' }, { nome: 'acessorio2' }, { nome: 'acessorio3' },
-        { nome: 'acessorio4' }, { nome: 'cinto' }
+        { nome: 'capacete', area: styles.slotCapacete }, 
+        { nome: 'armadura', area: styles.slotArmadura },
+        { nome: 'arma', area: styles.slotArma }, 
+        { nome: 'municao', area: styles.slotMunicao }, 
+        { nome: 'botas', area: styles.slotBotas },
+        { nome: 'acessorio1', area: styles.slotAcessorio1 }, 
+        { nome: 'acessorio2', area: styles.slotAcessorio2 }, 
+        { nome: 'acessorio3', area: styles.slotAcessorio3 },
+        { nome: 'acessorio4', area: styles.slotAcessorio4 }, 
+        { nome: 'cinto', area: styles.slotCinto }
     ];
 
     return (
-        <div className="inventario-screen-container">
-            <div className="inventario-janela">
-                <div className="inventario-cabecalho">
+        // Container principal é o modal
+        <div className={styles.modal}>
+            <div className={styles.inventarioJanela}>
+                <div className={styles.inventarioCabecalho}>
                     <h3>Inventário</h3>
-                    <div className="cabecalho-botoes">
-                        <button className="gerenciar-btn" onClick={() => navigate(`/editar-agente/${fichaId}`)}>Gerenciar</button>
-                        <button className="fechar-btn" onClick={() => navigate(`/jogar`)}>X</button>
+                    <div className={styles.cabecalhoBotoes}>
+                        <button className={styles.gerenciarBtn} onClick={() => navigate(`/editar-agente/${fichaId}`)}>Gerenciar</button>
+                        {/* Botão de fechar agora usa a prop onClose */}
+                        <button className={styles.fecharBtn} onClick={onClose}>X</button>
                     </div>
                 </div>
 
-                <div className="equipamento-painel-visual">
+                <div className={styles.equipamentoPainelVisual}>
                     {slotsEquipamento.map(slot => {
                         const inventarioItemId = equipamento[slot.nome];
                         const itemNoSlot = inventarioItemId ? inventario[inventarioItemId] : null;
@@ -183,21 +199,21 @@ function TelaInventario() {
                         return (
                             <div 
                                 key={slot.nome}
-                                className={`slot slot-${slot.nome}`} 
+                                className={`${styles.slot} ${slot.area}`} // Usa a classe de área do grid
                                 onDragOver={handleDragOver} 
                                 onDragLeave={handleDragLeave} 
                                 onDrop={(e) => handleDropOnSlot(e, slot.nome)}
                                 draggable={!!itemNoSlot}
                                 onDragStart={(e) => itemNoSlot && handleDragStart(e, { origem: 'slot', inventarioItemId, slotOrigem: slot.nome })}
                             >
-                                {itemNoSlot ? renderizarItem(inventarioItemId, itemNoSlot) : <span className="slot-nome">{nomeSlotCapitalizado}</span>}
+                                {itemNoSlot ? renderizarItem(inventarioItemId, itemNoSlot) : <span className={styles.slotNome}>{nomeSlotCapitalizado}</span>}
                             </div>
                         );
                     })}
                 </div>
 
                 <div 
-                    className="mochila-painel-grid"
+                    className={styles.mochilaPainelGrid}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDropOnMochila}
@@ -207,7 +223,7 @@ function TelaInventario() {
                         return (
                             <div 
                                 key={invId} 
-                                className="slot"
+                                className={styles.slot}
                                 draggable={true}
                                 onDragStart={(e) => handleDragStart(e, { origem: 'mochila', inventarioItemId: invId })}
                             >
@@ -216,21 +232,21 @@ function TelaInventario() {
                         );
                     })}
                     {Array.from({ length: 30 - Object.values(inventario).filter(i => !i.equipado).length }).map((_, index) => (
-                        <div key={`empty-${index}`} className="slot"></div>
+                        <div key={`empty-${index}`} className={styles.slot}></div>
                     ))}
                 </div>
                 
-                <div className="inventario-rodape">
-                    <div className="rodape-stat dinheiro-display">
-                        <img src={`${process.env.PUBLIC_URL}/assets/gold.png`} alt="Gold" className="rodape-icon" />
+                <div className={styles.inventarioRodape}>
+                    <div className={`${styles.rodapeStat} ${styles.dinheiroDisplay}`}>
+                        <img src={`${process.env.PUBLIC_URL}/assets/gold.png`} alt="Gold" className={styles.rodapeIcon} />
                         <span>{ficha?.dinheiro?.toLocaleString('pt-BR') || 0}</span>
                     </div>
-                    <div className="rodape-stat prestigio-display">
-                        <img src={`${process.env.PUBLIC_URL}/assets/prestige.png`} alt="Prestige" className="rodape-icon" />
+                    <div className={`${styles.rodapeStat} ${styles.prestigioDisplay}`}>
+                        <img src={`${process.env.PUBLIC_URL}/assets/prestige.png`} alt="Prestige" className={styles.rodapeIcon} />
                         <span>{ficha?.prestigio || 0}</span>
                     </div>
-                    <div className={`rodape-stat peso-display ${getPesoClasse()}`}>
-                        <img src={`${process.env.PUBLIC_URL}/assets/peso.png`} alt="Peso" className="rodape-icon" />
+                    <div className={`${styles.rodapeStat} ${styles.pesoDisplay} ${getPesoClasse()}`}>
+                        <img src={`${process.env.PUBLIC_URL}/assets/peso.png`} alt="Peso" className={styles.rodapeIcon} />
                         <span>{pesoAtual} / {ficha?.pesoMax || 0}</span>
                     </div>
                 </div>

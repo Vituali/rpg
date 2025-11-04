@@ -1,3 +1,14 @@
+/* src/telas/mestre/TelaMestrar.css */
+
+/* NOVO: Contentor principal para centralizar a página */
+.mestrar-container {
+    width: 100%;
+    max-width: 1400px; /* Limite largo para o conteúdo */
+    margin: 0 auto; /* Centraliza */
+    padding: 0 20px; /* Adiciona algum espaçamento lateral */
+    box-sizing: border-box;
+}
+
 /* --- ESTILOS GERAIS DA TELA DO MESTRE --- */
 .mestrar-header {
     display: flex;
@@ -39,13 +50,13 @@
 }
 
 /* --- ESTILOS ESPECÍFICOS PARA OS CARDS NO PAINEL DO MESTRE --- */
-.mestrar-container .grid-jogadores {
+.grid-jogadores {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 20px;
 }
 
-.mestrar-container .jogador-card {
+.jogador-card {
     background: var(--cor-fundo-painel); /* FUNDO NORMAL DO TEMA */
     color: var(--cor-texto-painel);
     border: 2px solid var(--cor-borda-painel);
@@ -57,10 +68,11 @@
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    width: 280px;
+    width: 280px; /* Mantém a largura fixa do card */
+    margin: 0 auto; /* Centraliza o card se a coluna for larga */
 }
 
-.mestrar-container .jogador-img {
+.jogador-img {
     width: 120px;
     height: 120px;
     border-radius: 50%;
@@ -68,7 +80,7 @@
     border: 3px solid var(--cor-borda-painel);
 }
 
-.mestrar-container .jogador-card h2 {
+.jogador-card h2 {
     font-family: var(--fonte-ficha);
     color: var(--cor-titulo-painel);
     font-size: 1.5em;
@@ -76,32 +88,37 @@
     text-align: center;
 }
 
-.mestrar-container .status-block {
+/* --- MUDANÇA #1: O bloco agora é uma coluna --- */
+.status-block {
     display: flex;
-    align-items: center;
-    gap: 10px;
+    flex-direction: column; /* Coloca os itens um em cima do outro */
+    align-items: flex-start; /* Alinha à esquerda */
+    gap: 5px; /* Reduz o espaço entre o label e a barra */
     width: 100%;
     margin: 5px 0;
 }
 
-.mestrar-container .bar-info {
+/* --- MUDANÇA #2: O label agora ocupa 100% e alinha à esquerda --- */
+.bar-info {
     font-weight: bold;
     color: var(--cor-texto-painel);
-    width: 80px;
-    text-align: right;
+    width: 100%; /* Ocupa a largura total */
+    text-align: center; /* Alinha o texto à esquerda */
     flex-shrink: 0;
+    margin-bottom: 2px; /* Adiciona um pequeno espaço abaixo do nome */
 }
 
-.mestrar-container .status-bar {
+.status-bar {
     position: relative;
     flex-grow: 1;
     height: 28px;
     background: var(--cor-barra-fundo);
     border: 1px solid var(--cor-borda-painel);
     overflow: hidden;
+    width: 100%; /* --- MUDANÇA #3: Garante que a barra ocupe 100% --- */
 }
 
-.mestrar-container .bar-label {
+.bar-label {
     position: absolute;
     top: 0;
     left: 0;
@@ -118,20 +135,20 @@
     gap: 4px;
 }
 
-.mestrar-container .status-input {
+.status-input {
     background: transparent;
     border: none;
     color: #fff;
     font-family: var(--fonte-ficha);
     font-weight: bold;
     font-size: 14px;
-    width: 45px;
+    width: 32px;
     text-align: right;
     padding: 0 2px;
 }
 
 /* --- CORREÇÃO DAS SETAS GIGANTES --- */
-.mestrar-container .bar-controls {
+.bar-controls {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
@@ -141,14 +158,14 @@
     opacity: 0;
     transition: opacity 0.2s ease-in-out;
 }
-.mestrar-container .status-bar:hover .bar-controls {
+.status-bar:hover .bar-controls {
     opacity: 1;
 }
 
-.mestrar-container .left-controls { left: 5px; }
-.mestrar-container .right-controls { right: 5px; }
+.left-controls { left: 5px; }
+.right-controls { right: 5px; }
 
-.mestrar-container .bar-controls button {
+.bar-controls button {
     background: rgba(0, 0, 0, 0.7);
     border: 1px solid rgba(255, 255, 255, 0.6);
     color: #fff;
@@ -161,16 +178,15 @@
     cursor: pointer;
     min-width: 28px;
 }
-.mestrar-container .bar-controls button:hover {
+.bar-controls button:hover {
     background: #000;
 }
 
+.hp-bar { background: linear-gradient(to right, #6D0000, #D30000); height: 100%; }
+.sanidade-bar { background: linear-gradient(to right, #005C9E, #00A6FF); height: 100%; }
+.esforco-bar { background: linear-gradient(to right, #5D00A5, #A300FF); height: 100%; }
 
-.mestrar-container .hp-bar { background: linear-gradient(to right, #6D0000, #D30000); height: 100%; }
-.mestrar-container .sanidade-bar { background: linear-gradient(to right, #005C9E, #00A6FF); height: 100%; }
-.mestrar-container .esforco-bar { background: linear-gradient(to right, #5D00A5, #A300FF); height: 100%; }
-
-.mestrar-container .edit-btn {
+.edit-btn {
     width: 100%;
     margin-top: auto;
     padding: 10px;
@@ -182,8 +198,9 @@
     cursor: pointer;
     transition: all 0.2s;
 }
-.mestrar-container .edit-btn:hover {
+.edit-btn:hover {
     background: var(--cor-titulo-painel);
     color: var(--cor-fundo-painel);
     border-color: var(--cor-titulo-painel);
 }
+

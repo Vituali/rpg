@@ -183,7 +183,8 @@ function FichaModal({ ficha, fichaId, temporada, onClose, onExcluir, onUpdate })
             <button className={modalStyles.closeBtn} onClick={onClose}>×</button>
 
             <header className={modalStyles.sheetHeader}>
-                <input type="text" className={modalStyles.gameTitleInput} defaultValue="CULTO DE SARIAT RPG" />
+                {/* Alterado de input para div para ser fixo e centralizado */}
+                <div className={modalStyles.gameTitleInput}>CULTO DE SARIAT RPG</div>
             </header>
 
             <div className={modalStyles.playerInfoBar}>
@@ -309,4 +310,3 @@ function FichaModal({ ficha, fichaId, temporada, onClose, onExcluir, onUpdate })
 }
 
 export default FichaModal;
-

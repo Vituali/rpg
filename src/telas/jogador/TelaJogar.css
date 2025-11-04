@@ -11,6 +11,7 @@
     font-family: var(--fonte-ficha);
     text-transform: uppercase;
     backdrop-filter: blur(5px);
+    margin: 20px auto;
 }
 
 .character-img {
@@ -65,7 +66,7 @@
     font-size: 14px;
     width: auto; 
     max-width: 50px;
-    text-align: right; /* ALINHAMENTO CORRIGIDO */
+    text-align: right;
     padding: 0 2px;
     appearance: textfield;
     -moz-appearance: textfield; 
@@ -196,3 +197,4 @@ select option {
 .character-img.sem-sanidade.sem-esforco {
     animation: tremer 0.5s infinite, pulsar-esforco 1.5s infinite ease-in-out;
 }
+

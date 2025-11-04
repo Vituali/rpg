@@ -1,5 +1,5 @@
 // src/telas/jogador/TelaRituais.js
-import React, { useState, useEffect, useCallback } from 'react'; // 1. Importe o useCallback
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
     carregarRituais, 
@@ -7,7 +7,8 @@ import {
     atualizarRitual, 
     removerRitual 
 } from '../../firebase/dataService';
-import '../mestre/TelaCriarItens.css';
+// Importa o CSS Module da tela de criar itens
+import styles from '../mestre/TelaCriarItens.module.css';
 
 const modeloVazio = {
     nome: '',
@@ -26,8 +27,6 @@ function TelaRituais() {
     const [editandoId, setEditandoId] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // 2. Defina a função AQUI FORA, mas envolta em 'useCallback'
-    // Liste 'temporada' e 'fichaId' como dependências dela
     const fetchRituais = useCallback(async () => {
         setLoading(true);
         const data = await carregarRituais(temporada, fichaId);
@@ -35,11 +34,9 @@ function TelaRituais() {
         setLoading(false);
     }, [temporada, fichaId]); 
 
-    // 3. Agora o useEffect usa a função 'fetchRituais' e
-    //    DEPENDE dela.
     useEffect(() => {
         fetchRituais();
-    }, [fetchRituais]); // O ESLint ficará feliz!
+    }, [fetchRituais]);
 
     const handleSelecionar = (id, ritual) => {
         setItemAtual(ritual);
@@ -71,7 +68,7 @@ function TelaRituais() {
 
         if (sucesso) {
             alert("Ritual salvo com sucesso!");
-            fetchRituais(); // <-- Agora funciona!
+            fetchRituais();
             handleNovo();
         } else {
             alert("Falha ao salvar o ritual.");
@@ -83,7 +80,7 @@ function TelaRituais() {
             const sucesso = await removerRitual(temporada, fichaId, id);
             if (sucesso) {
                 alert("Ritual removido!");
-                fetchRituais(); // <-- Agora funciona!
+                fetchRituais();
                 handleNovo();
             } else {
                 alert("Falha ao remover o ritual.");
@@ -92,22 +89,22 @@ function TelaRituais() {
     };
 
     if (loading) {
-        return <div className="pagina-container">Carregando rituais...</div>;
+        return <div className={styles.paginaContainer}>Carregando rituais...</div>;
     }
 
     return (
-        // ... O resto do seu JSX continua igual ...
-        <div className="pagina-container">
-            <div className="gerenciador-itens-container">
-                <div className="lista-itens-painel">
+        // Aplica classes do CSS Module importado
+        <div className={styles.paginaContainer}>
+            <div className={styles.gerenciadorItensContainer}>
+                <div className={styles.listaItensPainel}>
                     <h2>Rituais</h2>
                     <button onClick={handleNovo}>+ Novo Ritual</button>
-                    <ul className="lista-de-itens">
+                    <ul className={styles.listaDeItens}>
                         {Object.entries(rituais).map(([id, rit]) => (
                             <li 
                                 key={id} 
                                 onClick={() => handleSelecionar(id, rit)} 
-                                className={editandoId === id ? 'selecionado' : ''}
+                                className={editandoId === id ? styles.selecionado : ''}
                             >
                                 {rit.nome}
                             </li>
@@ -115,7 +112,7 @@ function TelaRituais() {
                     </ul>
                 </div>
 
-                <div className="editor-item-painel">
+                <div className={styles.editorItemPainel}>
                     <h3>{editandoId ? 'Editando Ritual' : 'Novo Ritual'}</h3>
                     
                     <label>Nome:</label>
@@ -130,10 +127,10 @@ function TelaRituais() {
                     <label>Dados Usados / Efeito:</label>
                     <textarea name="dados" value={itemAtual.dados} onChange={handleChange} placeholder="Ex: 2d6+FOR, +5 em testes de..." style={{minHeight: '100px'}}></textarea>
                     
-                    <div className="editor-actions">
-                        <button className="salvar-btn" onClick={handleSalvar}>Salvar</button>
+                    <div className={styles.editorActions}>
+                        <button className={styles.salvarBtn} onClick={handleSalvar}>Salvar</button>
                         {editandoId && (
-                            <button className="remover-btn" onClick={() => handleRemover(editandoId, itemAtual.nome)}>
+                            <button className={styles.removerBtn} onClick={() => handleRemover(editandoId, itemAtual.nome)}>
                                 Remover
                             </button>
                         )}
