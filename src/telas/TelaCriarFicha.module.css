@@ -121,6 +121,7 @@
     border: 1px solid var(--cor-borda-painel);
     border-radius: 0;
     -webkit-appearance: none;
+    appearance: none;
     margin: 0;
     -moz-appearance: textfield; /* Para Firefox */
     order: 1;
@@ -190,5 +191,6 @@ input[type=number]::-webkit-outer-spin-button {
 }
 input[type=number] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 

@@ -67,6 +67,7 @@
     max-width: 50px;
     text-align: right; /* ALINHAMENTO CORRIGIDO */
     padding: 0 2px;
+    appearance: textfield;
     -moz-appearance: textfield; 
 }
 .status-input:focus {
