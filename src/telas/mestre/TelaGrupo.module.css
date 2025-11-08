@@ -116,7 +116,7 @@
 
 .statVida {
     top: calc(100% - 45px); 
-    left: -5px;
+    left: -15px;
 }
 .statSanidade {
     top: calc(100% - 30px); 
@@ -125,7 +125,7 @@
 }
 .statEsforco {
     top: calc(100% - 45px); 
-    right: -5px;
+    right: -15px;
 }
 
 
